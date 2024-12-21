@@ -1,7 +1,7 @@
 # WT-Plotter
 
 A simple application to display the contents of War Thunder's replay files, even older ones.
-
+Huge thanks to [FlareFlo](https://github.com/FlareFlo) for his work on the [wt_ext_cli](https://github.com/Warthunder-Open-Source-Foundation/wt_ext_cli)
 > **Note:** This project is still in development and many things need to be finished/polished, expect bugs.
 
 ## Features
@@ -13,9 +13,6 @@ A simple application to display the contents of War Thunder's replay files, even
 ![img.png](readme_assets/img.png)
 
 ![img_1.png](readme_assets/img_1.png)
-
-
-
 
 
 **Planned features:**

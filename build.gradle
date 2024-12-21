@@ -1,0 +1,51 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
+plugins {
+  id 'application'
+  id 'org.openjfx.javafxplugin' version '0.1.0'
+  id 'org.beryx.jlink' version '3.1.1'
+}
+
+def currentOS = DefaultNativePlatform.currentOperatingSystem
+
+repositories {
+    mavenCentral()
+}
+
+javafx {
+    version = "17.0.1"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+application {
+    mainModule = "org.sgambe.wtplotter"
+    mainClass = "org.sgambe.wtplotter.SuperMain"
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.11.0'
+}
+
+jlink {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--bind-services']
+    launcher {
+        name = 'WT Plotter'
+    }
+
+    if (currentOS.isWindows()) {
+        jpackage {
+            installerType = 'msi'
+            installerOptions = [
+                    '--win-menu',
+                    '--win-menu-group', 'Sgambe33',
+                    '--win-shortcut-prompt',
+                    '--win-help-url', 'https://github.com/Sgambe33',
+                    '--win-dir-chooser',
+                    '--description', 'WT Plotter is a free app to record player movements during War Thunder matches and also read and save replay files.',
+                    '--vendor', 'Sgambe33',
+                    '--app-version', "0.1.0",
+                    '--about-url', 'https://github.com/Sgambe33'
+            ]
+        }
+    }
+}

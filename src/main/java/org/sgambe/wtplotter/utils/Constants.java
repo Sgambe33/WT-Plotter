@@ -1,0 +1,84 @@
+package org.sgambe.wtplotter.utils;
+
+import java.util.HashMap;
+
+public class Constants {
+    public static final HashMap<String, String> MISSION_MODES = new HashMap<>(){{
+        put("_Dom", "Domination");
+        put("_Conq", "Conquest");
+        put("_DBttlA", "[Defence] #1");
+        put("_DBttlB", "[Defence] #2");
+        put("_Bttl", "Battle");
+        put("_PvE", "Assault");
+        put("random", "Random");
+        put("_Bto", "Break");
+        put("_AD", "Air Domination");
+        put("_Conq1", "[Conquest] #1");
+        put("_Conq2", "[Conquest] #2");
+        put("_Conq3", "[Conquest] #3");
+        put("_Conq4", "[Conquest] #4");
+        put("_Conq5", "[Conquest] #5");
+        put("_Conq6", "[Conquest] #6");
+        put("_pve_H2M", "⋡ PvE");
+    }};
+
+    public static final HashMap<String, String> MAP_NAMES = new HashMap<>(){{
+        put("avg_berlin", "Berlin");
+        put("avg_poland_snow", "Poland (Winter)");
+        put("avg_soviet_suburban_snow", "Seversk-13 (Winter)");
+        put("avg_kursk", "Kursk");
+        put("avg_eastern_europe", "Eastern Europe");
+        put("avg_poland", "Poland");
+        put("avg_mozdok", "Mozdok");
+        put("avg_krymsk", "Kuban");
+        put("avg_stalingrad_factory", "Stalingrad");
+        put("avg_rheinland", "Crossing over the Rhine");
+        put("avg_volokolamsk", "Volokolamsk");
+        put("avg_tunisia_desert", "Tunisia");
+        put("avg_snow_alps", "Frozen Pass");
+        put("avg_africa_desert", "El Alamein");
+        put("avg_finland", "Finland");
+        put("avg_iberian_castle", "Iberian Castle");
+        put("avg_normandy", "Normandy");
+        put("avg_hurtgen", "Hürtgen Forest");
+        put("avg_korea_lake", "The 38th parallel");
+        put("avg_karelia_forest_a", "Karelia");
+        put("avg_karpaty_passage", "Carpathians");
+        put("avg_abandoned_factory", "Abandoned Factory");
+        put("avg_european_fortress", "White Rock Fortress");
+        put("avg_guadalcanal", "Guadalcanal");
+        put("avg_ireland", "Ash River");
+        put("avg_port_novorossiysk", "Novorossiysk");
+        put("avg_training_ground", "Shooting Range");
+        put("avg_ardennes", "Bulge");
+        put("avg_fulda", "Fulda Gap");
+        put("avg_japan", "Imperial Gardens");
+        put("avg_sector_montmedy", "Maginot Line");
+        put("avg_sector_montmedy_snow", "Maginot Line");
+        put("avg_lazzaro_italy", "Italy");
+        put("avg_american_valley", "American Desert");
+        put("avg_alaska_town", "Alaska Town");
+        put("avg_vietnam_hills", "Vietnam Hills");
+        put("avg_egypt_sinai", "Sinai");
+        put("avg_syria", "Middle East");
+        put("avg_container_port", "Cargo Port");
+        put("avg_sweden", "Sweden");
+        put("avg_lazzaro_italy_new_city", "Campania");
+        put("avg_kursk_villages", "Fire Arc");
+        put("avg_nuclear_incident", "Ground Zero");
+        put("avg_soviet_suburban", "Seversk-13");
+        put("avg_western_europe", "Spaceport");
+        put("avg_red_desert", "Red Desert");
+        put("avg_breslau", "Breslau");
+        put("avg_aral_sea", "Aral Sea");
+        put("avg_israel", "Sun City");
+        put("avg_abandoned_town", "Abandoned Town");
+        put("avg_northern_india", "Pradesh");
+        put("avg_arctic", "Arctic");
+        put("avg_northern_valley", "Golden Quarry");
+        put("avg_soviet_range", "Test Site-2271");
+        put("avg_vlaanderen", "Flanders");
+        put("avg_netherlands", "North Holland");
+        put("avg_forgotten_land", "Forgotten Lands");
+    }};
+}

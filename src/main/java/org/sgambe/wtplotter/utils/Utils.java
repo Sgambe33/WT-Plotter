@@ -11,7 +11,6 @@ public class Utils {
     }
 
     public static void extractCLI() throws IOException {
-        //Move file from jar to temp folder
         File tempFolder = new File(System.getProperty("java.io.tmpdir") + "/wtplotter");
         if (!tempFolder.exists()) {
             tempFolder.mkdir();

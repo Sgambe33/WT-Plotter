@@ -192,4 +192,12 @@ public class Replay {
         }
         return null;
     }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public String getAuthorUserId() {
+        return authorUserId;
+    }
 }

@@ -5,6 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.sgambe.wtplotter.utils.ColorSimilarity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import javax.imageio.ImageIO;
@@ -21,6 +23,7 @@ public class HttpFetcher {
     private static final String DATA_URL = "http://localhost:8111/map_obj.json";
     private static final String MAP_URL = "http://localhost:8111/map.img";
     private static final String MAP_INFO = "http://localhost:8111/map_info.json";
+    private static final Logger logger = LoggerFactory.getLogger(HttpFetcher.class);
 
     private final MarkerDrawer markerDrawer;
     private long matchStartTime = 0;
@@ -71,7 +74,7 @@ public class HttpFetcher {
         if (mapImage != null && mapImage.getWidth() == 2048) {
             markerDrawer.setOriginalMapImage(mapImage);
         }else{
-            System.err.println("Invalid map image: " + (mapImage == null ? "null" : mapImage.getWidth()));
+            logger.error("Invalid map image: {}", mapImage == null ? "null" : mapImage.getWidth());
         }
     }
 
@@ -116,14 +119,13 @@ public class HttpFetcher {
                     } else if (ColorSimilarity.getDominantColor(position.color()).equalsIgnoreCase("green")) {
                         markerDrawer.addTeam1Position(position);
                     } else {
-                        System.err.println("Unknown color: " + position.color());
+                        logger.error("Unknown color: {}", position.color());
                     }
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private Position getPositionFromJsonElement(JsonElement element) {
@@ -159,7 +161,7 @@ public class HttpFetcher {
             }
             return false;
         } catch (IOException e) {
-            System.err.println("IO exception while fetching indicators: " + e.getMessage());
+            logger.error("IO exception while fetching indicators: {}", e.getMessage());
             return false;
         }
     }

@@ -9,10 +9,12 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import org.sgambe.wtplotter.utils.FileUtils;
 import org.sgambe.wtplotter.plotter.HttpFetcher;
 import org.sgambe.wtplotter.plotter.MarkerDrawer;
 import org.sgambe.wtplotter.replaydata.Replay;
+import org.sgambe.wtplotter.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -31,7 +33,7 @@ public class PlotterController {
     private boolean running = true;
     private static Label bottomStatusLabel;
     private ExecutorService executorService;
-
+    private static final Logger logger = LoggerFactory.getLogger(PlotterController.class);
 
     public void setBottomStatusLabel(Label bottomStatusLabel) {
         PlotterController.bottomStatusLabel = bottomStatusLabel;
@@ -44,9 +46,9 @@ public class PlotterController {
     private static void loadMap(HttpFetcher httpFetcher) {
         try {
             httpFetcher.fetchAndDisplayMap();
-            System.out.println("Map loaded.");
+            logger.debug("Map loaded");
         } catch (IOException e) {
-            System.err.println("Error loading map: " + e.getMessage());
+            logger.error("Error loading map: {}", e.getMessage());
         }
     }
 
@@ -94,12 +96,12 @@ public class PlotterController {
         try {
             String responseBody = new BufferedReader(new InputStreamReader(connection.getInputStream())).lines().collect(Collectors.joining("\n"));
             if (responseCode == 200) {
-                System.out.println("Match uploaded successfully.");
+                logger.debug("Match uploaded successfully");
             } else {
-                System.err.println("Failed to upload match. Response code: " + responseCode + ", response body: " + responseBody);
+                logger.error("Failed to upload match. Response code: {}, response body: {}", responseCode, responseBody);
             }
-        }catch (IOException e){
-            System.err.println("Error reading response body: " + e.getMessage());
+        } catch (IOException e) {
+            logger.error("Error reading response body: {}", e.getMessage());
         }
     }
 
@@ -135,7 +137,7 @@ public class PlotterController {
                 }
             } while (latestReplay == null && retries-- > 0);
             if (latestReplay != null) {
-                System.out.println("Latest replay file: " + latestReplay);
+                logger.debug("Latest replay file: {}", latestReplay);
                 Replay replay = Replay.fromFile(latestReplay);
                 String uploader = replay.getAuthorUserId();
                 if (uploader != null) {
@@ -143,14 +145,14 @@ public class PlotterController {
                     uploadMatch(markerDrawer, replay, uploader);
                 } else {
                     changeStatus("Failed to get user UID");
-                    System.out.println("Failed to get user UID. Data will not be validated against replay.");
+                    logger.error("Failed to get user UID. Data will not be validated against replay.");
                 }
             } else {
                 changeStatus("Failed to find latest replay file");
-                System.err.println("Failed to find latest replay file.");
+                logger.error("Failed to find latest replay file. Are replays set to auto-save?");
             }
         } catch (FileNotFoundException e) {
-            System.err.println("Error exporting position cache or saving plot: " + e.getMessage());
+            logger.error("Error exporting position cache or saving plot: {}", e.getMessage());
             throw new RuntimeException(e);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -196,10 +198,11 @@ public class PlotterController {
                         endMatch(markerDrawer);
                         markerDrawer.setOriginalMapImage(null);
                         markerDrawer.setDrawedMapImage(null);
+
                     }
                     Thread.sleep(1000);
                 }
-                System.out.println("Shutting down thread " + Thread.currentThread().getName());
+                logger.debug("Shutting down thread {}", Thread.currentThread().getName());
                 return null;
             }
         };
@@ -219,6 +222,4 @@ public class PlotterController {
             executorService.shutdownNow();
         }
     }
-
-
 }

@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +46,8 @@ public class WTPlotterController {
 
     private Scene secondScene;
 
+    private static final Logger logger = LoggerFactory.getLogger(WTPlotterController.class);
+
     public void setSecondScene(Scene scene) {
         secondScene = scene;
     }
@@ -60,23 +64,21 @@ public class WTPlotterController {
     private void populateTree() {
         Preferences prefs = Preferences.userNodeForPackage(PreferencesController.class);
         if (prefs.get("replayFolder", "").isEmpty()) {
-            System.err.println("Replay folder not set in preferences");
+            logger.error("Replay folder not set in preferences");
             return;
         }
         File replayFolder = new File(prefs.get("replayFolder", ""));
         File[] replayFiles = replayFolder.listFiles((dir, name) -> name.endsWith(".wrpl"));
 
-        if (replayFiles == null) return; // Exit if folder is empty or doesn't exist
+        if (replayFiles == null) return;
 
         Map<String, List<File>> replayMap = new HashMap<>();
 
-        // Group replay files by date (yyyy.mm.dd)
         for (File replayFile : replayFiles) {
             String date = replayFile.getName().substring(1, 11);
             replayMap.computeIfAbsent(date, k -> new ArrayList<>()).add(replayFile);
         }
 
-        // Root node for the TreeView
         TreeItem<String> root = new TreeItem<>("Replays");
         root.setExpanded(true);
 
@@ -84,7 +86,7 @@ public class WTPlotterController {
             TreeItem<String> dateItem = new TreeItem<>(entry.getKey());
             for (File file : entry.getValue()) {
                 TreeItem<String> fileItem = new TreeItem<>(file.getName());
-                treeItemToFileMap.put(fileItem, file); // Map the TreeItem to its File
+                treeItemToFileMap.put(fileItem, file);
                 dateItem.getChildren().add(fileItem);
             }
             root.getChildren().add(dateItem);
@@ -112,7 +114,6 @@ public class WTPlotterController {
 
             replayDetailsController = loader.getController();
 
-
             rightPane.getChildren().clear();
             rightPane.getChildren().add(detailsView);
 
@@ -123,7 +124,7 @@ public class WTPlotterController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Failed to load ReplayDetailsView.fxml");
+            logger.error("Failed to load ReplayDetailsView.fxml");
         }
     }
 
@@ -145,7 +146,7 @@ public class WTPlotterController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Failed to load ReplayDetailsView.fxml");
+            logger.error("Failed to load PlotterView.fxml");
         }
     }
 
@@ -169,8 +170,6 @@ public class WTPlotterController {
                 rightPane.getChildren().clear();
                 rightPane.getChildren().add(replayView);
 
-
-
                 AnchorPane.setTopAnchor(replayView, 0.0);
                 AnchorPane.setBottomAnchor(replayView, 0.0);
                 AnchorPane.setLeftAnchor(replayView, 0.0);
@@ -178,7 +177,7 @@ public class WTPlotterController {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                System.err.println("Failed to load ReplayView.fxml");
+                logger.error("Failed to load ReplayView.fxml");
             }
         });
 

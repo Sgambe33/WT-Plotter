@@ -1,8 +1,14 @@
 package org.sgambe.wtplotter.utils;
 
+import com.sun.tools.javac.Main;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 
 public class Utils {
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
     public static String formatTime(double time) {
         int hours = (int) time / 3600;
         int minutes = (int) time / 60;
@@ -26,7 +32,7 @@ public class Utils {
                     out.write(buffer, 0, length);
                 }
             }
-            System.out.println("Extracted CLI to " + tempFile.getAbsolutePath());
+            logger.debug("Extracted CLI to {}", tempFile.getAbsolutePath());
         }
     }
 }

@@ -23,7 +23,7 @@ env:
 
 jobs:
   build:
-    runs-on:  windows-2019
+    runs-on:  windows-latest
 
     steps:
       - name: Checkout repo
@@ -44,7 +44,6 @@ jobs:
           dir:          ${{ runner.temp }}
           aqtversion: '==3.1.19'
           #archives:      qtcharts qt3d
-          setup-python: false
 
       - name: Download JOM
         uses: suisei-cn/actions-download-file@v1

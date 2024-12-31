@@ -18,9 +18,9 @@ public:
 
 private slots:
     void on_buttonBox_accepted();
-    void on_chooseReplayFolder_clicked(); // Slot for the button
-    void on_choosePlotSavePath_clicked(); // Slot for the button
-	void on_autosaveCheck_stateChanged(int state); // Slot for the checkbox
+    void on_chooseReplayFolder_clicked();
+    void on_choosePlotSavePath_clicked();
+	void on_autosaveCheck_stateChanged(int state);
 
 
 private:

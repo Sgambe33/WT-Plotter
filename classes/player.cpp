@@ -7,7 +7,6 @@ Player::Player()
     deaths(0), captureZone(0), damageZone(0), score(0),
     awardDamage(0), missileEvades(0), squadId(0), autoSquad(0), team(0) {}
 
-// Static method to parse JSON into a Player object
 Player Player::fromJson(const QJsonObject &json) {
     Player player;
 
@@ -75,7 +74,6 @@ Player Player::fromJson(const QJsonObject &json) {
     return player;
 }
 
-// Getters
 QString Player::getName() const { return name; }
 QString Player::getClanTag() const { return clanTag; }
 int Player::getKills() const { return kills; }

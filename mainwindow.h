@@ -40,14 +40,14 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
-    QStandardItemModel* model;  // Declare model as a member variable
-    QThread* m_thread = nullptr;  // Pointer to store the thread
+    QStandardItemModel* model;
+    QThread* m_thread = nullptr;
     Worker *m_worker;
 
     void startPlotter();
     void stopPlotter();
     void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
-    void onTreeItemClicked(const QModelIndex& index); // Slot for item click
+    void onTreeItemClicked(const QModelIndex& index);
     void executeCommand(const QString& filePath);
     void populateTeamTable(QTableWidget* table, const QList<Player>& players);
     void setCustomFont(const QString &fontPath, QWidget *widget);

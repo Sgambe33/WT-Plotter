@@ -5,7 +5,6 @@
 PlayerInfo::PlayerInfo()
     : team(0), slot(0), mrank(0), autoSquad(false), waitTime(0), tier(0), squad(0), rank(0) {}
 
-// Static method to create a PlayerInfo object from JSON
 PlayerInfo PlayerInfo::fromJson(const QJsonObject &playerInfoObject) {
     PlayerInfo player;
 
@@ -58,7 +57,6 @@ PlayerInfo PlayerInfo::fromJson(const QJsonObject &playerInfoObject) {
     return player;
 }
 
-// Method to parse craftsInfo from JSON
 QList<CraftInfo> PlayerInfo::parseCraftsInfo(const QJsonObject &craftInfoObject) {
     QList<CraftInfo> craftsList;
     for (const QString &key : craftInfoObject.keys()) {
@@ -75,7 +73,6 @@ QList<CraftInfo> PlayerInfo::parseCraftsInfo(const QJsonObject &craftInfoObject)
     return craftsList;
 }
 
-// Getters
 QString PlayerInfo::getName() {
     return name;
 }

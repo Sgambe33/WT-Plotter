@@ -24,7 +24,7 @@ Worker::Worker(SceneImageViewer *imageViewer, QObject *parent)
     : QObject(parent),
       m_timer(new QTimer(this)),
       matchStartTime(0),
-      networkManager(new QNetworkAccessManager(this)) // Initialize here
+      networkManager(new QNetworkAccessManager(this))
 {
     connect(m_timer, &QTimer::timeout, this, &Worker::onTimeout);
 }
@@ -40,7 +40,7 @@ void Worker::startTimer()
         QMetaObject::invokeMethod(this, "startTimer", Qt::QueuedConnection);
         return;
     }
-    m_timer->start(1000); // Example: Start the timer with a 1-second interval
+    m_timer->start(1000);
 }
 
 void Worker::stopTimer()
@@ -174,9 +174,6 @@ void Worker::endMatch()
             qWarning() << "No replay file found after match end. Data will not be validated against replay.";
         }
         qInfo() << "Position cache exported and plot saved to disk with timestamp:" << currEpoch;
-    //} catch (const QFile::FileError &e) {
-    //    qCritical() << "Error exporting position cache or saving plot:" << e;
-    //    throw std::runtime_error(e.what());
     } catch (const std::exception &e) {
         throw std::runtime_error(e.what());
     }
@@ -224,7 +221,7 @@ QJsonArray Worker::exportPositionsToJson(Replay& replayData){
 
 void Worker::uploadReplay(Replay& replayData, const QString& uploader)
 {
-    QNetworkRequest request(QUrl("http://89.168.30.170/uploadPositions"));
+    QNetworkRequest request(QUrl("http://warthunder-heatmaps.crabdance.com/uploadPositions"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QJsonObject headerMap;

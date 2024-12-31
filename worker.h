@@ -88,7 +88,7 @@ private:
     static QString DATA_URL;
     static QString MAP_URL;
     static QString MAP_INFO;
-    QNetworkAccessManager *networkManager; // Change to pointer
+    QNetworkAccessManager *networkManager;
 };
 
 #endif // WORKER_H

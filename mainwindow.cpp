@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
     QStatusBar *statusBar = ui->statusbar;
     QWidget *buttonBox = new QWidget(this);
     QHBoxLayout *layout = new QHBoxLayout(buttonBox);
-    layout->setContentsMargins(0, 0, 0, 0); // Remove margins
+    layout->setContentsMargins(0, 0, 0, 0);
 
     QPushButton *replayButton = new QPushButton("Replays", buttonBox);
 
@@ -59,7 +59,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     QPushButton *plotterButton = new QPushButton("Plotter", buttonBox);
 
-    //When replayButton is clicked, hide page_2 and show page
     connect(replayButton, &QPushButton::clicked, [=] {
         ui->stackedWidget->setCurrentIndex(0);
         ui->replayTreeView->setDisabled(false);
@@ -114,9 +113,8 @@ void MainWindow::setCustomFont(const QString &fontPath, QWidget *widget) {
 void MainWindow::startPlotter() {
     qDebug() << "Starting plotter...";
     m_thread = new QThread();
-    m_worker = new Worker(ui->mappa); // Pass SceneImageViewer pointer
+    m_worker = new Worker(ui->mappa);
 
-    // Move the worker to the thread so it will run in that thread
     connect(m_thread, &QThread::started, m_worker, &Worker::performTask);
     connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::stopPlotter);
     connect(m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
@@ -150,14 +148,11 @@ void MainWindow::updateStatusLabel(QString msg){
 
 void MainWindow::stopPlotter() {
     if (m_thread && m_worker) {
-        // Use a signal to stop the timer in the worker's thread
         QMetaObject::invokeMethod(m_worker, "stopTimer", Qt::QueuedConnection);
 
-        // Quit the thread and wait for it to finish
-        m_thread->quit();  // Requests the thread to exit
-        m_thread->wait();  // Wait for the thread to finish execution
+        m_thread->quit();
+        m_thread->wait();
 
-        // Clean up
         m_thread = nullptr;
         m_worker = nullptr;
 
@@ -167,33 +162,27 @@ void MainWindow::stopPlotter() {
 
 void MainWindow::populateReplayTreeView(QTreeView *replayTreeView, const QString &directoryPath)
 {
-    // Set up the model (using the member model, not local)
     model->setHorizontalHeaderLabels({"File Name"});
 
     QMap<QDate, QList<QFileInfo>> filesByDate;
 
-    // List files in the directory
     QDir dir(directoryPath);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
     dir.setNameFilters({"*.wrpl"});
     QFileInfoList fileInfoList = dir.entryInfoList();
 
-    // Group files by their creation date
     for (const QFileInfo &fileInfo : fileInfoList)
     {
         QDate creationDate = fileInfo.birthTime().date();
         filesByDate[creationDate].append(fileInfo);
     }
 
-    // Populate the model
     for (auto it = filesByDate.cbegin(); it != filesByDate.cend(); ++it)
     {
-        // Parent item for the date
         QStandardItem *dateItem = new QStandardItem(it.key().toString("yyyy-MM-dd"));
         dateItem->setFlags(dateItem->flags() & ~Qt::ItemIsEditable);
         for (const QFileInfo &fileInfo : it.value())
         {
-            // Child item for each file
             QStandardItem *fileNameItem = new QStandardItem(fileInfo.fileName());
             fileNameItem->setData(fileInfo.absoluteFilePath(), Qt::UserRole);
             fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
@@ -203,7 +192,6 @@ void MainWindow::populateReplayTreeView(QTreeView *replayTreeView, const QString
         model->appendRow(dateItem);
     }
 
-    // Set the model to the tree view
     replayTreeView->setModel(model);
     replayTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
@@ -221,10 +209,8 @@ void MainWindow::onTreeItemClicked(const QModelIndex &index)\
 
 void MainWindow::executeCommand(const QString &filePath)
 {
-    // Read the file and parse the replay
     Replay rep = Replay::fromFile(filePath);
 
-    //setCustomFont(":/wt_symbols.ttf", ui->mapNameLabel);
 
 	QPixmap mapPixmap(":/icons/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
 	if (mapPixmap.isNull()) {
@@ -237,31 +223,29 @@ void MainWindow::executeCommand(const QString &filePath)
     ui->timePlayedLabel->setText(QString("Time played: ") + QString::number(rep.getTimePlayed()));
     ui->resultLabel->setText(QString("Result: ") + rep.getStatus());
 
-    // Get players from the replay
     QList<Player> players = rep.getPlayers();
 
-    // Separate players into allies and axis teams
     QList<Player> allies;
     QList<Player> axis;
     for (const Player &player : players)
     {
         if (player.getTeam() == 1)
         {
-            allies.append(player); // Add to Allies team
+            allies.append(player);
         }
         else if (player.getTeam() == 2)
         {
-            axis.append(player); // Add to Axis team
+            axis.append(player);
         }
     }
 
     std::sort(allies.begin(), allies.end(), [](const Player &p1, const Player &p2)
               {
-                  return p1.getScore() > p2.getScore(); // Sort in descending order
+                  return p1.getScore() > p2.getScore();
               });
     std::sort(axis.begin(), axis.end(), [](const Player &p1, const Player &p2)
               {
-                  return p1.getScore() > p2.getScore(); // Sort in descending order
+                  return p1.getScore() > p2.getScore();
               });
 
     // Populate both tables (allies and axis)
@@ -271,11 +255,10 @@ void MainWindow::executeCommand(const QString &filePath)
 
 void MainWindow::populateTeamTable(QTableWidget *table, const QList<Player> &players)
 {
-    table->clear();                     // Clear any previous data
-    table->setRowCount(players.size()); // Set the number of rows based on the number of players
-    table->setColumnCount(10);           // Set the number of columns (you can modify this based on the attributes you want to display)
+    table->clear(); 
+    table->setRowCount(players.size());
+    table->setColumnCount(10);
 
-   // Load pixmaps for headers
     QPixmap scorePixmap(":/icons/score.png");
     QPixmap killsPixmap(":/icons/kills.png");
     QPixmap groundKillsPixmap(":/icons/groundKills.png");
@@ -345,7 +328,6 @@ void MainWindow::populateTeamTable(QTableWidget *table, const QList<Player> &pla
         table->setItem(i, 10, deathsItem);
     }
 
-    // Resize columns to fit content
     table->resizeColumnsToContents();
 }
 

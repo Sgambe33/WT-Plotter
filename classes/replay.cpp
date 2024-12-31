@@ -80,7 +80,7 @@ QJsonObject Replay::unpackResults(int rezOffset, const QByteArray &buffer) {
     QByteArray dataAfterRez = buffer.mid(rezOffset);
 
     QProcess process;
-    QString executablePath = "E:/wt_ext_cli.exe";
+    QString executablePath = "./wt_ext_cli/wt_ext_cli.exe";
     QStringList arguments{"--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json"};
 
     process.start(executablePath, arguments);
@@ -116,7 +116,6 @@ void Replay::parseResults(const QJsonObject &results) {
         players.append(Player::fromJson(playerObject));
     }
 
-    // Parse playersInfo if available
     QJsonObject uiScriptsData = results.value("uiScriptsData").toObject();
     QJsonObject playersInfoObject = uiScriptsData.value("playersInfo").toObject();
     for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {

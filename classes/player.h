@@ -8,7 +8,6 @@ class Player {
 public:
     Player();
 
-    // Static method to create a Player object from JSON
     static Player fromJson(const QJsonObject &json);
 
     // Getters

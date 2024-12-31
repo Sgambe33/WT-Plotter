@@ -11,15 +11,15 @@ class SceneImageViewer : public QGraphicsView {
 
     QGraphicsScene m_scene;
     QGraphicsPixmapItem m_item;
-    qreal m_scaleFactor = 1.0; // Track the current scale factor
-    const qreal m_zoomStep = 0.1; // The zoom increment for each wheel step
-    const qreal m_minScale = 0.1; // Minimum zoom level
-    const qreal m_maxScale = 10.0; // Maximum zoom level
+    qreal m_scaleFactor = 1.0;
+    const qreal m_zoomStep = 0.1;
+    const qreal m_minScale = 0.1;
+    const qreal m_maxScale = 10.0;
 
 public:
     SceneImageViewer(QWidget *parent = nullptr);
 
-    void setPixmap(const QPixmap &pixmap); // Change to const QPixmap&
+    void setPixmap(const QPixmap &pixmap);
 
     QSize sizeHint() const override;
 

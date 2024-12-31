@@ -1,0 +1,85 @@
+name: Windows Release
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'continuous-integration'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+    - 'master'
+    - 'continuous-integration'
+
+defaults:
+  run:
+    shell: cmd
+
+env:
+  SOURCE_DIR:   ${{ github.workspace }}
+  QT_VERSION:   6.8.1
+  ARTIFACT:     qt-wtplotter-build.zip
+
+jobs:
+  build:
+    runs-on:  windows-2019
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get all tags for correct version determination
+        working-directory:  ${{ github.workspace }}
+        run: |
+          git fetch --all --tags -f
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version:      ${{ env.QT_VERSION }}
+          host:         windows
+          target:       desktop
+          arch:         win64_msvc2019_64
+          dir:          ${{ runner.temp }}
+          #archives:      qtcharts qt3d
+          setup-python: false
+
+      - name: Download JOM
+        uses: suisei-cn/actions-download-file@v1
+        with:
+          url:    http://download.qt.io/official_releases/jom/jom.zip
+          target: ${{ runner.temp }}\
+
+      - name: Unzip JOM
+        working-directory: ${{ runner.temp }}
+        run:  |
+              7z x jom.zip -ojom
+              
+      - name: Create build directory
+        run:  mkdir ${{ runner.temp }}\build
+
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
+      - name: Build
+        working-directory: ${{ runner.temp }}\build
+        run:  |
+              cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/msvc2019_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
+              cmake --build . --config Release
+              cd release
+              windeployqt --qmldir ${{ env.SOURCE_DIR }} qtwtplotter.exe --pdb --release --compiler-runtime
+              
+      - name: Zip build
+        working-directory: ${{ runner.temp }}
+        run:  |
+              7z a qt-wtplotter-build.zip ${{ runner.temp }}\build\* -r
+              
+      - name: Save build artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: ${{ runner.temp }}\${{ env.ARTIFACT }}
+              

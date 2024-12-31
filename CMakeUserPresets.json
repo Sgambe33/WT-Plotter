@@ -1,0 +1,76 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "Qt-Debug",
+      "inherits": "Qt-Default",
+      "binaryDir": "${sourceDir}/out/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-DQT_QML_DEBUG"
+      },
+      "environment": {
+        "QML_DEBUG_ARGS": "-qmljsdebugger=file:{068b5332-316c-4403-85c3-cdc3718922e2},block"
+      }
+    },
+    {
+      "name": "Qt-Release",
+      "inherits": "Qt-Default",
+      "binaryDir": "${sourceDir}/out/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "Qt-Default",
+      "inherits": "6.8.1_msvc2022_64",
+      "vendor": {
+        "qt-project.org/Default": {
+          "checksum": "6Sup4at06hpiF2WRz3oTwiO3cdQ="
+        }
+      }
+    },
+    {
+      "hidden": true,
+      "name": "6.8.1_msvc2022_64",
+      "inherits": "Qt",
+      "environment": {
+        "QTDIR": "E:/Qt/6.8.1/msvc2022_64"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "generator": "Ninja",
+      "vendor": {
+        "qt-project.org/Version": {
+          "checksum": "6vEGmLWriq3AUQ0l04TNIi366+U="
+        }
+      }
+    },
+    {
+      "hidden": true,
+      "name": "6.8.1_msvc2022_arm64",
+      "inherits": "Qt",
+      "environment": {
+        "QTDIR": "E:/Qt/6.8.1/msvc2022_arm64"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "arm64"
+      },
+      "generator": "Ninja",
+      "vendor": {
+        "qt-project.org/Version": {
+          "checksum": "TcO19xiY625jJNyfOcsJlI3wPo4="
+        }
+      }
+    }
+  ],
+  "vendor": {
+    "qt-project.org/Presets": {
+      "checksum": "EShhIhhhLoqSweQYDVDcVK7FyG0="
+    }
+  }
+}

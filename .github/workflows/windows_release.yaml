@@ -37,10 +37,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version:      '6.8.1'
-          arch:         'win64_mingw'
+          arch:         'win64_msvc2022_64 '
           aqtversion:   '==3.1.19'
           modules:      'qtnetwork qtwidgets'
-                        
+
       - name: Create build directory
         run:  mkdir ${{ runner.temp }}\build
 

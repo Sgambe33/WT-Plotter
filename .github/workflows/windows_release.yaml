@@ -18,7 +18,6 @@ defaults:
 
 env:
   SOURCE_DIR:   ${{ github.workspace }}
-  QT_VERSION:   6.8.1
   ARTIFACT:     qt-wtplotter-build.zip
 
 jobs:
@@ -37,25 +36,11 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version:      ${{ env.QT_VERSION }}
-          host:         windows
-          target:       desktop
-          arch:         win64_msvc2019_64
-          dir:          ${{ runner.temp }}
+          version:      '6.8.1'
+          arch:         'win64_mingw'
           aqtversion:   '==3.1.19'
           modules:      'qtnetwork qtwidgets'
-
-      - name: Download JOM
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url:    http://download.qt.io/official_releases/jom/jom.zip
-          target: ${{ runner.temp }}\
-
-      - name: Unzip JOM
-        working-directory: ${{ runner.temp }}
-        run:  |
-              7z x jom.zip -ojom
-              
+                        
       - name: Create build directory
         run:  mkdir ${{ runner.temp }}\build
 

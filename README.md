@@ -1,5 +1,7 @@
 # WT-Plotter
 
+[![Windows Release](https://github.com/Sgambe33/WT-Plotter/actions/workflows/windows_release.yaml/badge.svg)](https://github.com/Sgambe33/WT-Plotter/actions/workflows/windows_release.yaml)
+
 A simple application to display the contents of War Thunder's replay files, even older ones.
 Huge thanks to [FlareFlo](https://github.com/FlareFlo) for his work on the [wt_ext_cli](https://github.com/Warthunder-Open-Source-Foundation/wt_ext_cli)
 > **Note:** This project is still in development and many things need to be finished/polished, expect bugs.
@@ -32,3 +34,8 @@ Huge thanks to [FlareFlo](https://github.com/FlareFlo) for his work on the [wt_e
 5. Restart the app.
 6. The left side of the application will show a list of all the replays in the directory that can be read.
 7. Select a replay from the list and the right side of the application will show the contents of the replay.
+
+# DISCLAIMER
+This project is not affiliated with Gaijin Entertainment in any way. War Thunder is a registered trademark of Gaijin Entertainment. All rights reserved.
+
+By using this software you agree to share the data (such as players' positions, match map, match start time, author's user id) gathered while *both the game and this software are in execution* with the [WT-Heatmaps](http://warthunder-heatmaps.crabdance.com/) project.

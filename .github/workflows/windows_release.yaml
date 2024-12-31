@@ -59,7 +59,7 @@ jobs:
       - name: Zip build
         working-directory: ${{ runner.temp }}
         run:  |
-              7z a qt-wtplotter-build.zip ${{ runner.temp }}\build\* -r
+              7z a qt-wtplotter-build.zip ${{ runner.temp }}\build\Release\* -r
               
       - name: Save build artifact
         uses: actions/upload-artifact@master

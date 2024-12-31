@@ -42,8 +42,8 @@ jobs:
           target:       desktop
           arch:         win64_msvc2019_64
           dir:          ${{ runner.temp }}
-          aqtversion: '==3.1.19'
-          #archives:      qtcharts qt3d
+          aqtversion:   '==3.1.19'
+          modules:      'qtnetwork qtwidgets'
 
       - name: Download JOM
         uses: suisei-cn/actions-download-file@v1

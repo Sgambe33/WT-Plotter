@@ -80,8 +80,17 @@ QJsonObject Replay::unpackResults(int rezOffset, const QByteArray &buffer) {
     QByteArray dataAfterRez = buffer.mid(rezOffset);
 
     QProcess process;
-    QString executablePath = "./wt_ext_cli/wt_ext_cli.exe";
+    QString executablePath;
     QStringList arguments{"--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json"};
+
+    #ifdef Q_OS_WIN
+        executablePath = "./wt_ext_cli/wt_ext_cli.exe";
+    #elif defined(Q_OS_LINUX)
+        executablePath = "./wt_ext_cli/wt_ext_cli";
+    #else
+        throw std::runtime_error("Unsupported platform");
+    #endif
+
 
     process.start(executablePath, arguments);
     if (!process.waitForStarted()) {
@@ -128,23 +137,7 @@ QString Replay::getLevel() const { return level; }
 double Replay::getTimePlayed() const { return timePlayed; }
 QString Replay::getStatus() const { return status; }
 QList<Player> Replay::getPlayers() const { return players; }
-
-QString Replay::getAuthorId() const
-{
-    return this->authorUserId;
-}
-
-QString Replay::getSessionId() const
-{
-	return this->sessionId;
-}
-
-QString Replay::getBattleType() const
-{
-    return this->battleType;
-}
-
-int Replay::getStartTime() const
-{
-	return this->startTime;
-}
+QString Replay::getAuthorId() const { return authorUserId; }
+QString Replay::getSessionId() const { return sessionId; }
+QString Replay::getBattleType() const { return battleType; }
+int Replay::getStartTime() const { return startTime; }

@@ -48,7 +48,7 @@ jobs:
               cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/msvc2019_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
               cmake --build . --config Release
               cd release
-              windeployqt qtwtplotter.exe --release --no-translations --no-opengl-sw
+              windeployqt qtwtplotter.exe --release --no-translations --no-opengl-sw --no-compiler-runtime  
 
       - name: Copy wt_ext_cli.exe
         run:  |

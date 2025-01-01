@@ -1,5 +1,10 @@
 ﻿#include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include "classes/replay.h"
+#include "sceneimageviewer.h"
+#include <qfontdatabase.h>
+#include "worker.h"
+#include "preferencesdialog.h"
 #include <QPainter>
 #include <QTreeView>
 #include <QStandardItemModel>
@@ -16,15 +21,10 @@
 #include <QGraphicsPixmapItem>
 #include <QLabel>
 #include <QDebug>
-#include "classes\replay.h"
-#include "./sceneimageviewer.h"
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
 #include <QPushButton>
-#include <qfontdatabase.h>
-#include "worker.h"
-#include "preferencesdialog.h"
 #include <QSettings>
 
 
@@ -54,9 +54,6 @@ MainWindow::MainWindow(QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
 
     QPushButton *replayButton = new QPushButton("Replays", buttonBox);
-
-    
-
     QPushButton *plotterButton = new QPushButton("Plotter", buttonBox);
 
     connect(replayButton, &QPushButton::clicked, [=] {
@@ -75,12 +72,10 @@ MainWindow::MainWindow(QWidget *parent)
         startPlotter();
     });
 
-
     layout->addWidget(replayButton);
     layout->addWidget(plotterButton);
 
     statusBar->addPermanentWidget(buttonBox);
-    
 
     ui->replayTreeView->setDisabled(true);
     plotterButton->setDisabled(true);
@@ -196,7 +191,7 @@ void MainWindow::populateReplayTreeView(QTreeView *replayTreeView, const QString
     replayTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
-void MainWindow::onTreeItemClicked(const QModelIndex &index)\
+void MainWindow::onTreeItemClicked(const QModelIndex &index)
 {
     QString filePath = index.data(Qt::UserRole).toString();
 
@@ -219,7 +214,10 @@ void MainWindow::executeCommand(const QString &filePath)
     ui->mapImage->setPixmap(mapPixmap);
 
     ui->mapNameLabel->setText(QString("Map: ") + rep.getLevel());
-    ui->startTimeLabel->setText(QString("Start time: ") + QString::number(rep.getTimePlayed())); //TODO:FIX
+
+    QDateTime startTime = QDateTime::fromSecsSinceEpoch(rep.getStartTime());
+    QString formattedStartTime = startTime.toString("hh:mm:ss");
+    ui->startTimeLabel->setText(QString("Start time: ") + formattedStartTime);
     ui->timePlayedLabel->setText(QString("Time played: ") + QString::number(rep.getTimePlayed()));
     ui->resultLabel->setText(QString("Result: ") + rep.getStatus());
 

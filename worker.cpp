@@ -422,6 +422,7 @@ void Worker::drawMarkers(QPixmap &displayImage)
     }
 
     QPainter painter(&displayImage);
+	painter.setPen(Qt::NoPen);
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
@@ -459,6 +460,7 @@ void Worker::drawSpecialMarkers(QPixmap &displayImage)
     }
 
     QPainter painter(&displayImage);
+	painter.setPen(Qt::NoPen);
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
     QMap<QString, QList<Position>> respawnBaseTankGroups;
@@ -488,7 +490,8 @@ void Worker::drawCaptureZoneMarker(QPixmap &displayImage, QPainter &painter, con
     double y = pos.y();
     int px = static_cast<int>(x * displayImage.width());
     int py = static_cast<int>(y * displayImage.height());
-    painter.setBrush(Qt::yellow);
+    painter.setPen(Qt::yellow);
+    painter.setBrush(Qt::NoBrush);
     painter.drawRect(px - 10, py - 10, 20, 20);
 }
 
@@ -496,7 +499,8 @@ void Worker::drawRespawnBaseTank(QPixmap &displayImage, QPainter &painter, const
 {
     for (const Position &pos : group) {
         QColor markerColor("#ff00ff");
-        painter.setBrush(markerColor);
+        painter.setPen(markerColor);
+        painter.setBrush(Qt::NoBrush);
         int markerSize = 4;
         int px1 = static_cast<int>(pos.x() * displayImage.width());
         int py1 = static_cast<int>(pos.y() * displayImage.height());

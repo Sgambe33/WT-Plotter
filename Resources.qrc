@@ -65,10 +65,10 @@
         <file>icons/map_images/avg_syria_tankmap_thumb.png</file>
         <file>icons/map_images/avg_tunisia_desert_tankmap_thumb.png</file>
         <file>icons/map_images/avg_vietnam_hills_tankmap_thumb.png</file>
-        <file>icons/map_images/avg_vlaanderen_heatmap_thumb.png</file>
         <file>icons/map_images/avg_vlaanderen_tankmap_thumb.png</file>
         <file>icons/map_images/avg_volokolamsk_tankmap_thumb.png</file>
         <file>icons/map_images/avg_western_europe_tankmap_thumb.png</file>
         <file>icons/map_images/unknownmap.png</file>
+        <file>icons/map_images/avg_greece_tankmap_thumb.png</file>
     </qresource>
 </RCC>

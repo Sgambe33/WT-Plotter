@@ -1,10 +1,15 @@
 name: Windows Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'    
   pull_request:
     branches:
     - 'main'
-    - 'continuous-integration'
 
 defaults:
   run:
@@ -48,7 +53,7 @@ jobs:
               cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/msvc2019_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
               cmake --build . --config Release
               cd release
-              windeployqt qtwtplotter.exe --release --no-translations --no-opengl-sw --no-compiler-runtime  
+              windeployqt wtplotter.exe --release --no-translations --no-opengl-sw --no-compiler-runtime  
 
       - name: Copy wt_ext_cli.exe
         run:  |
@@ -58,11 +63,20 @@ jobs:
       - name: Zip build
         working-directory: ${{ runner.temp }}
         run:  |
-              7z a qt-wtplotter-build.zip ${{ runner.temp }}\build\Release\* -r
+              7z a wtplotter-build.zip ${{ runner.temp }}\build\Release\* -r
               
       - name: Save build artifact
         uses: actions/upload-artifact@master
         with:
           name: ${{ env.ARTIFACT }}
           path: ${{ runner.temp }}\${{ env.ARTIFACT }}
+
+      - name: Publish artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: false
+          files: |
+            wtplotter-build.zip
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
               

@@ -59,6 +59,7 @@ private:
     void updateMarkers();
     bool shouldEndMatch();
     void endMatch();
+    void saveImage(Replay& replayData);
     void restartScheduler();
     QFile getLatestReplay(const QDir &replayDirectory);
     void drawMarkers(QPixmap &displayImage);

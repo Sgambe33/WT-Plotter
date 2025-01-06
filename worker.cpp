@@ -102,7 +102,6 @@ void Worker::onTimeout()
 			
 
         }else{
-            //? OK?
 			emit updateStatusLabel(QString("Awaiting match start..."));
         }
     }
@@ -149,9 +148,10 @@ void Worker::endMatch()
 {
     QString currEpoch = QString::number(QDateTime::currentMSecsSinceEpoch());
     try {
-        //FileUtils::saveFilteredPlotToDisk(getDrawedMapImage(), currEpoch);
         QSettings settings("sgambe33", "wtplotter");
         QString replayDir = settings.value("replayFolderPath", "").toString();
+		QString plotDir = settings.value("plotSavePath", "").toString();
+		bool autosave = settings.value("autosave", false).toBool();
         QFile latestReplay;
         int retries = 60;
         do {
@@ -170,6 +170,9 @@ void Worker::endMatch()
             } else {
                 qWarning() << "Failed to get user UID. Data will not be validated against replay.";
             }
+			if (autosave) {
+				saveImage(replayData);
+			}
         } else {
             qWarning() << "No replay file found after match end. Data will not be validated against replay.";
         }
@@ -182,6 +185,21 @@ void Worker::endMatch()
     setOriginalMapImage(QPixmap());
     setDrawedMapImage(QPixmap());
     qDebug() << "Match ended, markers cleared.";
+}
+
+void Worker::saveImage(Replay &replayData){
+	QPixmap drawedMapImage = getDrawedMapImage();
+	if (drawedMapImage.isNull()) {
+		qDebug() << "Error: drawedMapImage is null.";
+		return;
+	}
+	else {
+		QImageWriter writer;
+		writer.setFormat("png");
+		QFile file(QDir(QSettings("sgambe33", "wtplotter").value("plotSavePath", "").toString()).filePath(replayData.getSessionId() + ".png"));
+		writer.setFileName(file.fileName());
+		writer.write(drawedMapImage.toImage());
+	}
 }
 
 QJsonArray Worker::exportPositionsToJson(Replay& replayData){
@@ -429,8 +447,6 @@ void Worker::drawMarkers(QPixmap &displayImage)
     drawMarkers(displayImage, painter, playerPositionCache);
     drawMarkers(displayImage, painter, team1PositionCache);
     drawMarkers(displayImage, painter, team2PositionCache);
-
-    emit updatePixmap(displayImage);
 }
 
 void Worker::drawMarkers(QPixmap &displayImage, QPainter &painter, const QList<Position> &positionCache)

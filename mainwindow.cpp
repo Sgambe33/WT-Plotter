@@ -26,6 +26,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QPushButton>
 #include <QSettings>
+#include <QMessageBox>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -42,7 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
         populateReplayTreeView(ui->replayTreeView, settings.value("replayFolderPath").toString());
 	}
 
-    ui->splitter->setSizes(QList<int>() << 50 << 200);
+    ui->splitter->setStretchFactor(0, 2);
+    ui->splitter->setStretchFactor(1, 3);
 
     QPixmap img(":/icons/map_images/unknownmap.png");
     img = img.scaled(125, 125, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -83,12 +85,34 @@ MainWindow::MainWindow(QWidget *parent)
     startPlotter();
     connect(ui->replayTreeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
     connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
+	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
+    connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
+    
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
 }
 
 void MainWindow::openPreferencesDialog()
 {
     PreferencesDialog dialog(this);
+    //dialog.close();
     dialog.exec();
+}
+
+void MainWindow::openAboutDialog()
+{
+    QString aboutText = R"(
+        <p>WT Plotter is a tool for reading War Thunder replays and record match development. This 
+        project is developed by <strong>Sgambe33</strong> and is fully open source.You can find the 
+        source code and contribute to the project on <a href='https://github.com/sgambe33/wt-plotter'>
+        GitHub</a>.</p>
+        <p>Thank you for using WT Plotter!</p>
+    )";
+    
+    QMessageBox::about(this, "About WT Plotter", aboutText);
 }
 
 void MainWindow::setCustomFont(const QString &fontPath, QWidget *widget) {
@@ -207,9 +231,9 @@ void MainWindow::executeCommand(const QString &filePath)
     Replay rep = Replay::fromFile(filePath);
 
 
-	QPixmap mapPixmap(":/icons/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
+	QPixmap mapPixmap(":/resources/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
 	if (mapPixmap.isNull()) {
-		mapPixmap = QPixmap(":/icons/map_images/unknownmap.png");
+		mapPixmap = QPixmap(":/resources/map_images/unknownmap.png");
     }
     ui->mapImage->setPixmap(mapPixmap);
 
@@ -246,7 +270,6 @@ void MainWindow::executeCommand(const QString &filePath)
                   return p1.getScore() > p2.getScore();
               });
 
-    // Populate both tables (allies and axis)
     populateTeamTable(ui->alliesTable, allies);
     populateTeamTable(ui->axisTable, axis);
 }
@@ -257,16 +280,16 @@ void MainWindow::populateTeamTable(QTableWidget *table, const QList<Player> &pla
     table->setRowCount(players.size());
     table->setColumnCount(10);
 
-    QPixmap scorePixmap(":/icons/score.png");
-    QPixmap killsPixmap(":/icons/kills.png");
-    QPixmap groundKillsPixmap(":/icons/groundKills.png");
-    QPixmap navalKillsPixmap(":/icons/navalKills.png");
-    QPixmap assistsPixmap(":/icons/assists.png");
-    QPixmap capturedZonesPixmap(":/icons/capturedZones.png");
-    QPixmap aiKillsPixmap(":/icons/aiKills.png");
-    QPixmap awardDamagePixmap(":/icons/awardDamage.png");
-    QPixmap damageZonePixmap(":/icons/damageZone.png");
-    QPixmap deathsPixmap(":/icons/deaths.png");
+    QPixmap scorePixmap(":/resources/icons/score.png");
+    QPixmap killsPixmap(":/resources/icons/kills.png");
+    QPixmap groundKillsPixmap(":/resources/icons/groundKills.png");
+    QPixmap navalKillsPixmap(":/resources/icons/navalKills.png");
+    QPixmap assistsPixmap(":/resources/icons/assists.png");
+    QPixmap capturedZonesPixmap(":/resources/icons/capturedZones.png");
+    QPixmap aiKillsPixmap(":/resources/icons/aiKills.png");
+    QPixmap awardDamagePixmap(":/resources/icons/awardDamage.png");
+    QPixmap damageZonePixmap(":/resources/icons/damageZone.png");
+    QPixmap deathsPixmap(":/resources/icons/deaths.png");
 
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Name")));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(QIcon(scorePixmap), ""));
@@ -286,50 +309,46 @@ void MainWindow::populateTeamTable(QTableWidget *table, const QList<Player> &pla
         table->setItem(i, 0, new QTableWidgetItem(player.getClanTag()+ " " + player.getName()));
         
         QTableWidgetItem *scoreItem = new QTableWidgetItem(QString::number(player.getScore()));
-        scoreItem->setTextAlignment(Qt::AlignCenter);
+        scoreItem->setToolTip("Score");
         table->setItem(i, 1, scoreItem);
 
         QTableWidgetItem *killsItem = new QTableWidgetItem(QString::number(player.getKills()));
-        killsItem->setTextAlignment(Qt::AlignCenter);
+		killsItem->setToolTip("Air kills");
         table->setItem(i, 2, killsItem);
 
         QTableWidgetItem *groundKillsItem = new QTableWidgetItem(QString::number(player.getGroundKills()));
-        groundKillsItem->setTextAlignment(Qt::AlignCenter);
+		groundKillsItem->setToolTip("Ground kills");
         table->setItem(i, 3, groundKillsItem);
 
         QTableWidgetItem *navalKillsItem = new QTableWidgetItem(QString::number(player.getNavalKills()));
-        navalKillsItem->setTextAlignment(Qt::AlignCenter);
+		navalKillsItem->setToolTip("Naval kills");
         table->setItem(i, 4, navalKillsItem);
 
         QTableWidgetItem *assistsItem = new QTableWidgetItem(QString::number(player.getAssists()));
-        assistsItem->setTextAlignment(Qt::AlignCenter);
+		assistsItem->setToolTip("Assists");
         table->setItem(i, 5, assistsItem);
 
         QTableWidgetItem *captureZoneItem = new QTableWidgetItem(QString::number(player.getCaptureZone()));
-        captureZoneItem->setTextAlignment(Qt::AlignCenter);
+		captureZoneItem->setToolTip("Captured zones");
         table->setItem(i, 6, captureZoneItem);
 
         QTableWidgetItem *aiKillsItem = new QTableWidgetItem(QString::number(player.getAiKills() + player.getAiGroundKills() + player.getAiNavalKills()));
         aiKillsItem->setTextAlignment(Qt::AlignCenter);
+		aiKillsItem->setToolTip("AI kills");
         table->setItem(i, 7, aiKillsItem);
 
         QTableWidgetItem *awardDamageItem = new QTableWidgetItem(QString::number(player.getAwardDamage()));
-        awardDamageItem->setTextAlignment(Qt::AlignCenter);
+		awardDamageItem->setToolTip("Awarded damage");
         table->setItem(i, 8, awardDamageItem);
 
         QTableWidgetItem *damageZoneItem = new QTableWidgetItem(QString::number(player.getDamageZone()));
-        damageZoneItem->setTextAlignment(Qt::AlignCenter);
+		damageZoneItem->setToolTip("Bombing damage");
         table->setItem(i, 9, damageZoneItem);
 
         QTableWidgetItem *deathsItem = new QTableWidgetItem(QString::number(player.getDeaths()));
-        deathsItem->setTextAlignment(Qt::AlignCenter);
+		deathsItem->setToolTip("Deaths");
         table->setItem(i, 10, deathsItem);
     }
 
     table->resizeColumnsToContents();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }

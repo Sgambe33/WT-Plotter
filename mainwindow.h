@@ -30,6 +30,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     void openPreferencesDialog();
+    void openAboutDialog();
     ~MainWindow();
 
 public slots:

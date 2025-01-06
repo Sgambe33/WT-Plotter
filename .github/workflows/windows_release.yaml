@@ -76,6 +76,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           prerelease: false
-          files: ${{ env.ARTIFACT }}
+          files: ${{ runner.temp }}\${{ env.ARTIFACT }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

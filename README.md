@@ -29,11 +29,12 @@ Huge thanks to [FlareFlo](https://github.com/FlareFlo) for his work on the [wt_e
 
 1. Download the latest release from the releases page.
 2. Unzip the archive in an empty folder.
-3. Open the executable.
-4. From the `File` menu select `Preferences` and set the path to your War Thunder replays directory. Click OK.
-5. Restart the app.
-6. The left side of the application will show a list of all the replays in the directory that can be read.
-7. Select a replay from the list and the right side of the application will show the contents of the replay.
+3. Make sure to have `Autosave replays` setting active in War Thunder.
+4. Open the executable.
+5. From the `File` menu select `Preferences` and set the path to your War Thunder replays directory. Click OK.
+6. Restart the app.
+7. The left side of the application will show a list of all the replays in the directory that can be read.
+8. Select a replay from the list and the right side of the application will show the contents of the replay.
 
 # DISCLAIMER
 This project is not affiliated with Gaijin Entertainment in any way. War Thunder is a registered trademark of Gaijin Entertainment. All rights reserved.

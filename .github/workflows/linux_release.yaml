@@ -46,7 +46,7 @@ jobs:
       - name: Build
         working-directory: ${{ env.SOURCE_DIR }}/build
         run:  |
-              cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
+              cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/6.8.1/gcc_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
               cmake --build . --config Release
               cd release
               
@@ -55,7 +55,7 @@ jobs:
         run: |
           wget -O deploy.AppImage https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod a+x deploy.AppImage
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64/lib/
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ runner.temp }}/Qt/6.8.1/gcc_64/lib/
           ./deploy.AppImage wtplotter -no-translations -appimage  
           mv *.AppImage ${{ env.ARTIFACT }}          
       

@@ -1,0 +1,71 @@
+name: Linux Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+  pull_request:
+    branches:
+      - 'main'
+  push:
+    tags:
+      - "v*.*.*"
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  SOURCE_DIR:   ${{ github.workspace }}
+  ARTIFACT: wtplotter-build-Linux-x64.zip
+
+jobs:
+  build:
+    runs-on:  ubuntu-18.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get all tags for correct version determination
+        run: git fetch --all --tags -f
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          version: '6.8.1'
+          host:         linux
+          target:       desktop
+          arch:         gcc_64
+          aqtversion: '==3.1.19'
+          modules:      'qtnetwork qtwidgets'
+              
+      - name: Create build directory
+        run: mkdir ${{ runner.temp }}/build
+
+      - name: Build
+        working-directory: ${{ env.SOURCE_DIR }}/build
+        run:  |
+              cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
+              cmake --build . --config Release
+              cd release
+              
+      - name: AppImage
+        working-directory: ${{ runner.temp }}/build
+        run: |
+          wget -O deploy.AppImage https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod a+x deploy.AppImage
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64/lib/
+          ./deploy.AppImage wtplotter -no-translations -appimage  
+          mv *.AppImage ${{ env.ARTIFACT }}          
+      
+      - name: Linux artefact
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: ${{ env.SOURCE_DIR }}/build/${{ env.ARTIFACT }}
+
+              

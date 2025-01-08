@@ -63,7 +63,7 @@ jobs:
           mv *.AppImage ${{ env.ARTIFACT }}          
       
       - name: Linux artefact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT }}
           path: ${{ env.SOURCE_DIR }}/build/${{ env.ARTIFACT }}

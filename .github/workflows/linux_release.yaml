@@ -37,7 +37,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.8.1'
-          arch: 'gcc_64'
+          arch: 'linux_gcc_64'
           aqtversion: '==3.1.19'
               
       - name: Create build directory

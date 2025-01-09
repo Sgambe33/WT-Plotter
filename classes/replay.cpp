@@ -84,9 +84,9 @@ QJsonObject Replay::unpackResults(int rezOffset, const QByteArray &buffer) {
     QStringList arguments{"--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json"};
 
     #ifdef Q_OS_WIN
-        executablePath = "./wt_ext_cli/wt_ext_cli.exe";
+        executablePath = "./wt_ext_cli.exe";
     #elif defined(Q_OS_LINUX)
-        executablePath = "./wt_ext_cli/wt_ext_cli";
+        executablePath = "$APPDIR/usr/bin/wt_ext_cli";
     #else
         throw std::runtime_error("Unsupported platform");
     #endif

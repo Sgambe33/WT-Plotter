@@ -1,0 +1,119 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+  push:
+
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-20.04
+          conanops: "-s compiler.libcxx=libstdc++11"
+        - os: windows-2019
+          conanops: " "
+        #- os: macos-11
+        #  conanops: " "
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Install Linux system dependencies
+      if: matrix.os == 'ubuntu-20.04'
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y build-essential libfuse2 pip \
+          libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev \
+          libxfixes-dev libxi-dev libxrender-dev libxcb-cursor-dev libxcb1-dev libxcb-glx0-dev \
+          libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev libxcb-icccm4-dev \
+          libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev \
+          libxcb-render-util0-dev libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev \
+          libxkbcommon-dev libxkbcommon-x11-dev libgl1-mesa-dev libc6
+        pip install conan==1.59.0
+        conan install openssl/3.0.8@ -g deploy -o *:shared=True -s compiler.libcxx=libstdc++11
+        echo "OPENSSL_ROOT_DIR=`pwd`/openssl" >> $GITHUB_ENV
+  
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.5.1'
+        cache: 'true'
+        install-deps: 'false'
+        # tools: 'tools_qtcreator'
+
+    #- name: Patch Qt for macOS
+    #  if: matrix.os == 'macos-11'
+    #  run: |
+    #    cp "$Qt6_DIR/../../Qt Creator.app/Contents/PlugIns/imageformats/libqicns.dylib" "$Qt6_DIR/plugins/imageformats"
+    #    cd "$Qt6_DIR/plugins/imageformats"
+    #    install_name_tool -change @loader_path/../../Frameworks/QtGui.framework/Versions/A/QtGui @rpath/QtGui.framework/Versions/A/QtGui libqicns.dylib
+    #    install_name_tool -change @loader_path/../../Frameworks/QtCore.framework/Versions/A/QtCore @rpath/QtCore.framework/Versions/A/QtCore libqicns.dylib
+
+    - name: Download source codes
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Build for Desktop
+      shell: bash
+      run: |
+        cmake -S . -B build -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR
+        cmake --build build --parallel --config Release
+        mv build/deploy ../
+        rm -rf build
+        mkdir build
+        mv ../deploy build/
+
+    - name: Cache builds for publication
+      uses: actions/cache/save@v3
+      with:
+        enableCrossOsArchive: true
+        key: ${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}-build-cache-for-publication
+        path: build/deploy
+
+  publish:
+    permissions: write-all
+    needs: build
+    name: Publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Restore Windows build cache
+      uses: actions/cache/restore@v3
+      with:
+        enableCrossOsArchive: true
+        fail-on-cache-miss: true
+        key: Windows-${{ github.run_id }}-${{ github.run_attempt }}-build-cache-for-publication
+        path: build/deploy
+
+    #- name: Restore macOS build cache
+    #  uses: actions/cache/restore@v3
+    #  with:
+    #    fail-on-cache-miss: true
+    #    key: macOS-${{ github.run_id }}-${{ github.run_attempt }}-build-cache-for-publication
+    #    path: build/deploy
+
+    - name: Restore Linux build cache
+      uses: actions/cache/restore@v3
+      with:
+        fail-on-cache-miss: true
+        key: Linux-${{ github.run_id }}-${{ github.run_attempt }}-build-cache-for-publication
+        path: build/deploy
+
+    - name: Publish build artifacts
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: latest
+        title: latest
+        prerelease: false
+        files: |
+          build/deploy/*.exe
+          build/deploy/*.AppImage

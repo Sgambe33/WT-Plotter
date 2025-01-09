@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleName</key>
+    <string>@TARGET@</string>
+    <key>CFBundleIdentifier</key>
+    <string>@CMAKE_PROJECT_HOMEPAGE_URL@.@TARGET@</string>
+    <key>CFBundleExecutable</key>
+    <string>@TARGET@</string>
+    <key>CFBundleVersion</key>
+    <string>@CMAKE_PROJECT_VERSION@</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.14</string>
+    <key>CFBundleIconFile</key>
+    <string>icon.icns</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+</dict>
+</plist>

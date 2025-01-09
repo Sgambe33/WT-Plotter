@@ -46,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->splitter->setStretchFactor(0, 2);
     ui->splitter->setStretchFactor(1, 3);
 
-    QPixmap img(":/icons/map_images/unknownmap.png");
+    QPixmap img(":/map_images/unknownmap.png");
     img = img.scaled(125, 125, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     ui->mapImage->setPixmap(img);
 
@@ -231,9 +231,9 @@ void MainWindow::executeCommand(const QString &filePath)
     Replay rep = Replay::fromFile(filePath);
 
 
-	QPixmap mapPixmap(":/resources/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
+	QPixmap mapPixmap(":/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
 	if (mapPixmap.isNull()) {
-		mapPixmap = QPixmap(":/resources/map_images/unknownmap.png");
+		mapPixmap = QPixmap(":/map_images/unknownmap.png");
     }
     ui->mapImage->setPixmap(mapPixmap);
 
@@ -280,16 +280,16 @@ void MainWindow::populateTeamTable(QTableWidget *table, const QList<Player> &pla
     table->setRowCount(players.size());
     table->setColumnCount(10);
 
-    QPixmap scorePixmap(":/resources/icons/score.png");
-    QPixmap killsPixmap(":/resources/icons/kills.png");
-    QPixmap groundKillsPixmap(":/resources/icons/groundKills.png");
-    QPixmap navalKillsPixmap(":/resources/icons/navalKills.png");
-    QPixmap assistsPixmap(":/resources/icons/assists.png");
-    QPixmap capturedZonesPixmap(":/resources/icons/capturedZones.png");
-    QPixmap aiKillsPixmap(":/resources/icons/aiKills.png");
-    QPixmap awardDamagePixmap(":/resources/icons/awardDamage.png");
-    QPixmap damageZonePixmap(":/resources/icons/damageZone.png");
-    QPixmap deathsPixmap(":/resources/icons/deaths.png");
+    QPixmap scorePixmap(":/icons/score.png");
+    QPixmap killsPixmap(":/icons/kills.png");
+    QPixmap groundKillsPixmap(":/icons/groundKills.png");
+    QPixmap navalKillsPixmap(":/icons/navalKills.png");
+    QPixmap assistsPixmap(":/icons/assists.png");
+    QPixmap capturedZonesPixmap(":/icons/capturedZones.png");
+    QPixmap aiKillsPixmap(":/icons/aiKills.png");
+    QPixmap awardDamagePixmap(":/icons/awardDamage.png");
+    QPixmap damageZonePixmap(":/icons/damageZone.png");
+    QPixmap deathsPixmap(":/icons/deaths.png");
 
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Name")));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(QIcon(scorePixmap), ""));

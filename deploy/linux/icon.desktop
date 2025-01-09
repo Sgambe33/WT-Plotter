@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=@TARGET@
+Exec=@TARGET@
+Icon=@TARGET@
+Comment=@CMAKE_PROJECT_DESCRIPTION@
+Categories=Utility;

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+        <string>@TARGET@</string>
+    <key>DTSDKName</key>
+    <string>iphonesimulator15.5</string>
+    <key>DTXcode</key>
+    <string>1341</string>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>DTSDKBuild</key>
+    <string>19F64</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>BuildMachineOSBuild</key>
+    <string>21G115</string>
+    <key>DTPlatformName</key>
+    <string>iphonesimulator</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleSupportedPlatforms</key>
+    <array>
+        <string>iPhoneSimulator</string>
+    </array>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleExecutable</key>
+        <string>@TARGET@</string>
+    <key>DTCompiler</key>
+    <string>com.apple.compilers.llvm.clang.1_0</string>
+    <key>MinimumOSVersion</key>
+    <string>13.0</string>
+    <key>CFBundleIdentifier</key>
+        <string>@CMAKE_PROJECT_HOMEPAGE_URL@.@TARGET@</string>
+    <key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+        <integer>2</integer>
+    </array>
+    <key>DTPlatformVersion</key>
+    <string>15.5</string>
+    <key>DTXcodeBuild</key>
+    <string>13F100</string>
+    <key>CFBundleDisplayName</key>
+        <string>@TARGET@</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>DTPlatformBuild</key>
+    <string>19F64</string>
+</dict>
+</plist>

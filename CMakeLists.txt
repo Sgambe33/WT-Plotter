@@ -1,87 +1,83 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 
-project(wtplotter VERSION 0.1 LANGUAGES CXX)
+list(APPEND CMAKE_MODULE_PATH
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+project(wtplotter
+    LANGUAGES CXX
+    VERSION 0.2.1
+    HOMEPAGE_URL github.com/Sgambe33/WT-Plotter
+    DESCRIPTION "GUI tool to read War Thunder replays and plot ground matches"
+)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(Options)
+include(Setup)
+include(Deploy)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR}
+    REQUIRED
+        Widgets
+        Svg
+        Network
+    OPTIONAL_COMPONENTS
+        LinguistTools
+)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-        sceneimageviewer.h
-        SceneImageViewer.cpp
+qt_add_executable(wtplotter
+    main.cpp
+    mainwindow.cpp
+    mainwindow.h
+    mainwindow.ui
+    preferencesdialog.cpp
+    preferencesdialog.h
+    preferencesdialog.ui
+    SceneImageViewer.cpp
+    sceneimageviewer.h
+    worker.cpp
+    worker.h
+    classes/craftinfo.cpp
+    classes/craftinfo.h
+    classes/playerinfo.cpp
+    classes/playerinfo.h
+    classes/player.cpp
+    classes/player.h
+    classes/replay.cpp
+    classes/replay.h
+    classes/position.cpp
+    classes/position.h
 )
 
-qt_add_resources(PROJECT_SOURCES Resources.qrc)
-
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(wtplotter
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-        mainwindow.ui
-        classes/replay.h classes/replay.cpp
-        classes/player.h classes/player.cpp
-        classes/playerinfo.h classes/playerinfo.cpp
-        classes/craftinfo.h classes/craftinfo.cpp
-        worker.h worker.cpp
-        classes/position.h classes/position.cpp
-        preferencesdialog.cpp 
-        preferencesdialog.h
-        preferencesdialog.ui
-    )
-
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET wtplotter APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-else()
-    if(ANDROID)
-        add_library(wtplotter SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(wtplotter
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
-
-target_link_libraries(wtplotter PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
-
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
-if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.wtplotter)
-endif()
-set_target_properties(wtplotter PROPERTIES
-    ${BUNDLE_ID_OPTION}
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+file(GLOB_RECURSE ICONS
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    CONFIGURE_DEPENDS resources/icons/*
 )
 
-include(GNUInstallDirs)
-install(TARGETS wtplotter
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+file(GLOB_RECURSE MAP_IMAGES
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    CONFIGURE_DEPENDS resources/map_images/*
 )
 
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(wtplotter)
-endif()
+file(GLOB TRANSLATIONS
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    CONFIGURE_DEPENDS resources/translations/*.ts
+)
+
+qt_add_resources(wtplotter
+    resources
+    PREFIX /
+    BASE resources
+    FILES ${ICONS} ${MAP_IMAGES}
+)
+
+app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})
+
+target_link_libraries(wtplotter PRIVATE
+    Qt::WidgetsPrivate # Application::setDprAdjustmentHook
+    Qt::Network
+)
+
+deploy(wtplotter deploy)

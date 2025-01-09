@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    version="1.2" baseProfile="tiny" x="0" y="0" viewBox="0 0 640 360"
+    style="enable-background:new 0 0 640 360;" xml:space="preserve">
+<style type="text/css">
+    .st0{fill:url(#SVGID_1_);}
+    .st1{display:none;fill:#ffffff;stroke:#000000;stroke-miterlimit:10;}
+    .st2{fill:#303030;}
+    .st3{fill:none;}
+</style>
+<radialGradient id="SVGID_1_" cx="304.6875" cy="-386.8889" r="202.608"
+    gradientTransform="matrix(1.28 0 0 -1.2857 -70 -317.4286)"
+    gradientUnits="userSpaceOnUse">
+    <stop  offset="0" style="stop-color:#ffffff"/>
+    <stop  offset="0.3173" style="stop-color:#f9f9f9"/>
+    <stop  offset="1" style="stop-color:#f0f0f0"/>
+</radialGradient>
+<rect class="st0" width="640" height="360"/>
+<rect x="112" y="132" class="st1" width="96" height="96"/>
+<rect x="432" y="132" class="st1" width="96" height="96"/>
+<path class="st2" d="M336,179.6l-20.5,20.5c-0.4,0.4-1,0.4-1.4,0l0,0c-0.4-0.4-0.4-1,0-1.4l19.1-19.1l-19.1-19.1
+    c-0.4-0.4-0.4-1,0-1.4l0,0c0.4-0.4,1-0.4,1.4,0L336,179.6z"/>
+<rect class="st3" width="640" height="132"/>
+<text x="320" y="68" font-family="sans-serif" font-weight="300" font-size="42"
+    dominant-baseline="middle" text-anchor="middle" class="st2">@TARGET@</text>
+</svg>

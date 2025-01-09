@@ -9,60 +9,56 @@ on:
         default: 'warning'
   pull_request:
     branches:
-      - 'main'
+    - 'main'
   push:
     tags:
-      - "v*.*.*"
+    - "v*.*.*"
 
 defaults:
   run:
     shell: bash
 
 env:
-  SOURCE_DIR:   ${{ github.workspace }}
+  SOURCE_DIR: ${{ github.workspace }}
   ARTIFACT: wtplotter-build-Linux-x64.zip
 
 jobs:
   build:
-    runs-on:  ubuntu-20.04
+    runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: Get all tags for correct version determination
-        run: git fetch --all --tags -f
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.1'
+        arch: 'linux_gcc_64'
+        dir: '${{ runner.temp }}/Qt'
+        aqtversion: '==3.1.19'
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.1'
-          arch: 'linux_gcc_64'
-          aqtversion: '==3.1.19'
-              
-      - name: Create build directory
-        run: mkdir ${{ runner.temp }}/build
+    - name: Create build directory
+      run: mkdir ${{ env.SOURCE_DIR }}/build
 
-      - name: Build
-        working-directory: ${{ env.SOURCE_DIR }}/build
-        run:  |
-              cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/6.8.1/gcc_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
-              cmake --build . --config Release
-              cd release
-              
-      - name: AppImage
-        working-directory: ${{ runner.temp }}/build
-        run: |
-          wget -O deploy.AppImage https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-          chmod a+x deploy.AppImage
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ runner.temp }}/Qt/6.8.1/gcc_64/lib/
-          ./deploy.AppImage wtplotter -no-translations -appimage  
-          mv *.AppImage ${{ env.ARTIFACT }}          
-      
-      - name: Linux artefact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: ${{ env.SOURCE_DIR }}/build/${{ env.ARTIFACT }}
+    - name: Build
+      working-directory: ${{ env.SOURCE_DIR }}/build
+      run: |
+        cmake -DCMAKE_PREFIX_PATH=${{ runner.temp }}/Qt/6.8.1/gcc_64 -DCMAKE_BUILD_TYPE=Release ${{ env.SOURCE_DIR }}
+        cmake --build . --config Release
 
-              
+    - name: AppImage
+      working-directory: ${{ env.SOURCE_DIR }}/build
+      run: |
+        sudo apt -y install fuse
+        wget -O deploy.AppImage https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod a+x deploy.AppImage
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ runner.temp }}/Qt/6.8.1/gcc_64/lib/
+        ./deploy.AppImage wtplotter.desktop -no-translations -appimage --appimage-extract-and-run
+        mv *.AppImage ${{ env.ARTIFACT }}          
+
+    - name: Linux artefact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT }}
+        path: ${{ env.SOURCE_DIR }}/build/${{ env.ARTIFACT }}

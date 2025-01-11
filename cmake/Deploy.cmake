@@ -285,7 +285,7 @@ function(deploy_linux TARGET DEPLOY_SOURCE_DIR)
 
     # Copy the binary to the bin directory
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli
-        DESTINATION ${DEPLOY_PREFIX_PATH}/usr/bin)
+        DESTINATION ${DEPLOY_PREFIX_PATH}/usr/bin FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
 
     foreach(BIN IN LISTS BINS)
         get_target_property(QM_FILES ${BIN} QM_FILES)
@@ -511,6 +511,8 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
     endif()
 
     if(MSVC)
+        message(STATUS "BUILDING WINDOWS...")
+
         add_custom_command(TARGET deploy VERBATIM
             COMMAND ${WINDEPLOYQT_EXECUTABLE}
             --no-compiler-runtime

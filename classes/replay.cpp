@@ -6,6 +6,7 @@
 #include <QJsonArray>
 #include <QProcess>
 #include <QDebug>
+#include <QCoreApplication>
 #include "replay.h"
 
 
@@ -80,17 +81,8 @@ QJsonObject Replay::unpackResults(int rezOffset, const QByteArray &buffer) {
     QByteArray dataAfterRez = buffer.mid(rezOffset);
 
     QProcess process;
-    QString executablePath;
+    QString executablePath = QCoreApplication::applicationDirPath() + QString("/wt_ext_cli");
     QStringList arguments{"--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json"};
-
-    #ifdef Q_OS_WIN
-        executablePath = "./wt_ext_cli.exe";
-    #elif defined(Q_OS_LINUX)
-        executablePath = "$APPDIR/usr/bin/wt_ext_cli";
-    #else
-        throw std::runtime_error("Unsupported platform");
-    #endif
-
 
     process.start(executablePath, arguments);
     if (!process.waitForStarted()) {

@@ -23,7 +23,7 @@ Huge thanks to [FlareFlo](https://github.com/FlareFlo) for his work on the [wt_e
 - Image export of the player's path in the map.
 - Replay data export/persistence using a local database.
 - Open arbitrary replays.
-- Linux/MacOS support if requested.
+- MacOS support if requested.
 
 ## How to use
 

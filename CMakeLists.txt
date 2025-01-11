@@ -76,8 +76,8 @@ qt_add_resources(wtplotter
 app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})
 
 target_link_libraries(wtplotter PRIVATE
-    Qt::WidgetsPrivate # Application::setDprAdjustmentHook
-    Qt::Network
+    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network
 )
+
 
 deploy(wtplotter deploy)

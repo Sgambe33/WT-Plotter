@@ -7,7 +7,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 project(wtplotter
     LANGUAGES CXX
-    VERSION 0.2.1
+    VERSION 0.2.4
     HOMEPAGE_URL github.com/Sgambe33/WT-Plotter
     DESCRIPTION "GUI tool to read War Thunder replays and plot ground matches"
 )
@@ -79,5 +79,10 @@ target_link_libraries(wtplotter PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network
 )
 
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.h
+    @ONLY
+)
 
 deploy(wtplotter deploy)

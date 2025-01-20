@@ -5,21 +5,21 @@
 class CraftInfo
 {
 public:
-    CraftInfo();
-    static CraftInfo fromJson(const QJsonObject &craftInfoObject);
+	CraftInfo();
+	static CraftInfo fromJson(const QJsonObject& craftInfoObject);
 
-    int getRank();
-    int getMrank();
-    bool isRankUnused();
-    QString getType();
-    QString getName();
+	int getRank();
+	int getMrank();
+	bool isRankUnused();
+	QString getType();
+	QString getName();
 
 private:
-    QString name;
-    QString type;
-    bool rankUnused;
-    int mrank;
-    int rank;
+	QString name;
+	QString type;
+	bool rankUnused;
+	int mrank;
+	int rank;
 };
 
 #endif // CRAFTINFO_H

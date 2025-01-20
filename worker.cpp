@@ -275,11 +275,9 @@ QJsonArray Worker::exportPositionsToJson(Replay& replayData) {
 
 void Worker::uploadReplay(Replay& replayData, const QString& uploader)
 {
-	// Preparing the request
-	QNetworkRequest request(QUrl("http://192.168.1.61:5000/uploadPositions"));
+	QNetworkRequest request(QUrl("http://warthunder-heatmaps.crabdance.com/uploadPositions"));
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-	// Creating the JSON payload
 	QJsonObject headerMap;
 	headerMap["sessionId"] = replayData.getSessionId();
 	headerMap["uploader"] = uploader;
@@ -294,25 +292,11 @@ void Worker::uploadReplay(Replay& replayData, const QString& uploader)
 	QJsonDocument doc(data);
 	QByteArray jsonData = doc.toJson();
 
-	// Write JSON data to a local file
-	QFile file("replayData.json");
-	if (file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{
-		file.write(jsonData);
-		file.close();
-	}
-	else
-	{
-		qWarning() << "Failed to open file for writing.";
-	}
-
-	// Sending the data via network request
 	QNetworkReply* reply = networkManager->post(request, jsonData);
 	QEventLoop loop;
 	connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	loop.exec();
 
-	// Checking for errors
 	if (reply->error() != QNetworkReply::NoError)
 	{
 		qWarning() << "Failed to upload replay:" << reply->errorString();

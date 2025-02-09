@@ -8,11 +8,11 @@ public:
 	CraftInfo();
 	static CraftInfo fromJson(const QJsonObject& craftInfoObject);
 
-	int getRank();
-	int getMrank();
-	bool isRankUnused();
-	QString getType();
-	QString getName();
+	int getRank() const;
+	int getMrank() const;
+	bool isRankUnused() const;
+	QString getType() const;
+	QString getName() const;
 
 private:
 	QString name;

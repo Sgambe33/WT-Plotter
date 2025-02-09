@@ -18,10 +18,12 @@ public:
 	double getTimePlayed() const;
 	QString getStatus() const;
 	QList<Player> getPlayers() const;
+	QList<PlayerInfo> getPlayersInfo() const;
 	QString getAuthorId() const;
 	QString getSessionId() const;
 	QString getBattleType() const;
 	int getStartTime() const;
+	QString getAuthor() const;
 
 private:
 	static const QByteArray MAGIC;

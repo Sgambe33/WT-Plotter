@@ -107,10 +107,15 @@ QJsonObject Replay::unpackResults(int rezOffset, const QByteArray& buffer) {
 }
 
 void Replay::parseResults(const QJsonObject& results) {
-	status = results.value("status").toString("Left the game");
+	status = results.value("status").toString("left");
 	timePlayed = results.value("timePlayed").toDouble();
 	authorUserId = results.value("authorUserId").toString();
 	author = results.value("author").toString();
+
+	if(authorUserId == "" || author == ""){
+		authorUserId = "-1";
+		author="server";
+	}
 
 	QJsonArray playersArray = results.value("player").toArray();
 	for (const auto& playerElement : playersArray) {
@@ -130,7 +135,13 @@ QString Replay::getLevel() const { return level; }
 double Replay::getTimePlayed() const { return timePlayed; }
 QString Replay::getStatus() const { return status; }
 QList<Player> Replay::getPlayers() const { return players; }
+QList<PlayerInfo> Replay::getPlayersInfo() const { return playersInfo; }
 QString Replay::getAuthorId() const { return authorUserId; }
 QString Replay::getSessionId() const { return sessionId; }
 QString Replay::getBattleType() const { return battleType; }
 int Replay::getStartTime() const { return startTime; }
+
+QString Replay::getAuthor() const
+{
+	return author;
+}

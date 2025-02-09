@@ -28,23 +28,23 @@ CraftInfo CraftInfo::fromJson(const QJsonObject& craftInfoObject) {
 	return craftInfo;
 }
 
-int CraftInfo::getRank() {
+int CraftInfo::getRank() const {
 	return rank;
 }
 
-int CraftInfo::getMrank() {
+int CraftInfo::getMrank() const {
 	return mrank;
 }
 
-bool CraftInfo::isRankUnused() {
+bool CraftInfo::isRankUnused() const {
 	return rankUnused;
 }
 
-QString CraftInfo::getType() {
+QString CraftInfo::getType() const {
 	return type;
 }
 
-QString CraftInfo::getName() {
+QString CraftInfo::getName() const {
 	return name;
 }
 

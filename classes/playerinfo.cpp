@@ -1,5 +1,7 @@
 #include "playerinfo.h"
 #include <QJsonValue>
+#include <QJsonArray>
+#include <QDebug>
 
 PlayerInfo::PlayerInfo()
 	: team(0), slot(0), mrank(0), autoSquad(false), waitTime(0), tier(0), squad(0), rank(0) {
@@ -7,7 +9,6 @@ PlayerInfo::PlayerInfo()
 
 PlayerInfo PlayerInfo::fromJson(const QJsonObject& playerInfoObject) {
 	PlayerInfo player;
-
 	if (playerInfoObject.contains("name") && playerInfoObject["name"].isString()) {
 		player.name = playerInfoObject["name"].toString();
 	}
@@ -16,12 +17,15 @@ PlayerInfo PlayerInfo::fromJson(const QJsonObject& playerInfoObject) {
 	}
 	if (playerInfoObject.contains("clanTag") && playerInfoObject["clanTag"].isString()) {
 		player.clanTag = playerInfoObject["clanTag"].toString();
+		if (player.clanTag.isEmpty()) {
+			player.clanTag = NULL;
+		}
 	}
 	if (playerInfoObject.contains("platform") && playerInfoObject["platform"].isString()) {
 		player.platform = playerInfoObject["platform"].toString();
 	}
-	if (playerInfoObject.contains("id") && playerInfoObject["id"].isString()) {
-		player.id = playerInfoObject["id"].toString();
+	if (playerInfoObject.contains("id") && playerInfoObject["id"].isDouble()) {
+		player.id = QString::number(playerInfoObject["id"].toInteger());
 	}
 	if (playerInfoObject.contains("slot") && playerInfoObject["slot"].isDouble()) {
 		player.slot = playerInfoObject["slot"].toInt();
@@ -38,8 +42,11 @@ PlayerInfo PlayerInfo::fromJson(const QJsonObject& playerInfoObject) {
 	if (playerInfoObject.contains("wait_time") && playerInfoObject["wait_time"].isDouble()) {
 		player.waitTime = playerInfoObject["wait_time"].toInt();
 	}
-	if (playerInfoObject.contains("clanId") && playerInfoObject["clanId"].isString()) {
-		player.clanId = playerInfoObject["clanId"].toString();
+	if (playerInfoObject.contains("clanId") && playerInfoObject["clanId"].isDouble()) {
+		player.clanId = QString::number(playerInfoObject["clanId"].toInteger());
+		if(player.clanId == "-1"){
+			player.clanId = NULL;
+		}
 	}
 	if (playerInfoObject.contains("tier") && playerInfoObject["tier"].isDouble()) {
 		player.tier = playerInfoObject["tier"].toInt();
@@ -73,26 +80,48 @@ QList<CraftInfo> PlayerInfo::parseCraftsInfo(const QJsonObject& craftInfoObject)
 	return craftsList;
 }
 
-QString PlayerInfo::getName() {
+QString PlayerInfo::getName() const {
 	return name;
 }
 
-int PlayerInfo::getRank() {
+int PlayerInfo::getRank() const {
 	return rank;
 }
 
-QString PlayerInfo::getClanTag() {
+QString PlayerInfo::getClanTag() const {
 	return clanTag;
 }
 
-QString PlayerInfo::getPlatform() {
+QString PlayerInfo::getPlatform() const {
 	return platform;
 }
 
-QList<CraftInfo> PlayerInfo::getCraftsInfo() {
+QList<CraftInfo> PlayerInfo::getCraftsInfo() const {
 	return craftsInfo;
 }
 
-QString PlayerInfo::getUserId() {
+QString PlayerInfo::getUserId() const {
 	return id;
+}
+
+QJsonObject PlayerInfo::getCraftLineup() const
+{
+	QJsonArray lineupArray;
+
+	for (const CraftInfo& craft : getCraftsInfo()) {
+		QJsonObject craftObject;
+		craftObject["name"] = craft.getName();
+		craftObject["type"] = craft.getType();
+		lineupArray.append(craftObject);
+	}
+
+	QJsonObject lineup;
+	lineup["lineup"] = lineupArray;
+
+	return lineup;
+}
+
+QString PlayerInfo::getClanId() const
+{
+	return clanId;
 }

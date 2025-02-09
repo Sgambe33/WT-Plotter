@@ -10,12 +10,14 @@ public:
 	static PlayerInfo fromJson(const QJsonObject& playerInfoObject);
 	QList<CraftInfo> parseCraftsInfo(const QJsonObject& craftInfoObject);
 
-	QString getName();
-	int getRank();
-	QString getClanTag();
-	QString getPlatform();
-	QList<CraftInfo> getCraftsInfo();
-	QString getUserId();
+	QString getName() const;
+	int getRank() const;
+	QString getClanTag() const;
+	QString getPlatform() const;
+	QList<CraftInfo> getCraftsInfo() const;
+	QString getUserId() const;
+	QJsonObject getCraftLineup() const;
+	QString getClanId() const;
 
 private:
 	QString name;

@@ -42,7 +42,8 @@ public slots:
 
 signals:
 	void updatePixmap(const QPixmap& pixmap);
-	void changeStackedWidget(int index);
+	void refreshReplays();
+	void changeStackedWidget2(int index);
 	void updateProgressBar(double progress);
 	void updateStatusLabel(QString msg);
 
@@ -53,9 +54,7 @@ private:
 	void updateMarkers();
 	bool shouldEndMatch();
 	void endMatch();
-	void saveImage();
 	void restartScheduler();
-	QFile getLatestReplay(const QDir& replayDirectory);
 	void drawMarkers(QPixmap& displayImage);
 	void drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<Position>& positionCache);
 	void drawSpecialMarkers(QPixmap& displayImage);
@@ -66,8 +65,6 @@ private:
 	QPixmap fetchMapImage();
 	Position getPositionFromJsonElement(QJsonObject element);
 	bool shouldLoadMap();
-	QJsonArray exportPositionsToJson(Replay& replayData);
-	void uploadReplay(Replay& replayData, const QString& uploader);
 
 
 	QPixmap originalMapImage;

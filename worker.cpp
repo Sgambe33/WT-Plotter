@@ -1,4 +1,5 @@
 #include "worker.h"
+#include "classes/utils.h"
 #include <QDateTime>
 #include <QDebug>
 #include <QNetworkRequest>
@@ -70,7 +71,7 @@ void Worker::onTimeout()
 		if (shouldLoadMap())
 		{
 			fetchAndDisplayMap();
-			emit changeStackedWidget(2);
+			emit changeStackedWidget2(2);
 			emit updateStatusLabel(QString("Map loaded..."));
 		}
 		else if (shouldUpdateMarkers())
@@ -94,7 +95,7 @@ void Worker::onTimeout()
 			drawMarkers(drawedMapImage);
 			this->drawedMapImage = drawedMapImage;
 
-			emit changeStackedWidget(1);
+			emit changeStackedWidget2(1);
 
 			emit updatePixmap(drawedMapImage);
 
@@ -172,11 +173,11 @@ void Worker::endMatch()
 		int retries = 60;
 
 		if (autosave) {
-			saveImage();
+			Utils::saveImage(this->drawedMapImage);
 		}
 
 		do {
-			latestReplay.setFileName(getLatestReplay(QDir(replayDir)).fileName());
+			latestReplay.setFileName(Utils::getLatestReplay(QDir(replayDir)).fileName());
 			if (!latestReplay.exists()) {
 				QThread::sleep(1);
 			}
@@ -187,12 +188,12 @@ void Worker::endMatch()
 			Replay replayData = Replay::fromFile(latestReplay.fileName());
 			QString uploader = replayData.getAuthorId();
 			if (!uploader.isEmpty()) {
-				uploadReplay(replayData, uploader);
+				Utils::uploadReplay(replayData, uploader, this->positionCache, this->poi);
 			}
 			else {
 				qWarning() << "Failed to get user UID. Data will not be validated against replay.";
 			}
-
+			emit refreshReplays();
 		}
 		else {
 			qWarning() << "No replay file found after match end. Data will not be validated against replay.";
@@ -210,128 +211,10 @@ void Worker::endMatch()
 	qDebug() << "Match ended, markers cleared.";
 }
 
-void Worker::saveImage() {
-	QPixmap drawedMapImage = getDrawedMapImage();
-	QString savePath = QSettings("sgambe33", "wtplotter").value("plotSavePath", "").toString();
-
-	if (drawedMapImage.isNull()) {
-		qDebug() << "Error: drawedMapImage is null.";
-		return;
-	}
-
-	if (savePath.trimmed().isEmpty()) {
-		qDebug() << "Error: savePath is not set.";
-		QMessageBox msgBox;
-		msgBox.critical(nullptr, "Error", "You have not set the save folder in the preferences!");
-		return;
-	}
-
-	QDir savePathDir(savePath);
-	if (!savePathDir.exists()) {
-		qDebug() << "Error: savePath directory does not exist:" << savePath;
-		return;
-	}
-
-	QString fileName = savePathDir.absoluteFilePath(QString::number(QDateTime::currentSecsSinceEpoch()) + ".png");
-	qDebug() << "Saving to file:" << fileName;
-
-	QImageWriter writer;
-	writer.setFormat("png");
-	writer.setFileName(fileName);
-
-	if (!writer.write(drawedMapImage.toImage())) {
-		qDebug() << "Error saving image:" << writer.errorString();
-	}
-	else {
-		qDebug() << "Image saved successfully.";
-	}
-}
-
-QJsonArray Worker::exportPositionsToJson(Replay& replayData) {
-	QJsonArray positions;
-	for (const Position& position : this->positionCache) {
-		QJsonObject obj;
-		obj["x"] = position.x();
-		obj["y"] = position.y();
-		obj["type"] = position.type();
-		obj["icon"] = position.icon();
-		obj["timestamp"] = position.timestamp();
-		obj["sessionId"] = replayData.getSessionId();
-		positions.append(obj);
-	}
-	for (const Position& position : this->poi) {
-		QJsonObject obj;
-		obj["x"] = position.x();
-		obj["y"] = position.y();
-		obj["type"] = position.type();
-		obj["icon"] = position.icon();
-		obj["timestamp"] = position.timestamp();
-		obj["sessionId"] = replayData.getSessionId();
-		positions.append(obj);
-	}
-
-	return positions;
-}
-
-void Worker::uploadReplay(Replay& replayData, const QString& uploader)
-{
-	QNetworkRequest request(QUrl("http://warthunder-heatmaps.crabdance.com/uploadPositions"));
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-	QJsonObject headerMap;
-	headerMap["sessionId"] = replayData.getSessionId();
-	headerMap["uploader"] = uploader;
-	headerMap["startTime"] = replayData.getStartTime();
-	headerMap["map"] = replayData.getLevel();
-	headerMap["gameMode"] = replayData.getBattleType();
-
-	QJsonObject data;
-	data["replayHeader"] = headerMap;
-	data["positions"] = exportPositionsToJson(replayData);
-
-	QJsonDocument doc(data);
-	QByteArray jsonData = doc.toJson();
-
-	QNetworkReply* reply = networkManager->post(request, jsonData);
-	QEventLoop loop;
-	connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-	loop.exec();
-
-	if (reply->error() != QNetworkReply::NoError)
-	{
-		qWarning() << "Failed to upload replay:" << reply->errorString();
-	}
-	else
-	{
-		qInfo() << "Replay uploaded successfully.";
-	}
-	reply->deleteLater();
-}
-
 void Worker::restartScheduler()
 {
 	stopTimer();
 	startTimer();
-}
-
-QFile Worker::getLatestReplay(const QDir& replayDirectory)
-{
-	QFileInfoList files = replayDirectory.entryInfoList(QDir::Files, QDir::Time);
-	if (files.isEmpty())
-	{
-		return QFile();
-	}
-
-	qint64 sixtySecondsAgo = QDateTime::currentMSecsSinceEpoch() - 120000;
-	for (const QFileInfo& fileInfo : files)
-	{
-		if (fileInfo.suffix() == "wrpl" && fileInfo.lastModified().toMSecsSinceEpoch() >= sixtySecondsAgo)
-		{
-			return QFile(fileInfo.filePath());
-		}
-	}
-
-	return QFile();
 }
 
 void Worker::setMatchStartTime(long matchStartTime)

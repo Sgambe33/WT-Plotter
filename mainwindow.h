@@ -14,8 +14,10 @@
 #include <QGraphicsPixmapItem>
 #include <QDebug>
 #include <QTableWidget>
+#include <QStackedWidget>
 
 #include "classes/player.h"
+#include "classes/dbmanager.h"
 #include "worker.h"
 #include "sceneimageviewer.h"
 
@@ -36,15 +38,20 @@ public:
 
 public slots:
 	void updatePixmap(const QPixmap& pixmap);
-	void changeStackedWidget(int index);
+	void refreshReplays();
+	void loadReplaysFromFolder();
+	void onReplayLoaderFinished();
 	void updateProgressBar(double progress);
 	void updateStatusLabel(QString msg);
+	void changeStackedWidget1(int index);
+	void changeStackedWidget2(int index);
 
 private:
 	Ui::MainWindow* ui;
 	QStandardItemModel* model;
 	QThread* m_thread = nullptr;
 	Worker* m_worker;
+	DbManager m_dbmanager;
 
 	void startPlotter();
 	void stopPlotter();
@@ -52,7 +59,6 @@ private:
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);
 	void populateTeamTable(QTableWidget* table, const QList<Player>& players);
-	void checkForUpdates();
 	void setCustomFont(const QString& fontPath, QWidget* widget);
 };
 

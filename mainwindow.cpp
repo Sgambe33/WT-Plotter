@@ -1,10 +1,10 @@
 ﻿#include "mainwindow.h"
+#include "classes/utils.h"
 #include "./ui_mainwindow.h"
 #include "classes/replay.h"
 #include "sceneimageviewer.h"
 #include <qfontdatabase.h>
 #include "worker.h"
-#include "version.h"
 #include "preferencesdialog.h"
 #include <QPainter>
 #include <QTreeView>
@@ -28,21 +28,20 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QMessageBox>
-
+#include <QSqlDatabase>
+#include <classes/replayloaderworker.h>
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	model(new QStandardItemModel(this)),
 	m_thread(nullptr),
-	m_worker(nullptr)
+	m_worker(nullptr),
+	m_dbmanager(QString("test.sqlite3"))
 {
 	ui->setupUi(this);
-
 	QSettings settings("sgambe33", "wtplotter");
 
-	if (!settings.value("replayFolderPath").isNull()) {
-		populateReplayTreeView(ui->replayTreeView, settings.value("replayFolderPath").toString());
-	}
+	emit refreshReplays();
 
 	ui->splitter->setStretchFactor(0, 2);
 	ui->splitter->setStretchFactor(1, 3);
@@ -60,7 +59,7 @@ MainWindow::MainWindow(QWidget* parent)
 	QPushButton* plotterButton = new QPushButton("Plotter", buttonBox);
 
 	connect(replayButton, &QPushButton::clicked, [=] {
-		ui->stackedWidget->setCurrentIndex(0);
+		ui->stackedWidget_2->setCurrentIndex(0);
 		ui->replayTreeView->setDisabled(false);
 		plotterButton->setDisabled(false);
 		replayButton->setDisabled(true);
@@ -68,7 +67,7 @@ MainWindow::MainWindow(QWidget* parent)
 		});
 
 	connect(plotterButton, &QPushButton::clicked, [=] {
-		ui->stackedWidget->setCurrentIndex(2);
+		ui->stackedWidget_2->setCurrentIndex(2);
 		ui->replayTreeView->setDisabled(true);
 		plotterButton->setDisabled(true);
 		replayButton->setDisabled(false);
@@ -83,13 +82,17 @@ MainWindow::MainWindow(QWidget* parent)
 	ui->replayTreeView->setDisabled(true);
 	plotterButton->setDisabled(true);
 
-	checkForUpdates();
+	Utils::checkAppVersion();
 
 	startPlotter();
 	connect(ui->replayTreeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
 	connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
 	connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
+
+	m_dbmanager.createTables();
+	//refreshReplays();
+	loadReplaysFromFolder();
 }
 
 MainWindow::~MainWindow()
@@ -100,7 +103,9 @@ MainWindow::~MainWindow()
 void MainWindow::openPreferencesDialog()
 {
 	PreferencesDialog dialog(this);
-	dialog.exec();
+	if (dialog.exec()) {
+		refreshReplays();
+	}
 }
 
 void MainWindow::openAboutDialog()
@@ -112,7 +117,6 @@ void MainWindow::openAboutDialog()
         GitHub</a>.</p>
         <p>Thank you for using WT Plotter!</p>
     )";
-
 	QMessageBox::about(this, "About WT Plotter", aboutText);
 }
 
@@ -143,7 +147,7 @@ void MainWindow::startPlotter() {
 	connect(m_worker, &Worker::updatePixmap, ui->mappa, &SceneImageViewer::setPixmap);
 	connect(m_worker, &Worker::updateStatusLabel, this, &MainWindow::updateStatusLabel);
 	connect(m_worker, &Worker::updateProgressBar, this, &MainWindow::updateProgressBar);
-	connect(m_worker, &Worker::changeStackedWidget, this, &MainWindow::changeStackedWidget);
+	connect(m_worker, &Worker::changeStackedWidget2, this, &MainWindow::changeStackedWidget2);
 
 	m_worker->moveToThread(m_thread);
 	m_thread->start();
@@ -154,9 +158,51 @@ void MainWindow::updatePixmap(const QPixmap& pixmap)
 	ui->mappa->setPixmap(pixmap);
 }
 
-void MainWindow::changeStackedWidget(int index)
+void MainWindow::refreshReplays() {
+	QSettings settings("sgambe33", "wtplotter");
+
+	if (!settings.value("replayFolderPath").isNull()) {
+		populateReplayTreeView(ui->replayTreeView, settings.value("replayFolderPath").toString());
+	}
+}
+
+void MainWindow::loadReplaysFromFolder() {
+	QSettings settings("sgambe33", "wtplotter");
+	QString folderPath = settings.value("replayFolderPath").toString();
+	if (folderPath.isEmpty())
+		return;
+
+	ui->stackedWidget_1->setCurrentIndex(1);
+	ui->replayLoadingProgressBar->setRange(0, 100);
+	ui->replayLoadingProgressBar->setValue(0);
+	ui->replayLoadingProgressBar->setTextVisible(true);
+
+	QThread* thread = new QThread();
+	ReplayLoaderWorker* worker = new ReplayLoaderWorker(folderPath, QString("test.sqlite3"));
+	worker->moveToThread(thread);
+
+	connect(thread, &QThread::started, worker, &ReplayLoaderWorker::loadReplays);
+	connect(worker, &ReplayLoaderWorker::progressUpdated, ui->replayLoadingProgressBar, &QProgressBar::setValue);
+	connect(worker, &ReplayLoaderWorker::finished, this, &MainWindow::onReplayLoaderFinished);
+	connect(thread, &QThread::finished, worker, &QObject::deleteLater);
+	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+	thread->start();
+}
+
+void MainWindow::onReplayLoaderFinished()
 {
-	ui->stackedWidget->setCurrentIndex(index);
+	ui->stackedWidget_1->setCurrentIndex(0);
+}
+
+void MainWindow::changeStackedWidget1(int index)
+{
+	ui->stackedWidget_1->setCurrentIndex(index);
+}
+
+void MainWindow::changeStackedWidget2(int index)
+{
+	ui->stackedWidget_2->setCurrentIndex(index);
 }
 
 void MainWindow::updateProgressBar(double progress) {
@@ -183,7 +229,8 @@ void MainWindow::stopPlotter() {
 
 void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath)
 {
-	model->setHorizontalHeaderLabels({ "File Name" });
+	model->clear();
+	model->setHorizontalHeaderLabels({ tr("File Name") });
 
 	QMap<QDate, QList<QFileInfo>> filesByDate;
 
@@ -231,6 +278,7 @@ void MainWindow::onTreeItemClicked(const QModelIndex& index)
 void MainWindow::executeCommand(const QString& filePath)
 {
 	Replay rep = Replay::fromFile(filePath);
+	qDebug() << rep.getAuthor();
 
 
 	QPixmap mapPixmap(":/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
@@ -244,7 +292,7 @@ void MainWindow::executeCommand(const QString& filePath)
 	QDateTime startTime = QDateTime::fromSecsSinceEpoch(rep.getStartTime());
 	QString formattedStartTime = startTime.toString("hh:mm:ss");
 	ui->startTimeLabel->setText(QString("Start time: ") + formattedStartTime);
-	ui->timePlayedLabel->setText(QString("Time played: ") + QString::number(rep.getTimePlayed()));
+	ui->timePlayedLabel->setText(QString("Time played: ") + Utils::replayLengthToString(rep.getTimePlayed()));
 	ui->resultLabel->setText(QString("Result: ") + rep.getStatus());
 
 	QList<Player> players = rep.getPlayers();
@@ -274,6 +322,8 @@ void MainWindow::executeCommand(const QString& filePath)
 
 	populateTeamTable(ui->alliesTable, allies);
 	populateTeamTable(ui->axisTable, axis);
+
+	m_dbmanager.insertReplay(rep);
 }
 
 void MainWindow::populateTeamTable(QTableWidget* table, const QList<Player>& players)
@@ -352,62 +402,4 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<Player>& pla
 	}
 
 	table->resizeColumnsToContents();
-}
-
-void MainWindow::checkForUpdates() {
-	QUrl url("https://raw.githubusercontent.com/Sgambe33/WT-Plotter/refs/heads/main/version.json");
-
-	QNetworkRequest request(url);
-	QNetworkAccessManager networkManager;
-	QNetworkReply* reply = networkManager.get(request);
-
-	QString appVersion = QString("%1.%2.%3")
-		.arg(APP_VERSION_MAJOR)
-		.arg(APP_VERSION_MINOR)
-		.arg(APP_VERSION_PATCH);
-
-	qDebug() << "Current app version:" << appVersion;
-
-	QEventLoop loop;
-	connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-	loop.exec();
-
-	if (reply->error() != QNetworkReply::NoError)
-	{
-		qWarning() << "Failed to fetch version information:" << reply->errorString();
-		reply->deleteLater();
-		return;
-	}
-
-	QByteArray responseData = reply->readAll();
-	QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
-	reply->deleteLater();
-
-	if (!jsonDoc.isObject())
-	{
-		qWarning() << "Invalid JSON received.";
-		return;
-	}
-
-	QJsonObject jsonObj = jsonDoc.object();
-	QString latestVersion = jsonObj.value("version").toString();
-
-	if (latestVersion.isEmpty())
-	{
-		qWarning() << "Version key not found in JSON.";
-		return;
-	}
-
-	if (appVersion != latestVersion)
-	{
-		QMessageBox::warning(nullptr, "Update Required", R"(
-        <p>A new version of this app has been found. In order to keep shared data consistent, please update by 
-        downloading the latest version <a href='https://github.com/Sgambe33/WT-Plotter/releases/latest'>
-        here</a>.</p><p>Thank you</p>)");
-		std::exit(0);
-	}
-	else
-	{
-		qInfo() << "You are using the latest version.";
-	}
 }

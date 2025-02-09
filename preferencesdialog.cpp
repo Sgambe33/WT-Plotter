@@ -43,9 +43,3 @@ void PreferencesDialog::on_autosaveCheck_stateChanged(int state)
 {
 	settings.setValue("autosave", state == Qt::Checked);
 }
-
-void PreferencesDialog::on_buttonBox_accepted()
-{
-
-}
-

@@ -21,6 +21,7 @@ find_package(Qt${QT_VERSION_MAJOR}
         Widgets
         Svg
         Network
+        Sql
     OPTIONAL_COMPONENTS
         LinguistTools
 )
@@ -49,6 +50,12 @@ qt_add_executable(wtplotter
     classes/replay.h
     classes/position.cpp
     classes/position.h
+    classes/dbmanager.cpp
+    classes/dbmanager.h
+    classes/utils.cpp
+    classes/utils.h
+    classes/replayloaderworker.cpp
+    classes/replayloaderworker.h
 )
 
 file(GLOB_RECURSE ICONS
@@ -72,12 +79,17 @@ qt_add_resources(wtplotter
     BASE resources
     FILES ${ICONS} ${MAP_IMAGES}
 )
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en)
 
 app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})
 
 target_link_libraries(wtplotter PRIVATE
-    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Sql
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG_BUILD)
+endif()
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in

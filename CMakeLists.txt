@@ -28,6 +28,8 @@ find_package(Qt${QT_VERSION_MAJOR}
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+file(GLOB discord_SRC CONFIGURE_DEPENDS "discord_files/*.h" "discord_files/*.cpp")
+
 qt_add_executable(wtplotter
     main.cpp
     mainwindow.cpp
@@ -56,6 +58,7 @@ qt_add_executable(wtplotter
     classes/utils.h
     classes/replayloaderworker.cpp
     classes/replayloaderworker.h
+    ${discord_SRC}
 )
 
 file(GLOB_RECURSE ICONS
@@ -79,12 +82,13 @@ qt_add_resources(wtplotter
     BASE resources
     FILES ${ICONS} ${MAP_IMAGES}
 )
-qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en)
 
 app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/discord-gamesdk-cmake)
+
 target_link_libraries(wtplotter PRIVATE
-    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Sql
+    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Sql discord_gamesdk
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -107,7 +107,7 @@ bool DbManager::insertReplay(const Replay& replay)
 
 	query.prepare(R"(
         INSERT OR IGNORE INTO Replay (session_id, author_id, start_time, map, game_mode, status, time_played)
-        VALUES (:session_id, :author_id, :author_name, :start_time, :map, :game_mode, :status, :time_played)
+        VALUES (:session_id, :author_id, :start_time, :map, :game_mode, :status, :time_played)
     )");
 	query.bindValue(":session_id", replay.getSessionId());
 	query.bindValue(":author_id", replay.getAuthorId().toULongLong());
@@ -238,9 +238,11 @@ qint64 DbManager::getLatestReplay(){
 	}
 	else
 	{
+
 		while (query.next())
 		{
 			return query.value("start_time").toInt();
 		}
 	}
+	return 0;
 }

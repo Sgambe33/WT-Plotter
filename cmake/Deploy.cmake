@@ -4,17 +4,7 @@ include(ConvertImage)
 include(FetchContent)
 
 if(QT_FEATURE_openssl)
-    if(ANDROID)
-        FetchContent_Declare(
-          android_openssl
-          GIT_REPOSITORY https://github.com/KDAB/android_openssl
-          GIT_TAG aef7ae266e2742328fb66a89acb85c0d2b55c599
-          GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(android_openssl)
-    else()
-        find_package(OpenSSL 3 EXACT COMPONENTS SSL)
-    endif()
+    find_package(OpenSSL 3 EXACT COMPONENTS SSL)
 endif()
 
 function(get_sub_targets OUTPUT DIR #[[TYPES...]])
@@ -43,58 +33,6 @@ function(get_sub_targets OUTPUT DIR #[[TYPES...]])
         list(REMOVE_DUPLICATES TARGET_LIST)
         set(${OUTPUT} "${TARGET_LIST}" PARENT_SCOPE)
     endif()
-endfunction()
-
-function(deploy_android TARGET DEPLOY_SOURCE_DIR)
-    file(COPY ${DEPLOY_SOURCE_DIR} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-    configure_file(${DEPLOY_SOURCE_DIR}/AndroidManifest.xml
-        ${CMAKE_CURRENT_BINARY_DIR}/android/AndroidManifest.xml @ONLY)
-    set_target_properties(${TARGET} PROPERTIES
-        QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/android)
-
-    if(DEFINED ANDROID_EXTRA_LIBS)
-        set_property(TARGET ${TARGET} APPEND PROPERTY
-            QT_ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}")
-    endif()
-
-    get_sub_targets(LIBS ${CMAKE_CURRENT_SOURCE_DIR} TYPES MODULE_LIBRARY)
-    foreach(LIB IN LISTS LIBS)
-        set_property(TARGET ${TARGET} APPEND PROPERTY
-            QT_ANDROID_EXTRA_LIBS $<TARGET_FILE:${LIB}>)
-    endforeach()
-
-    get_target_property(EXTRA_LIB_PATHS ${TARGET} QT_ANDROID_EXTRA_LIBS)
-    if(EXTRA_LIB_PATHS)
-        foreach(PATH IN LISTS EXTRA_LIB_PATHS)
-            string(GENEX_STRIP ${PATH} PATH_UNGENEXED)
-            if(PATH STREQUAL PATH_UNGENEXED)
-                file(TO_CMAKE_PATH ${PATH} PATH)
-            endif()
-            set_property(TARGET ${TARGET} APPEND PROPERTY
-                _qt_android_native_extra_libs ${PATH})
-        endforeach()
-        set_target_properties(${TARGET} PROPERTIES QT_ANDROID_EXTRA_LIBS "")
-    endif()
-
-    add_custom_command(TARGET deploy VERBATIM
-        COMMAND ${CMAKE_COMMAND} -E rename
-        ${CMAKE_CURRENT_BINARY_DIR}/android-build/build/outputs/apk/debug/android-build-debug.apk
-        ${APP_DEPLOY_PREFIX}/${TARGET}-${CMAKE_PROJECT_VERSION}.apk
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-endfunction()
-
-function(deploy_ios TARGET DEPLOY_SOURCE_DIR)
-    set_target_properties(${TARGET} PROPERTIES
-        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER
-        ${CMAKE_PROJECT_HOMEPAGE_URL}.${CMAKE_PROJECT_NAME}
-    )
-    configure_file(${DEPLOY_SOURCE_DIR}/Info.plist
-        ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
-    set_target_properties(${TARGET} PROPERTIES
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist)
-    install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin/${AppName}
-            DESTINATION ${APP_DEPLOY_PREFIX} USE_SOURCE_PERMISSIONS)
 endfunction()
 
 function(deploy_darwin TARGET DEPLOY_SOURCE_DIR)
@@ -549,11 +487,7 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
 endfunction()
 
 function(deploy TARGET DEPLOY_BASE_DIR)
-    if(ANDROID)
-        add_custom_target(deploy_base ALL DEPENDS apk_all)
-    else()
-        add_custom_target(deploy_base ALL DEPENDS ${TARGET})
-    endif()
+    add_custom_target(deploy_base ALL DEPENDS ${TARGET})
 
     if(APP_DEPLOY_AS_PART_OF_ALL)
         add_custom_target(deploy ALL DEPENDS deploy_base)

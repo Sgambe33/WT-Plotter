@@ -5,7 +5,6 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QProcess>
-#include <QDebug>
 #include <QCoreApplication>
 #include "replay.h"
 

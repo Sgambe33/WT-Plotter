@@ -2,7 +2,6 @@
 #include "./ui_preferencesdialog.h"
 #include <QFileDialog>
 
-
 PreferencesDialog::PreferencesDialog(QWidget* parent) :
 	QDialog(parent),
 	ui(new Ui::PreferencesDialog),
@@ -10,6 +9,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
 {
 	ui->setupUi(this);
 	setWindowTitle("Preferences");
+
 	ui->replayFolderTextEdit->setPlainText(settings.value("replayFolderPath").toString());
 	ui->plotSavePathTextEdit->setPlainText(settings.value("plotSavePath").toString());
 	ui->autosaveCheck->setChecked(settings.value("autosave").toBool());
@@ -26,7 +26,6 @@ void PreferencesDialog::on_chooseReplayFolder_clicked()
 	if (!folderPath.isEmpty()) {
 		ui->replayFolderTextEdit->setPlainText(folderPath);
 		settings.setValue("replayFolderPath", folderPath);
-
 	}
 }
 

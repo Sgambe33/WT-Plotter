@@ -31,6 +31,7 @@
 #include <QSqlDatabase>
 #include <classes/replayloaderworker.h>
 
+
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	model(new QStandardItemModel(this)),
@@ -90,8 +91,6 @@ MainWindow::MainWindow(QWidget* parent)
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
 	connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
 
-	m_dbmanager.createTables();
-	//refreshReplays();
 	loadReplaysFromFolder();
 }
 
@@ -270,7 +269,6 @@ void MainWindow::onTreeItemClicked(const QModelIndex& index)
 
 	if (!filePath.isEmpty())
 	{
-		qDebug() << filePath;
 		executeCommand(filePath);
 	}
 }
@@ -278,8 +276,6 @@ void MainWindow::onTreeItemClicked(const QModelIndex& index)
 void MainWindow::executeCommand(const QString& filePath)
 {
 	Replay rep = Replay::fromFile(filePath);
-	qDebug() << rep.getAuthor();
-
 
 	QPixmap mapPixmap(":/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
 	if (mapPixmap.isNull()) {

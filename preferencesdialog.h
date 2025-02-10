@@ -21,7 +21,6 @@ private slots:
 	void on_choosePlotSavePath_clicked();
 	void on_autosaveCheck_stateChanged(int state);
 
-
 private:
 	Ui::PreferencesDialog* ui;
 	QSettings settings;

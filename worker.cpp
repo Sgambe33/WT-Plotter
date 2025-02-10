@@ -29,8 +29,7 @@ Worker::Worker(SceneImageViewer* imageViewer, QObject* parent)
 	: QObject(parent),
 	m_timer(new QTimer(this)),
 	matchStartTime(0),
-	networkManager(new QNetworkAccessManager(this)),
-	core(nullptr)
+	networkManager(new QNetworkAccessManager(this))
 {
 	connect(m_timer, &QTimer::timeout, this, &Worker::onTimeout);
 }
@@ -38,10 +37,6 @@ Worker::Worker(SceneImageViewer* imageViewer, QObject* parent)
 Worker::~Worker()
 {
 	stopTimer();
-	if (core) {
-		delete core;
-		core = nullptr;
-	}
 }
 
 void Worker::startTimer()
@@ -50,25 +45,6 @@ void Worker::startTimer()
 		QMetaObject::invokeMethod(this, "startTimer", Qt::QueuedConnection);
 		return;
 	}
-
-	if (!core) {
-		auto result = discord::Core::Create(1338259195455344650, DiscordCreateFlags_Default, &core);
-		if (result != discord::Result::Ok) {
-			qWarning() << "Failed to create Discord core!";
-			return;
-		}
-	}
-	auto result = discord::Core::Create(1338259195455344650, DiscordCreateFlags_Default, &core);
-
-	discord::Activity activity{};
-	activity.SetState("Playing War Thunder via C++");
-	activity.SetDetails("In the hangar");
-	activity.SetType(discord::ActivityType::Playing);
-
-	core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-		qDebug() << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-			<< " updating activity!\n";
-		});
 
 	m_timer->start(1000);
 }
@@ -92,25 +68,11 @@ void Worker::performTask()
 
 void Worker::onTimeout()
 {
-	core->RunCallbacks();
 	try
 	{
 		if (shouldLoadMap())
 		{
 			fetchAndDisplayMap();
-
-			discord::Activity activity{};
-			activity.SetState("Playing War Thunder via C++");
-			activity.SetDetails("In the hangar");
-			activity.SetType(discord::ActivityType::Playing);
-			activity.GetAssets().SetLargeImage("avg_sweden_tankmap");
-
-			core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-				qDebug() << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-					<< " updating activity!\n";
-				});
-
-
 			emit changeStackedWidget2(2);
 			emit updateStatusLabel(QString("Map loaded..."));
 		}

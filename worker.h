@@ -12,7 +12,6 @@
 #include "classes/position.h"
 #include "sceneimageviewer.h"
 #include "classes/replay.h"
-#include "discord-gamesdk-cmake/src/discord.h"
 
 class Worker : public QObject
 {
@@ -75,7 +74,6 @@ private:
 	SceneImageViewer* imageViewer;
 	QTimer* m_timer;
 	qint64 matchStartTime;
-	discord::Core* core;
 	static QString DATA_URL;
 	static QString MAP_URL;
 	static QString MAP_INFO;

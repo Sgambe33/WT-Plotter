@@ -7,7 +7,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 project(wtplotter
     LANGUAGES CXX
-    VERSION 0.2.4
+    VERSION 0.2.5
     HOMEPAGE_URL github.com/Sgambe33/WT-Plotter
     DESCRIPTION "GUI tool to read War Thunder replays and plot ground matches"
 )

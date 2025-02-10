@@ -30,14 +30,14 @@
 #include <QMessageBox>
 #include <QSqlDatabase>
 #include <classes/replayloaderworker.h>
-
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	model(new QStandardItemModel(this)),
 	m_thread(nullptr),
 	m_worker(nullptr),
-	m_dbmanager(QString("test.sqlite3"))
+	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"))
 {
 	ui->setupUi(this);
 	QSettings settings("sgambe33", "wtplotter");
@@ -177,7 +177,7 @@ void MainWindow::loadReplaysFromFolder() {
 	ui->replayLoadingProgressBar->setTextVisible(true);
 
 	QThread* thread = new QThread();
-	ReplayLoaderWorker* worker = new ReplayLoaderWorker(folderPath, QString("test.sqlite3"));
+	ReplayLoaderWorker* worker = new ReplayLoaderWorker(folderPath, QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"));
 	worker->moveToThread(thread);
 
 	connect(thread, &QThread::started, worker, &ReplayLoaderWorker::loadReplays);

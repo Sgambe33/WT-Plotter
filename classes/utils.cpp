@@ -56,7 +56,7 @@ void Utils::checkAppVersion() {
         here</a>.</p><p>Thank you</p>)");
 		std::exit(0);
 	}
-	else if (!isCritical) {
+	else if (appVersion != latestVersion && !isCritical) {
 		QMessageBox::information(nullptr, "Update Available", changelog);
 		return;
 	}

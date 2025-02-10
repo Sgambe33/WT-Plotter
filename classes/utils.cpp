@@ -66,7 +66,6 @@ void Utils::checkAppVersion() {
 	}
 }
 
-/*
 QFile Utils::getLatestReplay(const QDir& replayDirectory)
 {
 	QFileInfoList files = replayDirectory.entryInfoList(QDir::Files, QDir::Time);
@@ -85,28 +84,7 @@ QFile Utils::getLatestReplay(const QDir& replayDirectory)
 	}
 
 	return QFile();
-}*/
-
-//To get directly latest file
-QFile Utils::getLatestReplay(const QDir& replayDirectory)
-{
-    QFileInfoList files = replayDirectory.entryInfoList(QDir::Files, QDir::Time);
-    if (files.isEmpty())
-    {
-        return QFile();
-    }
-
-    // The list is already sorted by modification time, so the first file is the newest
-    const QFileInfo& latestFileInfo = files.first();
-
-    if (latestFileInfo.suffix() == "wrpl")
-    {
-        return QFile(latestFileInfo.filePath());
-    }
-
-    return QFile();
 }
-
 
 void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Position> positionCache, QList<Position> poi)
 {

@@ -111,7 +111,7 @@ QFile Utils::getLatestReplay(const QDir& replayDirectory)
 void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Position> positionCache, QList<Position> poi)
 {
 	QNetworkAccessManager networkManager;
-	QNetworkRequest request(QUrl("http://warthunder-heatmaps.crabdance.com/uploadPositions"));
+	QNetworkRequest request(QUrl("https://warthunder-heatmaps.crabdance.com/uploadPositions"));
 #ifdef DEBUG_BUILD
 	request.setUrl(QUrl("http://localhost:5000/uploadPositions"));
 #endif

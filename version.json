@@ -1,5 +1,5 @@
 {
-  "version": "0.2.4",
-  "critical": "false",
-  "changelog": "<ul><li>Change1</li></ul>"
+  "version": "0.2.5",
+  "critical": "true",
+  "changelog": "<ul><li>Edited upload url to ensure SSL.</li></ul>"
 }

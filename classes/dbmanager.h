@@ -1,26 +1,38 @@
 #ifndef DBMANAGER_H
 #define DBMANAGER_H
 
-#include <QString>
+#include <QObject>
 #include <QSqlDatabase>
-#include <QJsonObject>
+#include <QSqlQuery>
+#include <QDateTime>
 #include "replay.h"
 #include "player.h"
+#include "utils.h"
 
-class DbManager
+class DbManager : public QObject
 {
+    Q_OBJECT
 public:
-    explicit DbManager(const QString path);
+    explicit DbManager(const QString& path, const QString connName, QObject* parent = nullptr);
+    ~DbManager();
+
     void createTables();
     bool insertReplay(const Replay& replay);
     qint64 getLatestReplay();
+    Replay getReplayBySessionId(QString sessionId);
+    QMap<QDate, QList<Replay>> fetchReplaysGroupedByDate();
 
 
 private:
+    void prepareQueries();
+    void createIndexes();
+
+
     QSqlDatabase m_db;
-    bool insertPlayer(const PlayerInfo& player);
-    bool insertPlayerCraft(const QString& sessionId, quint64 playerId, const QJsonObject& craftLineup);
-    bool insertPlayerReplayData(const QString& sessionId, const Player& player);
+    QSqlQuery m_insertReplayQuery;
+    QSqlQuery m_insertPlayerQuery;
+    QSqlQuery m_insertPlayerCraftQuery;
+    QSqlQuery m_insertPlayerDataQuery;
 };
 
 #endif // DBMANAGER_H

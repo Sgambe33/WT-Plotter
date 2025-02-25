@@ -1,13 +1,12 @@
-#include <QByteArray>
+#include "replay.h"
 #include <QBuffer>
+#include <QByteArray>
+#include <QCoreApplication>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 #include <QProcess>
-#include <QCoreApplication>
-#include "replay.h"
-
 
 const QByteArray Replay::MAGIC = QByteArray::fromHex("e5ac0010");
 
@@ -18,41 +17,48 @@ Replay::Replay(const QByteArray& buffer) {
 	QByteArray magic(4, 0);
 	stream.readRawData(magic.data(), 4);
 	if (magic != MAGIC) {
-		throw std::runtime_error("Invalid magic number");
+		throw std::runtime_error("Invalid magic number, maybe not a replay file?");
 	}
 
-	stream >> version;
-	level = readString(stream, 128).replace("levels/", "").replace(".bin", "");
-	levelSettings = readString(stream, 260);
-	battleType = readString(stream, 128);
-	environment = readString(stream, 128);
-	visibility = readString(stream, 32);
-	stream >> rezOffset;
-	stream >> difficulty;
+	stream >> m_version;
+	m_level = readString(stream, 128).replace("levels/", "").replace(".bin", "");
+	m_levelSettings = readString(stream, 260);
+	m_battleType = readString(stream, 128);
+	m_environment = readString(stream, 128);
+	m_visibility = readString(stream, 32);
+	stream >> m_rezOffset;
+	quint8 difficultyTemp;
+	stream >> difficultyTemp;
+	difficultyTemp &= 0x0F;
+	m_difficulty = static_cast<Difficulty>(difficultyTemp);
 	stream.skipRawData(35); // Skip 35 bytes
-	stream >> sessionType;
+	stream >> m_sessionType;
 	stream.skipRawData(7); // Skip 7 bytes
 
 	quint64 sessionIdInt;
 	stream >> sessionIdInt;
-	sessionId = QString::number(sessionIdInt, 16);
+	m_sessionId = QString::number(sessionIdInt, 16);
 
 	stream.skipRawData(4); // Skip 4 bytes
-	stream >> mSetSize;
+	stream >> m_mSetSize;
 	stream.skipRawData(32); // Skip 32 bytes
-	locName = readString(stream, 128);
-	stream >> startTime >> timeLimit >> scoreLimit;
+	m_locName = readString(stream, 128);
+	stream >> m_startTime >> m_timeLimit >> m_scoreLimit;
 	stream.skipRawData(48); // Skip 48 bytes
-	battleClass = readString(stream, 128);
-	battleKillStreak = readString(stream, 128);
+	m_battleClass = readString(stream, 128);
+	m_battleKillStreak = readString(stream, 128);
 
 	try {
-		auto results = unpackResults(rezOffset, buffer);
+		auto results = unpackResults(m_rezOffset, buffer);
 		parseResults(results);
 	}
 	catch (const std::exception& e) {
 		qWarning() << "Error unpacking results:" << e.what();
 	}
+}
+
+Replay::Replay()
+{
 }
 
 Replay Replay::fromFile(const QString& filePath) {
@@ -77,8 +83,8 @@ QString Replay::readString(QDataStream& stream, int length) {
 	return QString::fromUtf8(bytes);
 }
 
-QJsonObject Replay::unpackResults(int rezOffset, const QByteArray& buffer) {
-	QByteArray dataAfterRez = buffer.mid(rezOffset);
+QJsonObject Replay::unpackResults(int offset, const QByteArray& buffer) {
+	QByteArray dataAfterRez = buffer.mid(offset);
 
 	QProcess process;
 	QString executablePath = QCoreApplication::applicationDirPath() + QString("/wt_ext_cli");
@@ -106,41 +112,127 @@ QJsonObject Replay::unpackResults(int rezOffset, const QByteArray& buffer) {
 }
 
 void Replay::parseResults(const QJsonObject& results) {
-	status = results.value("status").toString("left");
-	timePlayed = results.value("timePlayed").toDouble();
-	authorUserId = results.value("authorUserId").toString();
-	author = results.value("author").toString();
+	this->m_timePlayed = results.value("timePlayed").toDouble();
+	this->m_timePlayed = results.value("timePlayed").toDouble();
+	this->m_authorUserId = results.value("authorUserId").toString();
+	this->m_author = results.value("author").toString();
 
-	if(authorUserId == "" || author == ""){
-		authorUserId = "-1";
-		author="server";
+	if (this->m_authorUserId == "" || this->m_author == "") {
+		this->m_authorUserId = "-1";
+		this->m_author = "server";
 	}
 
 	QJsonArray playersArray = results.value("player").toArray();
-	for (const auto& playerElement : playersArray) {
-		QJsonObject playerObject = playerElement.toObject();
-		players.append(Player::fromJson(playerObject));
-	}
-
 	QJsonObject uiScriptsData = results.value("uiScriptsData").toObject();
 	QJsonObject playersInfoObject = uiScriptsData.value("playersInfo").toObject();
-	for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {
-		QJsonObject playerInfoObject = it.value().toObject();
-		playersInfo.append(PlayerInfo::fromJson(playerInfoObject));
+	
+	for (const auto& playerElement : playersArray) {
+		QJsonObject playerObject = playerElement.toObject();
+		for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {
+			QJsonObject playerInfoObject = it.value().toObject();
+			if (QString::compare(playerInfoObject.value("id").toString(), playerObject.value("userId").toString())) {
+				qDebug() << "Found player:" << playerInfoObject.value("id").toString();
+				Player p = Player::fromJson(playerInfoObject);
+				PlayerReplayData prd = PlayerReplayData::fromJson(playerObject);
+
+				prd.setWaitTime(playerInfoObject.value("wait_time").toDouble());
+				QJsonObject crafts = playerInfoObject.value("crafts").toObject();
+				QList<QString> lineup;
+				for (auto it1 = crafts.constBegin(); it1 != crafts.constEnd(); ++it1) {
+					lineup.append(it1.value().toString());
+				}
+				prd.setLineup(lineup);
+
+				this->m_players.insert(p, prd);
+				break;
+			}
+		}
+	}
+	//processMissingData(m_playerReplayData, playersArray, m_players, playersInfoObject);
+}
+
+//HASHMAP BABY?
+void Replay::processMissingData(QList<PlayerReplayData>& playerReplayDataList, QJsonArray playersArray, QList<Player>& playerList, QJsonObject& playersInfoObject) {
+	for (PlayerReplayData prd : playerReplayDataList) {
+		for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {
+			QJsonObject pio = it.value().toObject();
+			if (pio.value("id").toString() != prd.getUserId()) continue;
+			prd.setWaitTime(pio.value("wait_time").toDouble());
+			QJsonObject crafts = pio.value("crafts").toObject();
+			QList<QString> lineup;
+			for (auto it1 = crafts.constBegin(); it1 != crafts.constEnd(); ++it1) {
+				lineup.append(it1.value().toString());
+			}
+			prd.setLineup(lineup);
+			//Wait time and lineup
+			//prd <- pl
+			break;
+		}
+
 	}
 }
 
-QString Replay::getLevel() const { return level; }
-double Replay::getTimePlayed() const { return timePlayed; }
-QString Replay::getStatus() const { return status; }
-QList<Player> Replay::getPlayers() const { return players; }
-QList<PlayerInfo> Replay::getPlayersInfo() const { return playersInfo; }
-QString Replay::getAuthorId() const { return authorUserId; }
-QString Replay::getSessionId() const { return sessionId; }
-QString Replay::getBattleType() const { return battleType; }
-int Replay::getStartTime() const { return startTime; }
 
-QString Replay::getAuthor() const
+int Replay::getVersion() const { return m_version; }
+QString Replay::getSessionId() const { return m_sessionId; }
+QString Replay::getLevel() const { return m_level; }
+QString Replay::getLevelSettings() const { return m_levelSettings; }
+QString Replay::getBattleType() const { return m_battleType; }
+QString Replay::getEnvironment() const { return m_environment; }
+QString Replay::getVisibility() const { return m_visibility; }
+int Replay::getRezOffset() const { return m_rezOffset; }
+Difficulty Replay::getDifficulty() const { return m_difficulty; }
+quint8 Replay::getSessionType() const { return m_sessionType; }
+int Replay::getSetSize() const { return m_mSetSize; }
+QString Replay::getLocName() const { return m_locName; }
+int Replay::getStartTime() const { return m_startTime; }
+int Replay::getTimeLimit() const { return m_timeLimit; }
+int Replay::getScoreLimit() const { return m_scoreLimit; }
+QString Replay::getBattleClass() const { return m_battleClass; }
+QString Replay::getBattleKillStreak() const { return m_battleKillStreak; }
+QString Replay::getStatus() const { return m_status; }
+double Replay::getTimePlayed() const { return m_timePlayed; }
+QString Replay::getAuthorUserId() const { return m_authorUserId; }
+QString Replay::getAuthor() const { return m_author; }
+QMap<Player, PlayerReplayData> Replay::getPlayers() const { return m_players; }
+
+
+void Replay::setSessionId(QString sessionId)
 {
-	return author;
+	this->m_sessionId = sessionId;
+}
+
+void Replay::setAuthorUserId(QString authorUserId)
+{
+	this->m_authorUserId = authorUserId;
+}
+
+void Replay::setStartTime(int startTime)
+{
+	this->m_startTime = startTime;
+}
+
+void Replay::setLevel(QString level)
+{
+	this->m_level = level;
+}
+
+void Replay::setBattleType(QString battleType)
+{
+	this->m_battleType = battleType;
+}
+
+void Replay::setDifficulty(Difficulty difficulty)
+{
+	this->m_difficulty = difficulty;
+}
+
+void Replay::setStatus(QString status)
+{
+	this->m_status = status;
+}
+
+void Replay::setTimePlayed(double timePlayed)
+{
+	this->m_timePlayed = timePlayed;
 }

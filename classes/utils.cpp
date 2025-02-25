@@ -195,3 +195,36 @@ QString Utils::replayLengthToString(int length) {
 	int seconds = length % 60;
 	return QString("%1:%2:%3").arg(hours, 2, 10, QChar('0')).arg(minutes, 2, 10, QChar('0')).arg(seconds, 2, 10, QChar('0'));
 }
+
+QString Utils::difficultyToString(Difficulty difficulty) {
+	switch (difficulty) {
+	case Difficulty::ARCADE:    return "ARCADE";
+	case Difficulty::REALISTIC: return "REALISTIC";
+	case Difficulty::SIMULATOR: return "SIMULATOR";
+	default:                    return "UNKNOWN";
+	}
+}
+
+Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
+{
+	QString upperStr = difficultyStr.toUpper();
+	static const QMap<QString, Difficulty> difficultyMap = {
+		{"ARCADE", Difficulty::ARCADE},
+		{"REALISTIC", Difficulty::REALISTIC},
+		{"SIMULATOR", Difficulty::SIMULATOR}
+	};
+
+
+	auto it = difficultyMap.find(upperStr);
+	if (it != difficultyMap.end()) {
+		return it.value();
+	}
+	else {
+		return Difficulty::ARCADE;
+	}
+}
+
+QString Utils::epochSToFormattedTime(int time) {
+	QDateTime startTime = QDateTime::fromSecsSinceEpoch(time);
+	return startTime.toString("hh:mm:ss");
+}

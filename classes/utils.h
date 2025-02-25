@@ -24,7 +24,8 @@
 #include "classes/position.h"
 #include "sceneimageviewer.h"
 #include "classes/replay.h"
-
+#include "classes/constants.h"
+#include <QMap>
 class Utils {
 public:
     static void checkAppVersion();
@@ -32,11 +33,12 @@ public:
     static QFile getLatestReplay(const QDir& replayDirectory);
     static void saveImage(QPixmap drawedMapImage);
     static QString replayLengthToString(int length);
+    static QString difficultyToString(Difficulty difficulty);
+    static Difficulty stringToDifficulty(const QString& difficultyStr);
+    static QString epochSToFormattedTime(int time);
 
 private:    
     static QJsonArray exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi);
-
-
 };
 
 #endif // UTILS_H

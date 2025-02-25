@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QSettings>
+#include <QSqlDatabase>
+#include <QSqlError>
 
 int main(int argc, char* argv[])
 {
@@ -21,6 +23,12 @@ int main(int argc, char* argv[])
 	if (settings.value("plotSavePath").toString().isEmpty())
 	{
 		settings.setValue("plotSavePath", QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/plots");
+	}
+
+	if (!QSqlDatabase::isDriverAvailable("QSQLITE"))
+	{
+		qDebug() << "SQLite driver not available!";
+		return -1;
 	}
 
 	MainWindow w;

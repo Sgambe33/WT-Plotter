@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget* parent)
 	model(new QStandardItemModel(this)),
 	m_thread(nullptr),
 	m_worker(nullptr),
-	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"))
+	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow")
 {
 	ui->setupUi(this);
 	QSettings settings("sgambe33", "wtplotter");
@@ -51,37 +51,25 @@ MainWindow::MainWindow(QWidget* parent)
 	img = img.scaled(125, 125, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	ui->mapImage->setPixmap(img);
 
-	QStatusBar* statusBar = ui->statusbar;
-	QWidget* buttonBox = new QWidget(this);
-	QHBoxLayout* layout = new QHBoxLayout(buttonBox);
-	layout->setContentsMargins(0, 0, 0, 0);
-
-	QPushButton* replayButton = new QPushButton("Replays", buttonBox);
-	QPushButton* plotterButton = new QPushButton("Plotter", buttonBox);
-
-	connect(replayButton, &QPushButton::clicked, [=] {
+	connect(ui->replayButton, &QPushButton::clicked, [=] {
 		ui->stackedWidget_2->setCurrentIndex(0);
 		ui->replayTreeView->setDisabled(false);
-		plotterButton->setDisabled(false);
-		replayButton->setDisabled(true);
+		ui->plotterButton->setDisabled(false);
+		ui->replayButton->setDisabled(true);
 		stopPlotter();
 		});
 
-	connect(plotterButton, &QPushButton::clicked, [=] {
+	connect(ui->plotterButton, &QPushButton::clicked, [=] {
 		ui->stackedWidget_2->setCurrentIndex(2);
 		ui->replayTreeView->setDisabled(true);
-		plotterButton->setDisabled(true);
-		replayButton->setDisabled(false);
+		ui->plotterButton->setDisabled(true);
+		ui->replayButton->setDisabled(false);
 		startPlotter();
 		});
 
-	layout->addWidget(replayButton);
-	layout->addWidget(plotterButton);
-
-	statusBar->addPermanentWidget(buttonBox);
 
 	ui->replayTreeView->setDisabled(true);
-	plotterButton->setDisabled(true);
+	ui->plotterButton->setDisabled(true);
 
 	Utils::checkAppVersion();
 
@@ -231,51 +219,35 @@ void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString
 	model->clear();
 	model->setHorizontalHeaderLabels({ tr("File Name") });
 
-	QMap<QDate, QList<QFileInfo>> filesByDate;
-
-	QDir dir(directoryPath);
-	dir.setFilter(QDir::Files | QDir::NoSymLinks);
-	dir.setNameFilters({ "*.wrpl" });
-	QFileInfoList fileInfoList = dir.entryInfoList();
-
-	for (const QFileInfo& fileInfo : fileInfoList)
-	{
-		QDate creationDate = fileInfo.birthTime().date();
-		filesByDate[creationDate].append(fileInfo);
-	}
-
-	for (auto it = filesByDate.cbegin(); it != filesByDate.cend(); ++it)
+	QMap<QDate, QList<Replay>> replaysByDate = m_dbmanager.fetchReplaysGroupedByDate();
+	for (auto it = replaysByDate.cbegin(); it != replaysByDate.cend(); ++it)
 	{
 		QStandardItem* dateItem = new QStandardItem(it.key().toString("yyyy-MM-dd"));
 		dateItem->setFlags(dateItem->flags() & ~Qt::ItemIsEditable);
-		for (const QFileInfo& fileInfo : it.value())
+		for (const Replay& replay : it.value())
 		{
-			QStandardItem* fileNameItem = new QStandardItem(fileInfo.fileName());
-			fileNameItem->setData(fileInfo.absoluteFilePath(), Qt::UserRole);
+			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + replay.getLevel());
+			fileNameItem->setData(replay.getSessionId(), Qt::UserRole);
 			fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
 			dateItem->appendRow({ fileNameItem });
 		}
-
 		model->appendRow(dateItem);
 	}
-
+	
 	replayTreeView->setModel(model);
 	replayTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 void MainWindow::onTreeItemClicked(const QModelIndex& index)
 {
-	QString filePath = index.data(Qt::UserRole).toString();
-
-	if (!filePath.isEmpty())
-	{
-		executeCommand(filePath);
-	}
+	QString sessionId = index.data(Qt::UserRole).toString();
+	qDebug() << "Selected replay:" << sessionId;
+	executeCommand(sessionId);
 }
 
-void MainWindow::executeCommand(const QString& filePath)
+void MainWindow::executeCommand(const QString& sessionId)
 {
-	Replay rep = Replay::fromFile(filePath);
+	Replay rep = m_dbmanager.getReplayBySessionId(sessionId);
 
 	QPixmap mapPixmap(":/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
 	if (mapPixmap.isNull()) {
@@ -284,36 +256,38 @@ void MainWindow::executeCommand(const QString& filePath)
 	ui->mapImage->setPixmap(mapPixmap);
 
 	ui->mapNameLabel->setText(QString("Map: ") + rep.getLevel());
-
-	QDateTime startTime = QDateTime::fromSecsSinceEpoch(rep.getStartTime());
-	QString formattedStartTime = startTime.toString("hh:mm:ss");
-	ui->startTimeLabel->setText(QString("Start time: ") + formattedStartTime);
+	ui->difficultyLabel->setText(QString("Difficulty: ") + Utils::difficultyToString(rep.getDifficulty()));
+	ui->startTimeLabel->setText(QString("Start time: ") + Utils::epochSToFormattedTime(rep.getStartTime()));
 	ui->timePlayedLabel->setText(QString("Time played: ") + Utils::replayLengthToString(rep.getTimePlayed()));
 	ui->resultLabel->setText(QString("Result: ") + rep.getStatus());
 
-	QList<Player> players = rep.getPlayers();
+	QMap<Player, PlayerReplayData> players = rep.getPlayers();
 
-	QList<Player> allies;
-	QList<Player> axis;
-	for (const Player& player : players)
+	QMap<Player, PlayerReplayData> allies;
+	QMap<Player, PlayerReplayData> axis;
+	for (auto it = players.begin(); it != players.end(); ++it)
 	{
+		PlayerReplayData& player = it.value();
 		if (player.getTeam() == 1)
 		{
-			allies.append(player);
+			allies.insert(it.key(), player);
 		}
 		else if (player.getTeam() == 2)
 		{
-			axis.append(player);
+			axis.insert(it.key(), player);
 		}
 	}
 
-	std::sort(allies.begin(), allies.end(), [](const Player& p1, const Player& p2)
+	QList<Player> sortedAlliesKeys = allies.keys();
+	std::sort(sortedAlliesKeys.begin(), sortedAlliesKeys.end(), [&allies](const Player& p1, const Player& p2)
 		{
-			return p1.getScore() > p2.getScore();
+			return allies.value(p1).getScore() > allies.value(p2).getScore();
 		});
-	std::sort(axis.begin(), axis.end(), [](const Player& p1, const Player& p2)
+
+	QList<Player> sortedAxisKeys = axis.keys();
+	std::sort(sortedAxisKeys.begin(), sortedAxisKeys.end(), [&axis](const Player& p1, const Player& p2)
 		{
-			return p1.getScore() > p2.getScore();
+			return axis.value(p1).getScore() > axis.value(p2).getScore();
 		});
 
 	populateTeamTable(ui->alliesTable, allies);
@@ -322,7 +296,7 @@ void MainWindow::executeCommand(const QString& filePath)
 	m_dbmanager.insertReplay(rep);
 }
 
-void MainWindow::populateTeamTable(QTableWidget* table, const QList<Player>& players)
+void MainWindow::populateTeamTable(QTableWidget* table, const QMap<Player, PlayerReplayData>& players)
 {
 	table->clear();
 	table->setRowCount(players.size());
@@ -351,50 +325,53 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<Player>& pla
 	table->setHorizontalHeaderItem(9, new QTableWidgetItem(QIcon(damageZonePixmap), ""));
 	table->setHorizontalHeaderItem(10, new QTableWidgetItem(QIcon(deathsPixmap), ""));
 
-	for (int i = 0; i < players.size(); ++i)
+	for (int i = 0; i < players.keys().size(); ++i)
 	{
-		const Player& player = players[i];
-		table->setItem(i, 0, new QTableWidgetItem(player.getClanTag() + " " + player.getName()));
+		const Player& player = players.keys().at(i);
+		const PlayerReplayData& prd = players.value(player);
+		table->setItem(i, 0, new QTableWidgetItem(player.getSquadronTag() + " " + player.getUsername()));
 
-		QTableWidgetItem* scoreItem = new QTableWidgetItem(QString::number(player.getScore()));
+		
+		QTableWidgetItem* scoreItem = new QTableWidgetItem(QString::number(prd.getScore()));
 		scoreItem->setToolTip("Score");
 		table->setItem(i, 1, scoreItem);
 
-		QTableWidgetItem* killsItem = new QTableWidgetItem(QString::number(player.getKills()));
+		QTableWidgetItem* killsItem = new QTableWidgetItem(QString::number(prd.getKills()));
 		killsItem->setToolTip("Air kills");
 		table->setItem(i, 2, killsItem);
 
-		QTableWidgetItem* groundKillsItem = new QTableWidgetItem(QString::number(player.getGroundKills()));
+		QTableWidgetItem* groundKillsItem = new QTableWidgetItem(QString::number(prd.getGroundKills()));
 		groundKillsItem->setToolTip("Ground kills");
 		table->setItem(i, 3, groundKillsItem);
 
-		QTableWidgetItem* navalKillsItem = new QTableWidgetItem(QString::number(player.getNavalKills()));
+		QTableWidgetItem* navalKillsItem = new QTableWidgetItem(QString::number(prd.getNavalKills()));
 		navalKillsItem->setToolTip("Naval kills");
 		table->setItem(i, 4, navalKillsItem);
 
-		QTableWidgetItem* assistsItem = new QTableWidgetItem(QString::number(player.getAssists()));
+		QTableWidgetItem* assistsItem = new QTableWidgetItem(QString::number(prd.getAssists()));
 		assistsItem->setToolTip("Assists");
 		table->setItem(i, 5, assistsItem);
 
-		QTableWidgetItem* captureZoneItem = new QTableWidgetItem(QString::number(player.getCaptureZone()));
+		QTableWidgetItem* captureZoneItem = new QTableWidgetItem(QString::number(prd.getCaptureZone()));
 		captureZoneItem->setToolTip("Captured zones");
 		table->setItem(i, 6, captureZoneItem);
 
-		QTableWidgetItem* aiKillsItem = new QTableWidgetItem(QString::number(player.getAiKills() + player.getAiGroundKills() + player.getAiNavalKills()));
+		QTableWidgetItem* aiKillsItem = new QTableWidgetItem(QString::number(prd.getAiKills() + prd.getAiGroundKills() + prd.getAiNavalKills()));
 		aiKillsItem->setToolTip("AI kills");
 		table->setItem(i, 7, aiKillsItem);
 
-		QTableWidgetItem* awardDamageItem = new QTableWidgetItem(QString::number(player.getAwardDamage()));
+		QTableWidgetItem* awardDamageItem = new QTableWidgetItem(QString::number(prd.getAwardDamage()));
 		awardDamageItem->setToolTip("Awarded damage");
 		table->setItem(i, 8, awardDamageItem);
 
-		QTableWidgetItem* damageZoneItem = new QTableWidgetItem(QString::number(player.getDamageZone()));
+		QTableWidgetItem* damageZoneItem = new QTableWidgetItem(QString::number(prd.getDamageZone()));
 		damageZoneItem->setToolTip("Bombing damage");
 		table->setItem(i, 9, damageZoneItem);
 
-		QTableWidgetItem* deathsItem = new QTableWidgetItem(QString::number(player.getDeaths()));
+		QTableWidgetItem* deathsItem = new QTableWidgetItem(QString::number(prd.getDeaths()));
 		deathsItem->setToolTip("Deaths");
 		table->setItem(i, 10, deathsItem);
+		
 	}
 
 	table->resizeColumnsToContents();

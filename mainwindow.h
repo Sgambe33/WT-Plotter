@@ -58,7 +58,7 @@ private:
 	void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);
-	void populateTeamTable(QTableWidget* table, const QList<Player>& players);
+	void populateTeamTable(QTableWidget* table, const QMap<Player, PlayerReplayData>& players);
 	void setCustomFont(const QString& fontPath, QWidget* widget);
 };
 

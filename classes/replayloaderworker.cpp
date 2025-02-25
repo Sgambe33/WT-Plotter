@@ -9,7 +9,7 @@ ReplayLoaderWorker::ReplayLoaderWorker(const QString& folderPath,
 {}
 
 void ReplayLoaderWorker::loadReplays() {
-	DbManager localDbManager(m_dbFilePath);
+	DbManager localDbManager(m_dbFilePath, "replayloader");
 	localDbManager.createTables();
 
 	qint64 latestReplayEpoch = localDbManager.getLatestReplay();
@@ -29,8 +29,13 @@ void ReplayLoaderWorker::loadReplays() {
 			continue;
 		}
 		QString filePath = fileInfo.absoluteFilePath();
-		Replay rep = Replay::fromFile(filePath);
-		localDbManager.insertReplay(rep);
+		try {
+			Replay rep = Replay::fromFile(filePath);
+			localDbManager.insertReplay(rep);
+		}
+		catch (const std::exception& e) {
+			qWarning() << "Error loading replay:" << e.what();
+		}
 		++count;
 		emit progressUpdated(total > 0 ? static_cast<int>(100.0 * count / total) : 100);
 	}

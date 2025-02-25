@@ -188,7 +188,7 @@ void Worker::endMatch()
 		if (latestReplay.exists()) {
 			qInfo() << "Latest replay file:" << latestReplay.fileName();
 			Replay replayData = Replay::fromFile(latestReplay.fileName());
-			QString uploader = replayData.getAuthorId();
+			QString uploader = replayData.getAuthorUserId();
 			if (!uploader.isEmpty()) {
 				Utils::uploadReplay(replayData, uploader, this->positionCache, this->poi);
 			}

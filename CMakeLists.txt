@@ -5,6 +5,7 @@ list(APPEND CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake
 )
 
+
 project(wtplotter
     LANGUAGES CXX
     VERSION 0.2.5
@@ -42,8 +43,8 @@ qt_add_executable(wtplotter
     worker.h
     classes/craftinfo.cpp
     classes/craftinfo.h
-    classes/playerinfo.cpp
-    classes/playerinfo.h
+    classes/playerreplaydata.cpp
+    classes/playerreplaydata.h
     classes/player.cpp
     classes/player.h
     classes/replay.cpp

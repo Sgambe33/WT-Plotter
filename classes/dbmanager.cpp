@@ -15,7 +15,6 @@ DbManager::DbManager(const QString& path, const QString connName, QObject* paren
 		qInfo() << "Database connected successfully";
 		prepareQueries();
 		createTables();
-		createIndexes();
 	}
 }
 
@@ -77,6 +76,19 @@ void DbManager::createTables()
             )
         )",
 		R"(
+            CREATE TABLE IF NOT EXISTS Replay (
+                session_id TEXT PRIMARY KEY,
+                author_id INTEGER,
+                start_time INTEGER,
+                map TEXT,
+                game_mode TEXT ,
+                difficulty TEXT,
+                status TEXT,
+                time_played REAL,
+                FOREIGN KEY (author_id) REFERENCES Player(player_id) ON DELETE CASCADE
+            )
+        )",
+		R"(
             CREATE TABLE IF NOT EXISTS PlayerReplayData (
                 session_id TEXT NOT NULL,
                 player_id INTEGER NOT NULL,
@@ -103,41 +115,13 @@ void DbManager::createTables()
                 FOREIGN KEY (player_id) REFERENCES Player(player_id) ON DELETE CASCADE,
                 FOREIGN KEY (session_id) REFERENCES Replay(session_id) ON DELETE CASCADE
             )
-        )",
-		R"(
-            CREATE TABLE IF NOT EXISTS Replay (
-                session_id TEXT PRIMARY KEY,
-                author_id INTEGER NOT NULL,
-                start_time INTEGER NOT NULL,
-                map TEXT NOT NULL,
-                game_mode TEXT NOT NULL,
-                difficulty TEXT NOT NULL,
-                status TEXT NOT NULL,
-                time_played REAL NOT NULL,
-                FOREIGN KEY (author_id) REFERENCES Player(player_id) ON DELETE CASCADE
-            )
         )"
+
 	};
 
 	for (const QString& tableSql : tableDefinitions) {
 		if (!query.exec(tableSql)) {
 			qCritical() << "Table creation failed:" << query.lastError().text();
-		}
-	}
-}
-
-void DbManager::createIndexes()
-{
-	QSqlQuery query(m_db);
-	const QStringList indexes = {
-		"CREATE INDEX IF NOT EXISTS idx_replay_time ON Replay(start_time)",
-		"CREATE INDEX IF NOT EXISTS idx_player_session ON PlayerReplayData(session_id)",
-		"CREATE INDEX IF NOT EXISTS idx_player_team ON PlayerReplayData(team)"
-	};
-
-	for (const QString& indexSql : indexes) {
-		if (!query.exec(indexSql)) {
-			qWarning() << "Index creation failed:" << query.lastError().text();
 		}
 	}
 }
@@ -150,22 +134,8 @@ bool DbManager::insertReplay(const Replay& replay)
 	}
 
 	try {
-		m_insertReplayQuery.bindValue(":session_id", replay.getSessionId());
-		m_insertReplayQuery.bindValue(":author_id", replay.getAuthorUserId().toULongLong());
-		m_insertReplayQuery.bindValue(":start_time", replay.getStartTime());
-		m_insertReplayQuery.bindValue(":map", replay.getLevel());
-		m_insertReplayQuery.bindValue(":game_mode", replay.getBattleType());
-		m_insertReplayQuery.bindValue(":difficulty", Utils::difficultyToString(replay.getDifficulty()));
-		m_insertReplayQuery.bindValue(":status", replay.getStatus());
-		m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
-
-		if (!m_insertReplayQuery.exec()) {
-			throw std::runtime_error("Replay insert failed");
-		}
-
 		const QMap<Player, PlayerReplayData> players = replay.getPlayers();
 		for (const Player& player : players.keys()) {
-			qDebug() << "Inserting player:" << player.getUsername();
 			m_insertPlayerQuery.bindValue(":player_id", player.getUserId().toULongLong());
 			m_insertPlayerQuery.bindValue(":username", player.getUsername());
 			m_insertPlayerQuery.bindValue(":squadron_tag", player.getSquadronTag());
@@ -177,7 +147,21 @@ bool DbManager::insertReplay(const Replay& replay)
 			}
 		}
 
-		// Batch insert player data
+
+		m_insertReplayQuery.bindValue(":session_id", replay.getSessionId());
+		m_insertReplayQuery.bindValue(":author_id", replay.getAuthorUserId().toULongLong());
+		m_insertReplayQuery.bindValue(":start_time", replay.getStartTime());
+		m_insertReplayQuery.bindValue(":map", replay.getLevel());
+		m_insertReplayQuery.bindValue(":game_mode", replay.getBattleType());
+		m_insertReplayQuery.bindValue(":difficulty", Utils::difficultyToString(replay.getDifficulty()));
+		m_insertReplayQuery.bindValue(":status", replay.getStatus());
+		m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
+	
+		if (!m_insertReplayQuery.exec()) {
+			qCritical() << "Replay insert failed:" << m_insertReplayQuery.lastError().text();
+			throw std::runtime_error("Replay insert failed");
+		}
+
 		for (const PlayerReplayData& player : players.values()) {
 			m_insertPlayerDataQuery.bindValue(":session_id", replay.getSessionId());
 			m_insertPlayerDataQuery.bindValue(":player_id", player.getUserId().toULongLong());
@@ -302,6 +286,7 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 		return Replay();
 	}
 
+	QMap<Player, PlayerReplayData> players;
 	while (query.next()) {
 		Player player;
 		PlayerReplayData playerData;
@@ -330,9 +315,13 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 		playerData.setTeam(query.value("team").toInt());
 		playerData.setSquad(query.value("squad_id").toInt());
 		playerData.setAutoSquad(query.value("auto_squad").toBool());
-		playerData.setLineup(query.value("lineup").toStringList()); //TODO: Check if this works
+		//playerData.setLineup(query.value("lineup").toStringList()); //TODO: Check if this works
 		playerData.setWaitTime(query.value("wait_time").toDouble());
+
+		players.insert(player, playerData);
+		
 	}
+	replay.setPlayers(players);
 
 	return replay;
 }

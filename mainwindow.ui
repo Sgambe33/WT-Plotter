@@ -54,21 +54,21 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QToolButton" name="toolButton">
+            <widget class="QToolButton" name="collapseButton">
              <property name="text">
               <string>Collapse</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="toolButton_3">
+            <widget class="QToolButton" name="expandButton">
              <property name="text">
               <string>Expand</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="toolButton_2">
+            <widget class="QToolButton" name="refreshButton">
              <property name="text">
               <string>Refresh</string>
              </property>

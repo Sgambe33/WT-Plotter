@@ -157,12 +157,12 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 	QString savePath = QSettings("sgambe33", "wtplotter").value("plotSavePath", "").toString();
 
 	if (drawedMapImage.isNull()) {
-		qDebug() << "Error: drawedMapImage is null.";
+		qCritical() << "Error: drawedMapImage is null.";
 		return;
 	}
 
 	if (savePath.trimmed().isEmpty()) {
-		qDebug() << "Error: savePath is not set.";
+		qCritical() << "Error: savePath is not set.";
 		QMessageBox msgBox;
 		msgBox.critical(nullptr, "Error", "You have not set the save folder in the preferences!");
 		return;
@@ -170,22 +170,21 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 
 	QDir savePathDir(savePath);
 	if (!savePathDir.exists()) {
-		qDebug() << "Error: savePath directory does not exist:" << savePath;
+		qCritical() << "Error: savePath directory does not exist:" << savePath;
 		return;
 	}
 
 	QString fileName = savePathDir.absoluteFilePath(QString::number(QDateTime::currentSecsSinceEpoch()) + ".png");
-	qDebug() << "Saving to file:" << fileName;
 
 	QImageWriter writer;
 	writer.setFormat("webp");
 	writer.setFileName(fileName);
 
 	if (!writer.write(drawedMapImage.toImage())) {
-		qDebug() << "Error saving image:" << writer.errorString();
+		qCritical() << "Error saving image:" << writer.errorString();
 	}
 	else {
-		qDebug() << "Image saved successfully.";
+		qInfo() << "Image saved successfully.";
 	}
 }
 

@@ -193,7 +193,7 @@ void Worker::endMatch()
 				Utils::uploadReplay(replayData, uploader, this->positionCache, this->poi);
 			}
 			else {
-				qWarning() << "Failed to get user UID. Data will not be validated against replay.";
+				qCritical() << "Failed to get user UID. Data will not be validated against replay.";
 			}
 			emit refreshReplays();
 		}
@@ -210,7 +210,7 @@ void Worker::endMatch()
 	clearMarkers();
 	setOriginalMapImage(QPixmap());
 	this->drawedMapImage = QPixmap();
-	qDebug() << "Match ended, markers cleared.";
+	qInfo() << "Match ended, markers cleared.";
 }
 
 void Worker::restartScheduler()
@@ -234,7 +234,7 @@ bool Worker::isMatchRunning()
 		return false;
 	}
 	catch (const std::exception& e) {
-		qDebug() << "Exception while fetching map info:" << e.what();
+		qCritical() << "Exception while fetching map info:" << e.what();
 		return false;
 	}
 }
@@ -251,7 +251,7 @@ bool Worker::isPlayerOnTank()
 		return false;
 	}
 	catch (const std::exception& e) {
-		qDebug() << "Exception while fetching indicators:" << e.what();
+		qCritical() << "Exception while fetching indicators:" << e.what();
 		return false;
 	}
 }
@@ -338,7 +338,7 @@ bool Worker::havePOIBeenDrawnFunc() const
 void Worker::drawMarkers(QPixmap& displayImage)
 {
 	if (displayImage.isNull()) {
-		qDebug() << "Error: displayImage is null.";
+		qCritical() << "Error: displayImage is null.";
 		return;
 	}
 
@@ -372,7 +372,7 @@ void Worker::drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<P
 void Worker::drawSpecialMarkers(QPixmap& displayImage)
 {
 	if (displayImage.isNull()) {
-		qDebug() << "Error: displayImage is null.";
+		qCritical() << "Error: displayImage is null.";
 		return;
 	}
 
@@ -439,7 +439,7 @@ QJsonObject Worker::fetchJsonElement(QString url)
 		jsonObject = doc.object();
 	}
 	else {
-		qDebug() << "Network error:" << reply->errorString();
+		qCritical() << "Network error:" << reply->errorString();
 	}
 	reply->deleteLater();
 	return jsonObject;
@@ -453,14 +453,14 @@ QJsonArray Worker::fetchJsonArray(QString url)
 	loop.exec();
 
 	if (reply->error() != QNetworkReply::NoError) {
-		qDebug() << "Network error:" << reply->errorString();
+		qCritical() << "Network error:" << reply->errorString();
 		throw std::runtime_error(reply->errorString().toStdString());
 	}
 
 	QByteArray responseData = reply->readAll();
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 	if (!jsonDoc.isArray()) {
-		qDebug() << "Error: JSON response is not an array.";
+		qCritical() << "Error: JSON response is not an array.";
 		throw std::runtime_error("JSON response is not an array.");
 	}
 
@@ -479,7 +479,7 @@ QPixmap Worker::fetchMapImage()
 		pixmap.loadFromData(reply->readAll());
 	}
 	else {
-		qDebug() << "Network error:" << reply->errorString();
+		qCritical() << "Network error:" << reply->errorString();
 	}
 	reply->deleteLater();
 	return pixmap;

@@ -112,7 +112,7 @@ QJsonObject Replay::unpackResults(int offset, const QByteArray& buffer) {
 }
 
 void Replay::parseResults(const QJsonObject& results) {
-	this->m_timePlayed = results.value("timePlayed").toDouble();
+	this->m_status = results.value("status").toString("left");
 	this->m_timePlayed = results.value("timePlayed").toDouble();
 	this->m_authorUserId = results.value("authorUserId").toString();
 	this->m_author = results.value("author").toString();
@@ -125,13 +125,12 @@ void Replay::parseResults(const QJsonObject& results) {
 	QJsonArray playersArray = results.value("player").toArray();
 	QJsonObject uiScriptsData = results.value("uiScriptsData").toObject();
 	QJsonObject playersInfoObject = uiScriptsData.value("playersInfo").toObject();
-	
+
 	for (const auto& playerElement : playersArray) {
 		QJsonObject playerObject = playerElement.toObject();
 		for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {
 			QJsonObject playerInfoObject = it.value().toObject();
-			if (QString::compare(playerInfoObject.value("id").toString(), playerObject.value("userId").toString())) {
-				qDebug() << "Found player:" << playerInfoObject.value("id").toString();
+			if (playerInfoObject.value("id").toInteger() == playerObject.value("userId").toString().toULongLong()) {
 				Player p = Player::fromJson(playerInfoObject);
 				PlayerReplayData prd = PlayerReplayData::fromJson(playerObject);
 
@@ -142,36 +141,12 @@ void Replay::parseResults(const QJsonObject& results) {
 					lineup.append(it1.value().toString());
 				}
 				prd.setLineup(lineup);
-
 				this->m_players.insert(p, prd);
 				break;
 			}
 		}
 	}
-	//processMissingData(m_playerReplayData, playersArray, m_players, playersInfoObject);
 }
-
-//HASHMAP BABY?
-void Replay::processMissingData(QList<PlayerReplayData>& playerReplayDataList, QJsonArray playersArray, QList<Player>& playerList, QJsonObject& playersInfoObject) {
-	for (PlayerReplayData prd : playerReplayDataList) {
-		for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {
-			QJsonObject pio = it.value().toObject();
-			if (pio.value("id").toString() != prd.getUserId()) continue;
-			prd.setWaitTime(pio.value("wait_time").toDouble());
-			QJsonObject crafts = pio.value("crafts").toObject();
-			QList<QString> lineup;
-			for (auto it1 = crafts.constBegin(); it1 != crafts.constEnd(); ++it1) {
-				lineup.append(it1.value().toString());
-			}
-			prd.setLineup(lineup);
-			//Wait time and lineup
-			//prd <- pl
-			break;
-		}
-
-	}
-}
-
 
 int Replay::getVersion() const { return m_version; }
 QString Replay::getSessionId() const { return m_sessionId; }
@@ -195,7 +170,6 @@ double Replay::getTimePlayed() const { return m_timePlayed; }
 QString Replay::getAuthorUserId() const { return m_authorUserId; }
 QString Replay::getAuthor() const { return m_author; }
 QMap<Player, PlayerReplayData> Replay::getPlayers() const { return m_players; }
-
 
 void Replay::setSessionId(QString sessionId)
 {
@@ -235,4 +209,9 @@ void Replay::setStatus(QString status)
 void Replay::setTimePlayed(double timePlayed)
 {
 	this->m_timePlayed = timePlayed;
+}
+
+void Replay::setPlayers(QMap<Player, PlayerReplayData> players)
+{
+	this->m_players = players;
 }

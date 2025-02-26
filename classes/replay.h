@@ -48,6 +48,7 @@ public:
 	void setDifficulty(Difficulty difficulty);
 	void setStatus(QString status);
 	void setTimePlayed(double timePlayed);
+	void setPlayers(QMap<Player, PlayerReplayData> players);
 
 private:
 	static const QByteArray MAGIC;

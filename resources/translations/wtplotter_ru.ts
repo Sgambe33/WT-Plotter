@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="en_US">
+<TS version="2.1" language="ru_RU">
 <context>
     <name>MainWindow</name>
     <message>
@@ -12,97 +12,101 @@
         GitHub&lt;/a&gt;.&lt;/p&gt;
         &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
     </source>
-        <translation>&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;WT Plotter — это инструмент для чтения реплеев War Thunder и записи хода матчей. Этот проект разработан &lt;strong&gt;Sgambe33&lt;/strong&gt; и является полностью открытым исходным кодом. Вы можете найти исходный код и внести свой вклад в проект на &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Спасибо за использование WT Plotter!&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="121"/>
         <source>About WT Plotter</source>
-        <translation>About WT Plotter</translation>
+        <translation>О программе WT Plotter</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="236"/>
         <source>File Name</source>
-        <translation>FIle Name</translation>
+        <translation>Имя файла</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="274"/>
         <source>Map: </source>
-        <translation>Map: </translation>
+        <translation>Карта: </translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="275"/>
         <source>Difficulty: </source>
-        <translation>Difficulty: </translation>
+        <translation>Сложность: </translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="276"/>
         <source>Start time: </source>
-        <translation>Start time: </translation>
+        <translation>Время начала: </translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="277"/>
         <source>Time played: </source>
-        <translation>Time played: </translation>
+        <translation>Время игры: </translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="278"/>
         <source>Result: </source>
-        <translation>Result: </translation>
+        <translation>Результат: </translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="vanished">Имя</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="335"/>
         <source>Username</source>
-        <translation>Username</translation>
+        <translation>Имя пользователя</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="355"/>
         <source>Score</source>
-        <translation>Score</translation>
+        <translation>Счет</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="358"/>
         <source>Air kills</source>
-        <translation>Air kills</translation>
+        <translation>Воздух убивает</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="362"/>
         <source>Ground kills</source>
-        <translation>Ground kills</translation>
+        <translation>Уничтожено наземных целей</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="366"/>
         <source>Naval kills</source>
-        <translation>Naval kills</translation>
+        <translation>Морские убийства</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="370"/>
         <source>Assists</source>
-        <translation>Assists</translation>
+        <translation>Ассисты</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="374"/>
         <source>Captured zones</source>
-        <translation>Captured zones</translation>
+        <translation>Захваченные зоны</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="378"/>
         <source>AI kills</source>
-        <translation>AI kills</translation>
+        <translation>ИИ убивает</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="382"/>
         <source>Awarded damage</source>
-        <translation>Awarded damage</translation>
+        <translation>Присужденный ущерб</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="386"/>
         <source>Bombing damage</source>
-        <translation>Bombing damage</translation>
+        <translation>Ущерб от бомбардировки</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="390"/>
         <source>Deaths</source>
-        <translation>Deaths</translation>
+        <translation>Смерти</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="14"/>
@@ -112,102 +116,102 @@
     <message>
         <location filename="../../mainwindow.ui" line="59"/>
         <source>Collapse</source>
-        <translation>Collapse</translation>
+        <translation>Свернуть</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="66"/>
         <source>Expand</source>
-        <translation>Expand</translation>
+        <translation>Развернуть</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="73"/>
         <source>Refresh</source>
-        <translation>Refresh</translation>
+        <translation>Обновить</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="112"/>
         <source>Loading replays...</source>
-        <translation>Loading replays...</translation>
+        <translation>Загрузка повторов...</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="168"/>
         <source>Map:</source>
-        <translation>Map:</translation>
+        <translation>Карта:</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="175"/>
         <source>Difficulty:</source>
-        <translation>Difficulty:</translation>
+        <translation>Сложность:</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="182"/>
         <source>Start time:</source>
-        <translation>Start time:</translation>
+        <translation>Время начала:</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="189"/>
         <source>Time played:</source>
-        <translation>Time played:</translation>
+        <translation>Время игры:</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="196"/>
         <source>Result:</source>
-        <translation>Result:</translation>
+        <translation>Результат:</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="222"/>
         <source>Allies Team</source>
-        <translation>Allies Team</translation>
+        <translation>Команда союзников</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="232"/>
         <source>Axis Team</source>
-        <translation>Axis Team</translation>
+        <translation>Команда Axis</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="275"/>
         <source>Awaiting match start...</source>
-        <translation>Awaiting match start...</translation>
+        <translation>Ждем начала матча...</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="362"/>
         <source>Replays</source>
-        <translation>Replays</translation>
+        <translation>Повторы</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="374"/>
         <source>Plotter</source>
-        <translation>Plotter</translation>
+        <translation>Построитель</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="400"/>
         <source>File</source>
-        <translation>File</translation>
+        <translation>Файл</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="407"/>
         <source>Help</source>
-        <translation>Help</translation>
+        <translation>Помощь</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="416"/>
         <source>Preferences</source>
-        <translation>Preferences</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="421"/>
         <source>Quit</source>
-        <translation>Quite</translation>
+        <translation>Выход</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="426"/>
         <source>About</source>
-        <translation>About</translation>
+        <translation>О программе</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="431"/>
         <source>Open replay</source>
-        <translation>Open replay</translation>
+        <translation>Открыть повтор</translation>
     </message>
 </context>
 <context>
@@ -215,43 +219,43 @@
     <message>
         <location filename="../../preferencesdialog.ui" line="14"/>
         <source>Preferences</source>
-        <translation>Preferences</translation>
-    </message>
-    <message>
-        <location filename="../../preferencesdialog.ui" line="20"/>
-        <source>Replay folder:</source>
-        <translation>Replay folder:</translation>
-    </message>
-    <message>
-        <location filename="../../preferencesdialog.ui" line="30"/>
-        <source>Plot save path:</source>
-        <translation>Plot save path:</translation>
+        <translation>Предпочтения</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.ui" line="69"/>
         <location filename="../../preferencesdialog.ui" line="86"/>
         <source>Choose</source>
-        <translation>Choose</translation>
+        <translation>Выбрать</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.ui" line="76"/>
         <source>Save plots:</source>
-        <translation>Save plots:</translation>
+        <translation>Сохранять графики:</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.ui" line="116"/>
         <source>Language:</source>
-        <translation>Language:</translation>
+        <translation>Язык:</translation>
+    </message>
+    <message>
+        <location filename="../../preferencesdialog.ui" line="20"/>
+        <source>Replay folder:</source>
+        <translation>Папка для воспроизведения:</translation>
+    </message>
+    <message>
+        <location filename="../../preferencesdialog.ui" line="30"/>
+        <source>Plot save path:</source>
+        <translation>Путь сохранения сюжета:</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.cpp" line="30"/>
         <source>Select Replay Folder</source>
-        <translation>Select Replay Folder</translation>
+        <translation>Выберите папку для воспроизведения</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.cpp" line="39"/>
         <source>Select Plot Save Path</source>
-        <translation>Select Plot Save Path</translation>
+        <translation>Выберите путь сохранения сюжета</translation>
     </message>
 </context>
 <context>
@@ -548,7 +552,7 @@
     <message>
         <location filename="../../classes/constants.h" line="71"/>
         <source>Abandoned Factory</source>
-        <translation>Abandoned Factory</translation>
+        <translation>Заброшенный Завод</translation>
     </message>
     <message>
         <location filename="../../classes/constants.h" line="72"/>
@@ -885,7 +889,7 @@
     <message>
         <location filename="../../classes/constants.h" line="141"/>
         <source>Abandoned Town</source>
-        <translation>Abandoned Town</translation>
+        <translation>Заброшенный город</translation>
     </message>
     <message>
         <location filename="../../classes/constants.h" line="142"/>

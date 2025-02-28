@@ -5,7 +5,6 @@ list(APPEND CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake
 )
 
-
 project(wtplotter
     LANGUAGES CXX
     VERSION 0.2.5
@@ -57,6 +56,7 @@ qt_add_executable(wtplotter
     classes/utils.h
     classes/replayloaderworker.cpp
     classes/replayloaderworker.h
+    classes/constants.h
 )
 
 file(GLOB_RECURSE ICONS

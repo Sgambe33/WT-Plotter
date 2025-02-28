@@ -105,7 +105,7 @@ void Worker::onTimeout()
 			restartScheduler();
 		}
 		else {
-			emit updateStatusLabel(QString("Awaiting match start..."));
+			emit updateStatusLabel(tr("Awaiting match start..."));
 		}
 	}
 	catch (const std::exception& e)

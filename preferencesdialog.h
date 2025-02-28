@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QTranslator>
+#include <QComboBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class PreferencesDialog; }
@@ -20,10 +22,18 @@ private slots:
 	void on_chooseReplayFolder_clicked();
 	void on_choosePlotSavePath_clicked();
 	void on_autosaveCheck_stateChanged(int state);
+	void onLanguageChanged(int index);
+
+signals:
+	void languageChanged(const QString& languageCode);
 
 private:
 	Ui::PreferencesDialog* ui;
 	QSettings settings;
+	QTranslator appTranslator;
+
+	void loadLanguages();
+	void changeLanguage(const QString& languageCode);
 };
 
 #endif // PREFERENCESDIALOG_H

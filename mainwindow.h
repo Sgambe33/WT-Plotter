@@ -45,6 +45,7 @@ public slots:
 	void updateStatusLabel(QString msg);
 	void changeStackedWidget1(int index);
 	void changeStackedWidget2(int index);
+	void onLanguageChanged(const QString& languageCode);
 
 private:
 	Ui::MainWindow* ui;
@@ -52,6 +53,7 @@ private:
 	QThread* m_thread = nullptr;
 	Worker* m_worker;
 	DbManager m_dbmanager;
+	QTranslator* appTranslator;
 
 	void startPlotter();
 	void stopPlotter();
@@ -59,6 +61,7 @@ private:
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);
 	void populateTeamTable(QTableWidget* table, const QMap<Player, PlayerReplayData>& players);
+	void changeLanguage(const QString& languageCode);
 	void setCustomFont(const QString& fontPath, QWidget* widget);
 };
 

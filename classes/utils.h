@@ -33,8 +33,8 @@ public:
     static QFile getLatestReplay(const QDir& replayDirectory);
     static void saveImage(QPixmap drawedMapImage);
     static QString replayLengthToString(int length);
-    static QString difficultyToString(Difficulty difficulty);
-    static Difficulty stringToDifficulty(const QString& difficultyStr);
+    static QString difficultyToString(Constants::Difficulty difficulty);
+    static Constants::Difficulty stringToDifficulty(const QString& difficultyStr);
     static QString epochSToFormattedTime(int time);
 
 private:    

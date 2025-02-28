@@ -25,7 +25,7 @@ public:
 	QString getEnvironment() const;
 	QString getVisibility() const;
 	int getRezOffset() const;
-	Difficulty getDifficulty() const;
+	Constants::Difficulty getDifficulty() const;
 	quint8 getSessionType() const;
 	int getSetSize() const;
 	QString getLocName() const;
@@ -45,7 +45,7 @@ public:
 	void setStartTime(int startTime);
 	void setLevel(QString level);
 	void setBattleType(QString battleType);
-	void setDifficulty(Difficulty difficulty);
+	void setDifficulty(Constants::Difficulty difficulty);
 	void setStatus(QString status);
 	void setTimePlayed(double timePlayed);
 	void setPlayers(QMap<Player, PlayerReplayData> players);
@@ -60,7 +60,7 @@ private:
 	QString m_environment;
 	QString m_visibility;
 	int m_rezOffset;
-	Difficulty m_difficulty;
+	Constants::Difficulty m_difficulty;
 	quint8 m_sessionType;
 	int m_mSetSize;
 	QString m_locName;

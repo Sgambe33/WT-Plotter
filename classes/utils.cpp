@@ -195,22 +195,22 @@ QString Utils::replayLengthToString(int length) {
 	return QString("%1:%2:%3").arg(hours, 2, 10, QChar('0')).arg(minutes, 2, 10, QChar('0')).arg(seconds, 2, 10, QChar('0'));
 }
 
-QString Utils::difficultyToString(Difficulty difficulty) {
+QString Utils::difficultyToString(Constants::Difficulty difficulty) {
 	switch (difficulty) {
-	case Difficulty::ARCADE:    return "ARCADE";
-	case Difficulty::REALISTIC: return "REALISTIC";
-	case Difficulty::SIMULATOR: return "SIMULATOR";
+	case Constants::Difficulty::ARCADE:    return "ARCADE";
+	case Constants::Difficulty::REALISTIC: return "REALISTIC";
+	case Constants::Difficulty::SIMULATOR: return "SIMULATOR";
 	default:                    return "UNKNOWN";
 	}
 }
 
-Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
+Constants::Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
 {
 	QString upperStr = difficultyStr.toUpper();
-	static const QMap<QString, Difficulty> difficultyMap = {
-		{"ARCADE", Difficulty::ARCADE},
-		{"REALISTIC", Difficulty::REALISTIC},
-		{"SIMULATOR", Difficulty::SIMULATOR}
+	static const QMap<QString, Constants::Difficulty> difficultyMap = {
+		{"ARCADE", Constants::Difficulty::ARCADE},
+		{"REALISTIC", Constants::Difficulty::REALISTIC},
+		{"SIMULATOR", Constants::Difficulty::SIMULATOR}
 	};
 
 
@@ -219,7 +219,7 @@ Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
 		return it.value();
 	}
 	else {
-		return Difficulty::ARCADE;
+		return Constants::Difficulty::ARCADE;
 	}
 }
 

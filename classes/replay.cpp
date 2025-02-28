@@ -30,7 +30,7 @@ Replay::Replay(const QByteArray& buffer) {
 	quint8 difficultyTemp;
 	stream >> difficultyTemp;
 	difficultyTemp &= 0x0F;
-	m_difficulty = static_cast<Difficulty>(difficultyTemp);
+	m_difficulty = static_cast<Constants::Difficulty>(difficultyTemp);
 	stream.skipRawData(35); // Skip 35 bytes
 	stream >> m_sessionType;
 	stream.skipRawData(7); // Skip 7 bytes
@@ -156,7 +156,7 @@ QString Replay::getBattleType() const { return m_battleType; }
 QString Replay::getEnvironment() const { return m_environment; }
 QString Replay::getVisibility() const { return m_visibility; }
 int Replay::getRezOffset() const { return m_rezOffset; }
-Difficulty Replay::getDifficulty() const { return m_difficulty; }
+Constants::Difficulty Replay::getDifficulty() const { return m_difficulty; }
 quint8 Replay::getSessionType() const { return m_sessionType; }
 int Replay::getSetSize() const { return m_mSetSize; }
 QString Replay::getLocName() const { return m_locName; }
@@ -196,7 +196,7 @@ void Replay::setBattleType(QString battleType)
 	this->m_battleType = battleType;
 }
 
-void Replay::setDifficulty(Difficulty difficulty)
+void Replay::setDifficulty(Constants::Difficulty difficulty)
 {
 	this->m_difficulty = difficulty;
 }

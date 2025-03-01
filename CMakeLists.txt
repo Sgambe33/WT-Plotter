@@ -57,6 +57,7 @@ qt_add_executable(wtplotter
     classes/replayloaderworker.cpp
     classes/replayloaderworker.h
     classes/constants.h
+    classes/constants.cpp
 )
 
 file(GLOB_RECURSE ICONS

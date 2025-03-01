@@ -26,6 +26,9 @@
 #include "classes/replay.h"
 #include "classes/constants.h"
 #include <QMap>
+#include <QIcon>
+#include <QImage>
+
 class Utils {
 public:
     static void checkAppVersion();
@@ -36,6 +39,7 @@ public:
     static QString difficultyToString(Constants::Difficulty difficulty);
     static Constants::Difficulty stringToDifficulty(const QString& difficultyStr);
     static QString epochSToFormattedTime(int time);
+    static QIcon invertIconColors(const QIcon& icon);
 
 private:    
     static QJsonArray exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi);

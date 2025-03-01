@@ -93,7 +93,7 @@ void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Posi
 #ifdef DEBUG_BUILD
 	request.setUrl(QUrl("http://localhost:5000/uploadPositions"));
 #endif
-	
+
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 	QJsonObject headerMap;
@@ -102,6 +102,11 @@ void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Posi
 	headerMap["startTime"] = replayData.getStartTime();
 	headerMap["map"] = replayData.getLevel();
 	headerMap["gameMode"] = replayData.getBattleType();
+	headerMap["difficulty"] = difficultyToString(replayData.getDifficulty());
+	headerMap["wtplotterVersion"] = QString("%1.%2.%3")
+		.arg(APP_VERSION_MAJOR)
+		.arg(APP_VERSION_MINOR)
+		.arg(APP_VERSION_PATCH);
 
 	QJsonObject data;
 	data["replayHeader"] = headerMap;
@@ -226,4 +231,11 @@ Constants::Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
 QString Utils::epochSToFormattedTime(int time) {
 	QDateTime startTime = QDateTime::fromSecsSinceEpoch(time);
 	return startTime.toString("hh:mm:ss");
+}
+
+QIcon Utils::invertIconColors(const QIcon& icon) {
+	QPixmap pixmap = icon.pixmap(32, 32);
+	QImage image = pixmap.toImage();
+	image.invertPixels();
+	return QIcon(QPixmap::fromImage(image));
 }

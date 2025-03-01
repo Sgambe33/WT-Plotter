@@ -134,20 +134,6 @@ bool DbManager::insertReplay(const Replay& replay)
 	}
 
 	try {
-		const QMap<Player, PlayerReplayData> players = replay.getPlayers();
-		for (const Player& player : players.keys()) {
-			m_insertPlayerQuery.bindValue(":player_id", player.getUserId().toULongLong());
-			m_insertPlayerQuery.bindValue(":username", player.getUsername());
-			m_insertPlayerQuery.bindValue(":squadron_tag", player.getSquadronTag());
-			m_insertPlayerQuery.bindValue(":squadron_id", player.getSquadronId());
-			m_insertPlayerQuery.bindValue(":platform", player.getPlatform());
-
-			if (!m_insertPlayerQuery.exec()) {
-				throw std::runtime_error("Player insert failed");
-			}
-		}
-
-
 		m_insertReplayQuery.bindValue(":session_id", replay.getSessionId());
 		m_insertReplayQuery.bindValue(":author_id", replay.getAuthorUserId().toULongLong());
 		m_insertReplayQuery.bindValue(":start_time", replay.getStartTime());
@@ -156,34 +142,46 @@ bool DbManager::insertReplay(const Replay& replay)
 		m_insertReplayQuery.bindValue(":difficulty", Utils::difficultyToString(replay.getDifficulty()));
 		m_insertReplayQuery.bindValue(":status", replay.getStatus());
 		m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
-	
+
 		if (!m_insertReplayQuery.exec()) {
 			qCritical() << "Replay insert failed:" << m_insertReplayQuery.lastError().text();
 			throw std::runtime_error("Replay insert failed");
 		}
 
-		for (const PlayerReplayData& player : players.values()) {
+		const QList<QPair<Player, PlayerReplayData>> players = replay.getPlayers();
+		for (const QPair<Player, PlayerReplayData>& player : players) {
+			m_insertPlayerQuery.bindValue(":player_id", player.first.getUserId().toULongLong());
+			m_insertPlayerQuery.bindValue(":username", player.first.getUsername());
+			m_insertPlayerQuery.bindValue(":squadron_tag", player.first.getSquadronTag());
+			m_insertPlayerQuery.bindValue(":squadron_id", player.first.getSquadronId());
+			m_insertPlayerQuery.bindValue(":platform", player.first.getPlatform());
+
+			if (!m_insertPlayerQuery.exec()) {
+				throw std::runtime_error("Player insert failed");
+			}
+
 			m_insertPlayerDataQuery.bindValue(":session_id", replay.getSessionId());
-			m_insertPlayerDataQuery.bindValue(":player_id", player.getUserId().toULongLong());
-			m_insertPlayerDataQuery.bindValue(":air_kills", player.getKills());
-			m_insertPlayerDataQuery.bindValue(":ground_kills", player.getGroundKills());
-			m_insertPlayerDataQuery.bindValue(":naval_kills", player.getNavalKills());
-			m_insertPlayerDataQuery.bindValue(":team_kills", player.getTeamKills());
-			m_insertPlayerDataQuery.bindValue(":ai_air_kills", player.getAiKills());
-			m_insertPlayerDataQuery.bindValue(":ai_ground_kills", player.getAiGroundKills());
-			m_insertPlayerDataQuery.bindValue(":ai_naval_kills", player.getAiNavalKills());
-			m_insertPlayerDataQuery.bindValue(":assists", player.getAssists());
-			m_insertPlayerDataQuery.bindValue(":deaths", player.getDeaths());
-			m_insertPlayerDataQuery.bindValue(":captured_zones", player.getCaptureZone());
-			m_insertPlayerDataQuery.bindValue(":damage_to_zones", player.getDamageZone());
-			m_insertPlayerDataQuery.bindValue(":score", player.getScore());
-			m_insertPlayerDataQuery.bindValue(":award_damage", player.getAwardDamage());
-			m_insertPlayerDataQuery.bindValue(":missile_evades", player.getMissileEvades());
-			m_insertPlayerDataQuery.bindValue(":team", player.getTeam());
-			m_insertPlayerDataQuery.bindValue(":squad_id", player.getSquad());
-			m_insertPlayerDataQuery.bindValue(":auto_squad", player.getAutoSquad());
-			m_insertPlayerDataQuery.bindValue(":wait_time", player.getWaitTime());
-			m_insertPlayerDataQuery.bindValue(":lineup", player.getLineup());
+			m_insertPlayerDataQuery.bindValue(":player_id", player.second.getUserId().toULongLong());
+			m_insertPlayerDataQuery.bindValue(":air_kills", player.second.getKills());
+			m_insertPlayerDataQuery.bindValue(":ground_kills", player.second.getGroundKills());
+			m_insertPlayerDataQuery.bindValue(":naval_kills", player.second.getNavalKills());
+			m_insertPlayerDataQuery.bindValue(":team_kills", player.second.getTeamKills());
+			m_insertPlayerDataQuery.bindValue(":ai_air_kills", player.second.getAiKills());
+			m_insertPlayerDataQuery.bindValue(":ai_ground_kills", player.second.getAiGroundKills());
+			m_insertPlayerDataQuery.bindValue(":ai_naval_kills", player.second.getAiNavalKills());
+			m_insertPlayerDataQuery.bindValue(":assists", player.second.getAssists());
+			m_insertPlayerDataQuery.bindValue(":deaths", player.second.getDeaths());
+			m_insertPlayerDataQuery.bindValue(":captured_zones", player.second.getCaptureZone());
+			m_insertPlayerDataQuery.bindValue(":damage_to_zones", player.second.getDamageZone());
+			m_insertPlayerDataQuery.bindValue(":score", player.second.getScore());
+			m_insertPlayerDataQuery.bindValue(":award_damage", player.second.getAwardDamage());
+			m_insertPlayerDataQuery.bindValue(":missile_evades", player.second.getMissileEvades());
+			m_insertPlayerDataQuery.bindValue(":team", player.second.getTeam());
+			m_insertPlayerDataQuery.bindValue(":squad_id", player.second.getSquad());
+			m_insertPlayerDataQuery.bindValue(":auto_squad", player.second.getAutoSquad());
+			m_insertPlayerDataQuery.bindValue(":wait_time", player.second.getWaitTime());
+			QString lineup = player.second.getLineup().join(",");
+			m_insertPlayerDataQuery.bindValue(":lineup", lineup);
 
 			if (!m_insertPlayerDataQuery.exec()) {
 				throw std::runtime_error("Player data insert failed");
@@ -286,7 +284,7 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 		return Replay();
 	}
 
-	QMap<Player, PlayerReplayData> players;
+	QList<QPair<Player, PlayerReplayData>> players;
 	while (query.next()) {
 		Player player;
 		PlayerReplayData playerData;
@@ -315,11 +313,10 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 		playerData.setTeam(query.value("team").toInt());
 		playerData.setSquad(query.value("squad_id").toInt());
 		playerData.setAutoSquad(query.value("auto_squad").toBool());
-		//playerData.setLineup(query.value("lineup").toStringList()); //TODO: Check if this works
+		playerData.setLineup(query.value("lineup").toString().split(","));
 		playerData.setWaitTime(query.value("wait_time").toDouble());
 
-		players.insert(player, playerData);
-		
+		players.append(QPair<Player, PlayerReplayData>(player, playerData));
 	}
 	replay.setPlayers(players);
 

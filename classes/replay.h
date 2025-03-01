@@ -8,7 +8,7 @@
 #include <QJsonObject>
 #include <QList>
 #include <QString>
-#include <QMap>
+#include <QPair>
 
 class Replay {
 public:
@@ -38,7 +38,7 @@ public:
 	double getTimePlayed() const;
 	QString getAuthorUserId() const;
 	QString getAuthor() const;
-	QMap<Player, PlayerReplayData> getPlayers() const;
+	QList<QPair<Player, PlayerReplayData>> getPlayers() const;
 
 	void setSessionId(QString sessionId);
 	void setAuthorUserId(QString authorUserId);
@@ -48,7 +48,7 @@ public:
 	void setDifficulty(Constants::Difficulty difficulty);
 	void setStatus(QString status);
 	void setTimePlayed(double timePlayed);
-	void setPlayers(QMap<Player, PlayerReplayData> players);
+	void setPlayers(QList<QPair<Player, PlayerReplayData>> players);
 
 private:
 	static const QByteArray MAGIC;
@@ -73,7 +73,7 @@ private:
 	double m_timePlayed;
 	QString m_authorUserId;
 	QString m_author;
-	QMap<Player, PlayerReplayData> m_players;
+	QList<QPair<Player, PlayerReplayData>> m_players;
 
 	QString readString(QDataStream& stream, int length);
 	QJsonObject unpackResults(int rezOffset, const QByteArray& buffer);

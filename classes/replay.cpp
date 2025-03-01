@@ -141,7 +141,8 @@ void Replay::parseResults(const QJsonObject& results) {
 					lineup.append(it1.value().toString());
 				}
 				prd.setLineup(lineup);
-				this->m_players.insert(p, prd);
+				QPair<Player, PlayerReplayData> pPair(p, prd);
+				this->m_players.append(pPair);
 				break;
 			}
 		}
@@ -169,7 +170,7 @@ QString Replay::getStatus() const { return m_status; }
 double Replay::getTimePlayed() const { return m_timePlayed; }
 QString Replay::getAuthorUserId() const { return m_authorUserId; }
 QString Replay::getAuthor() const { return m_author; }
-QMap<Player, PlayerReplayData> Replay::getPlayers() const { return m_players; }
+QList<QPair<Player, PlayerReplayData>> Replay::getPlayers() const { return m_players; }
 
 void Replay::setSessionId(QString sessionId)
 {
@@ -211,7 +212,7 @@ void Replay::setTimePlayed(double timePlayed)
 	this->m_timePlayed = timePlayed;
 }
 
-void Replay::setPlayers(QMap<Player, PlayerReplayData> players)
+void Replay::setPlayers(QList<QPair<Player, PlayerReplayData>> players)
 {
 	this->m_players = players;
 }

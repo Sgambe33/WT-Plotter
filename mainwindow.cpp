@@ -31,6 +31,8 @@
 #include <QSqlDatabase>
 #include <classes/replayloaderworker.h>
 #include <QStandardPaths>
+#include <QDesktopServices>
+#include <QPalette>
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
@@ -83,6 +85,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 	ui->replayTreeView->setDisabled(true);
 	ui->plotterButton->setDisabled(true);
+	ui->openServerReplayButton->setDisabled(true);
 
 	Utils::checkAppVersion();
 
@@ -257,7 +260,6 @@ void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString
 void MainWindow::onTreeItemClicked(const QModelIndex& index)
 {
 	QString sessionId = index.data(Qt::UserRole).toString();
-	qDebug() << "Selected replay:" << sessionId;
 	executeCommand(sessionId);
 }
 
@@ -265,10 +267,31 @@ void MainWindow::executeCommand(const QString& sessionId)
 {
 	Replay rep = m_dbmanager.getReplayBySessionId(sessionId);
 
-	QPixmap mapPixmap(":/map_images/" + rep.getLevel() + "_tankmap_thumb.png");
+	if (rep.getSessionId().isEmpty()) {
+		ui->openServerReplayButton->setDisabled(true);
+		return;
+	}
+
+	disconnect(ui->openServerReplayButton, &QPushButton::clicked, nullptr, nullptr);
+
+	connect(ui->openServerReplayButton, &QPushButton::clicked, [=] {
+		QString url = "https://warthunder.com/en/tournament/replay/" + rep.getSessionId();
+		QDesktopServices::openUrl(QUrl(url));
+		});
+
+	ui->openServerReplayButton->setDisabled(false);
+
+	QPixmap mapPixmap(":/map_images/unknownmap.png");
+	if (rep.getLevel().contains("avg")) {
+		mapPixmap = ":/map_images/" + rep.getLevel() + "_tankmap_thumb.png";
+	}
+	else {
+		mapPixmap = ":/map_images/" + rep.getLevel() + "_map_thumb.png";
+	}
 	if (mapPixmap.isNull()) {
 		mapPixmap = QPixmap(":/map_images/unknownmap.png");
 	}
+
 	ui->mapImage->setPixmap(mapPixmap);
 
 	ui->mapNameLabel->setText(tr("Map: ") + Constants::MAPS.value(rep.getLevel(), QObject::tr("Unknown Map")));
@@ -277,49 +300,47 @@ void MainWindow::executeCommand(const QString& sessionId)
 	ui->timePlayedLabel->setText(tr("Time played: ") + Utils::replayLengthToString(rep.getTimePlayed()));
 	ui->resultLabel->setText(tr("Result: ") + rep.getStatus());
 
-	QMap<Player, PlayerReplayData> players = rep.getPlayers();
+	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();
 
-	qDebug() << players.keys().size() << "players found";
+	QList<QPair<Player, PlayerReplayData>> allies;
+	QList<QPair<Player, PlayerReplayData>> axis;
+	for (const auto& playerPair : players) {
+		const PlayerReplayData& playerData = playerPair.second;
 
-
-	QMap<Player, PlayerReplayData> allies;
-	QMap<Player, PlayerReplayData> axis;
-	for (auto it = players.begin(); it != players.end(); ++it)
-	{
-		PlayerReplayData& player = it.value();
-		if (player.getTeam() == 1)
-		{
-			allies.insert(it.key(), player);
+		if (playerData.getTeam() == 1) {
+			allies.append(playerPair);
 		}
-		else if (player.getTeam() == 2)
-		{
-			axis.insert(it.key(), player);
+		else if (playerData.getTeam() == 2) {
+			axis.append(playerPair);
 		}
 	}
 
-	QList<Player> sortedAlliesKeys = allies.keys();
-	std::sort(sortedAlliesKeys.begin(), sortedAlliesKeys.end(), [&allies](const Player& p1, const Player& p2)
-		{
-			return allies.value(p1).getScore() > allies.value(p2).getScore();
+	std::sort(allies.begin(), allies.end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+		return p1.second.getScore() > p2.second.getScore();
 		});
 
-	QList<Player> sortedAxisKeys = axis.keys();
-	std::sort(sortedAxisKeys.begin(), sortedAxisKeys.end(), [&axis](const Player& p1, const Player& p2)
-		{
-			return axis.value(p1).getScore() > axis.value(p2).getScore();
+	std::sort(axis.begin(), axis.end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+		return p1.second.getScore() > p2.second.getScore();
 		});
 
-
+	ui->alliesTable->clear();
+	ui->axisTable->clear();
 
 	populateTeamTable(ui->alliesTable, allies);
 	populateTeamTable(ui->axisTable, axis);
 }
 
-void MainWindow::populateTeamTable(QTableWidget* table, const QMap<Player, PlayerReplayData>& players)
+
+
+void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>& players)
 {
+	QPalette palette = qApp->palette();
+	bool isDarkTheme = palette.color(QPalette::Window).lightness() < 128;
+
 	table->clear();
 	table->setRowCount(players.size());
 	table->setColumnCount(11);
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	QPixmap scorePixmap(":/icons/score.png");
 	QPixmap killsPixmap(":/icons/kills.png");
@@ -331,6 +352,19 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QMap<Player, Playe
 	QPixmap awardDamagePixmap(":/icons/awardDamage.png");
 	QPixmap damageZonePixmap(":/icons/damageZone.png");
 	QPixmap deathsPixmap(":/icons/deaths.png");
+
+	if (isDarkTheme) {
+		scorePixmap = Utils::invertIconColors(QIcon(scorePixmap)).pixmap(32, 32);
+		killsPixmap = Utils::invertIconColors(QIcon(killsPixmap)).pixmap(32, 32);
+		groundKillsPixmap = Utils::invertIconColors(QIcon(groundKillsPixmap)).pixmap(32, 32);
+		navalKillsPixmap = Utils::invertIconColors(QIcon(navalKillsPixmap)).pixmap(32, 32);
+		assistsPixmap = Utils::invertIconColors(QIcon(assistsPixmap)).pixmap(32, 32);
+		capturedZonesPixmap = Utils::invertIconColors(QIcon(capturedZonesPixmap)).pixmap(32, 32);
+		aiKillsPixmap = Utils::invertIconColors(QIcon(aiKillsPixmap)).pixmap(32, 32);
+		awardDamagePixmap = Utils::invertIconColors(QIcon(awardDamagePixmap)).pixmap(32, 32);
+		damageZonePixmap = Utils::invertIconColors(QIcon(damageZonePixmap)).pixmap(32, 32);
+		deathsPixmap = Utils::invertIconColors(QIcon(deathsPixmap)).pixmap(32, 32);
+	}
 
 	table->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Username")));
 	table->setHorizontalHeaderItem(1, new QTableWidgetItem(QIcon(scorePixmap), ""));
@@ -345,11 +379,27 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QMap<Player, Playe
 	table->setHorizontalHeaderItem(10, new QTableWidgetItem(QIcon(deathsPixmap), ""));
 
 	int row = 0;
-	for (auto it = players.begin(); it != players.end(); ++it) {
-		const Player& player = it.key();
-		const PlayerReplayData& prd = it.value();
+	for (const auto& playerPair : players) {
+		const Player& player = playerPair.first;
+		const PlayerReplayData& prd = playerPair.second;
 
-		table->setItem(row, 0, new QTableWidgetItem(player.getSquadronTag() + " " + player.getUsername()));
+		QTableWidgetItem* item = new QTableWidgetItem();
+		if (player.getUsername().contains("@psn")) {
+			item->setIcon(QIcon(":/icons/psn.png"));
+		}
+		else if (player.getUsername().contains("@live")) {
+			item->setIcon(QIcon(":/icons/xbox.png"));
+		}
+		else {
+			item->setIcon(QIcon(":/icons/pc.png"));
+		}
+
+		if (isDarkTheme) {
+			item->setIcon(Utils::invertIconColors(item->icon()));
+		}
+
+		item->setText(player.getSquadronTag() + " " + player.getUsername().replace("@psn", "").replace("@live", ""));
+		table->setItem(row, 0, item);
 
 		table->setItem(row, 1, new QTableWidgetItem(QString::number(prd.getScore())));
 		table->item(row, 1)->setToolTip(tr("Score"));

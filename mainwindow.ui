@@ -213,6 +213,16 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="openServerReplayButton">
+           <property name="text">
+            <string>Server replay</string>
+           </property>
+           <property name="icon">
+            <iconset theme="QIcon::ThemeIcon::WindowNew"/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QTabWidget" name="tabWidget">
            <property name="currentIndex">
             <number>0</number>

@@ -36,6 +36,9 @@ qt_add_executable(wtplotter
     preferencesdialog.cpp
     preferencesdialog.h
     preferencesdialog.ui
+    playerprofiledialog.cpp
+    playerprofiledialog.h
+    playerprofiledialog.ui
     SceneImageViewer.cpp
     sceneimageviewer.h
     worker.cpp
@@ -70,16 +73,26 @@ file(GLOB_RECURSE MAP_IMAGES
     CONFIGURE_DEPENDS resources/map_images/*
 )
 
+file(GLOB_RECURSE JSON_FILES
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    CONFIGURE_DEPENDS resources/translations/*.json
+)
+
 file(GLOB TRANSLATIONS
     RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     CONFIGURE_DEPENDS resources/translations/*.ts
+)
+
+file(GLOB FONTS
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    CONFIGURE_DEPENDS resources/fonts/*.ttf
 )
 
 qt_add_resources(wtplotter
     resources
     PREFIX /
     BASE resources
-    FILES ${ICONS} ${MAP_IMAGES}
+    FILES ${ICONS} ${MAP_IMAGES} ${JSON_FILES} ${FONTS}
 )
 
 app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})

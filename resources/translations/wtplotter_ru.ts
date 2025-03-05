@@ -4,7 +4,7 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../mainwindow.cpp" line="116"/>
+        <location filename="../../mainwindow.cpp" line="117"/>
         <source>
         &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
         project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
@@ -12,45 +12,52 @@
         GitHub&lt;/a&gt;.&lt;/p&gt;
         &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
     </source>
-        <translation>&lt;p&gt;WT Plotter — это инструмент для чтения реплеев War Thunder и записи хода матчей. Этот проект разработан &lt;strong&gt;Sgambe33&lt;/strong&gt; и является полностью открытым исходным кодом. Вы можете найти исходный код и внести свой вклад в проект на &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Спасибо за использование WT Plotter!&lt;/p&gt;</translation>
+        <translation>
+        &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
+        project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
+        source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;
+        GitHub&lt;/a&gt;.&lt;/p&gt;
+        &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
+    </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="123"/>
+        <location filename="../../mainwindow.cpp" line="124"/>
         <source>About WT Plotter</source>
         <translation>О программе WT Plotter</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="238"/>
+        <location filename="../../mainwindow.cpp" line="241"/>
         <source>File Name</source>
         <translation>Имя файла</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="247"/>
-        <source>Uknown map</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../mainwindow.cpp" line="294"/>
+        <location filename="../../mainwindow.cpp" line="258"/>
+        <location filename="../../mainwindow.cpp" line="321"/>
         <source>Map: </source>
         <translation>Карта: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="295"/>
+        <location filename="../../mainwindow.cpp" line="320"/>
+        <source>Session ID: </source>
+        <translation>ID сессии: </translation>
+    </message>
+    <message>
+        <location filename="../../mainwindow.cpp" line="322"/>
         <source>Difficulty: </source>
         <translation>Сложность: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="296"/>
+        <location filename="../../mainwindow.cpp" line="323"/>
         <source>Start time: </source>
         <translation>Время начала: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="297"/>
+        <location filename="../../mainwindow.cpp" line="324"/>
         <source>Time played: </source>
         <translation>Время игры: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="298"/>
+        <location filename="../../mainwindow.cpp" line="325"/>
         <source>Result: </source>
         <translation>Результат: </translation>
     </message>
@@ -59,57 +66,57 @@
         <translation type="vanished">Имя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="344"/>
+        <location filename="../../mainwindow.cpp" line="393"/>
         <source>Username</source>
         <translation>Имя пользователя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="364"/>
+        <location filename="../../mainwindow.cpp" line="429"/>
         <source>Score</source>
         <translation>Счет</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="367"/>
+        <location filename="../../mainwindow.cpp" line="432"/>
         <source>Air kills</source>
         <translation>Воздух убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="371"/>
+        <location filename="../../mainwindow.cpp" line="436"/>
         <source>Ground kills</source>
         <translation>Уничтожено наземных целей</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="375"/>
+        <location filename="../../mainwindow.cpp" line="440"/>
         <source>Naval kills</source>
         <translation>Морские убийства</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="379"/>
+        <location filename="../../mainwindow.cpp" line="444"/>
         <source>Assists</source>
         <translation>Ассисты</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="383"/>
+        <location filename="../../mainwindow.cpp" line="448"/>
         <source>Captured zones</source>
         <translation>Захваченные зоны</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="387"/>
+        <location filename="../../mainwindow.cpp" line="452"/>
         <source>AI kills</source>
         <translation>ИИ убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="391"/>
+        <location filename="../../mainwindow.cpp" line="456"/>
         <source>Awarded damage</source>
         <translation>Присужденный ущерб</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="395"/>
+        <location filename="../../mainwindow.cpp" line="460"/>
         <source>Bombing damage</source>
         <translation>Ущерб от бомбардировки</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="399"/>
+        <location filename="../../mainwindow.cpp" line="464"/>
         <source>Deaths</source>
         <translation>Смерти</translation>
     </message>
@@ -140,86 +147,91 @@
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="168"/>
+        <source>Session ID:</source>
+        <translation>ID сессии:</translation>
+    </message>
+    <message>
+        <location filename="../../mainwindow.ui" line="175"/>
         <source>Map:</source>
         <translation>Карта:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="175"/>
+        <location filename="../../mainwindow.ui" line="182"/>
         <source>Difficulty:</source>
         <translation>Сложность:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="182"/>
+        <location filename="../../mainwindow.ui" line="189"/>
         <source>Start time:</source>
         <translation>Время начала:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="189"/>
+        <location filename="../../mainwindow.ui" line="196"/>
         <source>Time played:</source>
         <translation>Время игры:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="196"/>
+        <location filename="../../mainwindow.ui" line="203"/>
         <source>Result:</source>
         <translation>Результат:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="218"/>
+        <location filename="../../mainwindow.ui" line="225"/>
         <source>Server replay</source>
-        <translation type="unfinished"></translation>
+        <translation>Воспроизведение сервера</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="232"/>
+        <location filename="../../mainwindow.ui" line="239"/>
         <source>Allies Team</source>
         <translation>Команда союзников</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="242"/>
+        <location filename="../../mainwindow.ui" line="249"/>
         <source>Axis Team</source>
         <translation>Команда Axis</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="285"/>
+        <location filename="../../mainwindow.ui" line="292"/>
         <source>Awaiting match start...</source>
         <translation>Ждем начала матча...</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="372"/>
+        <location filename="../../mainwindow.ui" line="379"/>
         <source>Replays</source>
         <translation>Повторы</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="384"/>
+        <location filename="../../mainwindow.ui" line="391"/>
         <source>Plotter</source>
         <translation>Построитель</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="410"/>
+        <location filename="../../mainwindow.ui" line="417"/>
         <source>File</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="417"/>
+        <location filename="../../mainwindow.ui" line="424"/>
         <source>Help</source>
         <translation>Помощь</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="426"/>
+        <location filename="../../mainwindow.ui" line="433"/>
         <source>Preferences</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="431"/>
+        <location filename="../../mainwindow.ui" line="438"/>
         <source>Quit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="436"/>
+        <location filename="../../mainwindow.ui" line="443"/>
         <source>About</source>
         <translation>О программе</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="441"/>
+        <location filename="../../mainwindow.ui" line="448"/>
         <source>Open replay</source>
         <translation>Открыть повтор</translation>
     </message>
@@ -271,731 +283,32 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../classes/constants.cpp" line="5"/>
-        <location filename="../../classes/constants.cpp" line="11"/>
-        <source>Guadalcanal</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="6"/>
-        <source>Wake Island</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="7"/>
-        <location filename="../../classes/constants.cpp" line="9"/>
-        <source>Midway</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="8"/>
-        <source>Malta</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="10"/>
-        <source>Coral Sea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="12"/>
-        <source>Oahu</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="13"/>
-        <source>Britain</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="14"/>
-        <source>Sicily</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="15"/>
-        <source>Berlin</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="16"/>
-        <source>Bulge</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="17"/>
-        <source>Korsun</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="18"/>
-        <source>Stalingrad</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="19"/>
-        <source>Winter Stalingrad</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="20"/>
-        <source>Kuban</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="21"/>
-        <source>Port Moresby</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="22"/>
-        <source>Ruhr</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="23"/>
-        <source>East China Sea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="24"/>
-        <source>Pacific Ocean</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="25"/>
-        <source>Peleliu</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="26"/>
-        <source>Canyon, Africa</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="27"/>
-        <source>Mountain Ridge, China</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="28"/>
-        <source>African Island, Crater</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="29"/>
-        <source>African Island</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="30"/>
-        <source>Alpine Meadows</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="31"/>
-        <source>Guam</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="32"/>
-        <source>Saipan</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="33"/>
-        <source>Iwo Jima</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="34"/>
-        <source>Philippine Sea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="35"/>
-        <source>Korea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="36"/>
-        <source>Mozdok</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="37"/>
-        <source>Winter Mozdok</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="38"/>
-        <source>Norway</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="39"/>
-        <source>Khalkhin Gol</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="40"/>
-        <source>Kursk - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="41"/>
-        <source>Kursk</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="42"/>
-        <source>Tropical Island</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="43"/>
-        <source>Moscow</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="44"/>
-        <source>Eastern Europe</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="45"/>
-        <source>Poland</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="46"/>
-        <source>Coast of France</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="47"/>
-        <source>Ireland</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="48"/>
-        <source>Mozdok - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="49"/>
-        <source>Berlin - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="50"/>
-        <source>Kuban - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="51"/>
-        <source>Stalingrad - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="52"/>
-        <source>Crossing over the Rhine</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="53"/>
-        <source>Volokolamsk</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="54"/>
-        <location filename="../../classes/constants.cpp" line="116"/>
-        <source>Tunisia</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="55"/>
-        <source>Frozen Pass</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="56"/>
-        <location filename="../../classes/constants.cpp" line="57"/>
-        <source>El Alamein</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="58"/>
-        <source>Finland</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="59"/>
-        <source>Iberian Castle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="60"/>
-        <source>Normandy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="61"/>
-        <source>Hurtgen Forest</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="62"/>
-        <source>The 38th parallel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="63"/>
-        <source>Karelia</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="64"/>
-        <source>Carpathians</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="65"/>
         <source>Abandoned Factory</source>
-        <translation>Заброшенный Завод</translation>
+        <translation type="vanished">Заброшенный Завод</translation>
     </message>
     <message>
-        <location filename="../../classes/constants.cpp" line="66"/>
-        <source>Deserted Coast</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="67"/>
-        <source>Dover Strait</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="68"/>
-        <source>Rice Terraces</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="69"/>
-        <source>Iron Range</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="70"/>
-        <source>Fjords</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="71"/>
-        <source>Green Ridge</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="72"/>
-        <source>Foothills</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="73"/>
-        <source>Pacific Hidden Base</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="74"/>
-        <source>Top of the World</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="75"/>
-        <source>Grave Robbers&apos; Cliffs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="76"/>
-        <source>White Rock Fortress</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="77"/>
-        <source>Guadalcanal - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="78"/>
-        <source>Ash River</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="79"/>
-        <source>Novorossiysk</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="80"/>
-        <source>Shooting Range</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="81"/>
-        <source>Caribbean Islands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="82"/>
-        <source>Military Airfield</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="83"/>
-        <source>Military Base</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="84"/>
-        <source>Military Base 2017</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="85"/>
-        <source>Spain</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="86"/>
-        <source>Zhengzhou</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="87"/>
-        <source>Bulge - tank battle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="88"/>
-        <source>Fulda Gap</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="89"/>
-        <source>Imperial Gardens</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="90"/>
-        <location filename="../../classes/constants.cpp" line="91"/>
-        <location filename="../../classes/constants.cpp" line="115"/>
-        <source>Maginot Line</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="92"/>
-        <source>Italy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="93"/>
-        <source>American Desert</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="94"/>
-        <source>Alaska Town</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="95"/>
-        <source>Vietnam</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="96"/>
-        <source>Vietnam Hills</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="97"/>
-        <source>Sinai</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="98"/>
-        <source>Middle East</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="99"/>
-        <source>Ladoga</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="100"/>
-        <source>Afghanistan</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="101"/>
-        <source>Fiji</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="102"/>
-        <source>Green Mountains Gulf</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="103"/>
-        <source>Greece</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="104"/>
-        <source>Volcanic Island</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="105"/>
-        <source>Cargo Port</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="106"/>
-        <source>Palau Islands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="107"/>
-        <source>Japanese Port</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="108"/>
-        <source>South Africa</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="109"/>
-        <source>New Zealand Cape</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="110"/>
-        <source>South Kvarken</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="111"/>
-        <source>Sweden</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="112"/>
-        <source>Denmark</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="113"/>
-        <source>Smolensk</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="114"/>
-        <source>H�rtgen</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="117"/>
-        <source>Guiana Highlands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="118"/>
-        <source>Campania</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="119"/>
-        <source>Aleutian Islands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="120"/>
-        <source>Fire Arc</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="121"/>
-        <source>City</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="122"/>
-        <source>Ground Zero</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="123"/>
-        <location filename="../../classes/constants.cpp" line="124"/>
-        <source>Seversk-13</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="125"/>
-        <source>Spaceport</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="126"/>
-        <source>Floating Islands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="127"/>
-        <source>Drowned City</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="128"/>
-        <source>Red Desert</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="129"/>
-        <source>Breslau</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="130"/>
-        <source>Proving Ground</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="131"/>
-        <source>Vyborg Bay</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="132"/>
-        <source>Bourbon Island</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="133"/>
-        <source>Aral Sea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="134"/>
-        <source>Golan Heights</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="135"/>
-        <source>Sun City</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="136"/>
         <source>Abandoned Town</source>
-        <translation>Заброшенный город</translation>
+        <translation type="vanished">Заброшенный город</translation>
     </message>
     <message>
-        <location filename="../../classes/constants.cpp" line="137"/>
-        <source>Attica</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../classes/utils.cpp" line="214"/>
+        <source>Arcade</source>
+        <translation>Аркада</translation>
     </message>
     <message>
-        <location filename="../../classes/constants.cpp" line="138"/>
-        <source>Southeastern City</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../classes/utils.cpp" line="215"/>
+        <source>Realistic</source>
+        <translation>Реалистичный</translation>
     </message>
     <message>
-        <location filename="../../classes/constants.cpp" line="139"/>
-        <source>Pradesh</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../classes/utils.cpp" line="216"/>
+        <source>Simulator</source>
+        <translation>Симулятор</translation>
     </message>
     <message>
-        <location filename="../../classes/constants.cpp" line="140"/>
-        <source>Golden Bay</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="141"/>
-        <source>Rocky Canyon</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="142"/>
-        <source>Arctic</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="143"/>
-        <source>Golden Quarry</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="144"/>
-        <source>Mountain Valleys</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="145"/>
-        <source>Franz Josef Land</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="146"/>
-        <source>Test Site-2271</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="147"/>
-        <source>Rocky Pillars</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="148"/>
-        <source>Flanders</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="149"/>
-        <source>Volcano Valley</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="150"/>
-        <source>North Holland</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="151"/>
-        <source>Norway Islands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="152"/>
-        <source>Forgotten Lands</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="153"/>
-        <source>Mysterious Valley</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../classes/constants.cpp" line="154"/>
-        <source>Bering Sea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../mainwindow.cpp" line="294"/>
-        <source>Unknown Map</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../classes/utils.cpp" line="217"/>
+        <source>UNKNOWN</source>
+        <translation>Неизвестный</translation>
     </message>
 </context>
 <context>
@@ -1003,7 +316,7 @@
     <message>
         <location filename="../../worker.cpp" line="108"/>
         <source>Awaiting match start...</source>
-        <translation type="unfinished">Ждем начала матча...</translation>
+        <translation>Ждем начала матча...</translation>
     </message>
 </context>
 </TS>

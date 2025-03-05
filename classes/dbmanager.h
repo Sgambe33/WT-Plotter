@@ -20,6 +20,8 @@ public:
     bool insertReplay(const Replay& replay);
     qint64 getLatestReplay();
     Replay getReplayBySessionId(QString sessionId);
+    bool deleteReplayBySessionId(QString sessionId);
+    int deleteDanglingRecords();
     QMap<QDate, QList<Replay>> fetchReplaysGroupedByDate();
 
 

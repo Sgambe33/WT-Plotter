@@ -322,3 +322,34 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 
 	return replay;
 }
+
+bool DbManager::deleteReplayBySessionId(QString sessionId){
+	QSqlQuery query(m_db);
+	query.prepare(R"(DELETE FROM PlayerReplayData WHERE session_id = :session_id)");
+	query.bindValue(":session_id", sessionId);
+	if (!query.exec()) {
+		qWarning() << "Failed to delete replay with session_id:" << sessionId << query.lastError().text();
+		return false;
+	}
+	deleteDanglingRecords();
+	return true;
+}
+
+int DbManager::deleteDanglingRecords() {
+	QSqlQuery query(m_db);
+	query.prepare(R"(
+		DELETE FROM Player WHERE player_id NOT IN (SELECT DISTINCT player_id FROM PlayerReplayData)
+	)");
+	if (!query.exec()) {
+		qWarning() << "Failed to delete dangling records:" << query.lastError().text();
+		return 0;
+	}
+	query.prepare(R"(
+		DELETE FROM Replay WHERE session_id NOT IN (SELECT DISTINCT session_id FROM PlayerReplayData)
+	)");
+	if (!query.exec()) {
+		qWarning() << "Failed to delete dangling records:" << query.lastError().text();
+		return 0;
+	}
+	return query.numRowsAffected();
+}

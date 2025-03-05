@@ -54,13 +54,15 @@ private:
 	Worker* m_worker;
 	DbManager m_dbmanager;
 	QTranslator* appTranslator;
+	QList<QPair<Player, PlayerReplayData>>* allies = new QList<QPair<Player, PlayerReplayData>>();
+	QList<QPair<Player, PlayerReplayData>>* axis = new QList<QPair<Player, PlayerReplayData>>();
 
 	void startPlotter();
 	void stopPlotter();
 	void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);
-	void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>& players);
+	void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);
 	void changeLanguage(const QString& languageCode);
 	void setCustomFont(const QString& fontPath, QWidget* widget);
 };

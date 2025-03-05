@@ -163,6 +163,16 @@
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
+               <widget class="QLabel" name="sessionIdLabel">
+                <property name="text">
+                 <string>Session ID:</string>
+                </property>
+                <property name="textInteractionFlags">
+                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QLabel" name="mapNameLabel">
                 <property name="text">
                  <string>Map:</string>

@@ -3,7 +3,6 @@
 #include "./ui_mainwindow.h"
 #include "classes/replay.h"
 #include "sceneimageviewer.h"
-#include <qfontdatabase.h>
 #include "worker.h"
 #include "preferencesdialog.h"
 #include <QPainter>
@@ -33,6 +32,7 @@
 #include <QStandardPaths>
 #include <QDesktopServices>
 #include <QPalette>
+#include <playerprofiledialog.h>
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
@@ -122,21 +122,6 @@ void MainWindow::openAboutDialog()
         <p>Thank you for using WT Plotter!</p>
     )");
 	QMessageBox::about(this, tr("About WT Plotter"), aboutText);
-}
-
-void MainWindow::setCustomFont(const QString& fontPath, QWidget* widget) {
-	int id = QFontDatabase::addApplicationFont(fontPath);
-	if (id != -1) {
-		QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-		QFont customFont(family);
-		widget->setFont(customFont);
-		for (auto child : widget->findChildren<QWidget*>()) {
-			child->setFont(customFont);
-		}
-	}
-	else {
-		qDebug() << "Failed to load font from" << fontPath;
-	}
 }
 
 void MainWindow::startPlotter() {
@@ -235,6 +220,8 @@ void MainWindow::stopPlotter() {
 
 void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath)
 {
+	QSettings settings("sgambe33", "wtplotter");
+	QString languageCode = settings.value("language", "en").toString();
 	model->clear();
 	model->setHorizontalHeaderLabels({ tr("File Name") });
 
@@ -245,7 +232,16 @@ void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString
 		dateItem->setFlags(dateItem->flags() & ~Qt::ItemIsEditable);
 		for (const Replay& replay : it.value())
 		{
-			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + Constants::MAPS.value(replay.getLevel(), tr("Uknown map")));
+			QJsonObject obj;
+			if (replay.getLevel().endsWith("_snow")) {
+				obj = Utils::getJsonFromResources(":/translations/locations.json", replay.getLevel().replace("_snow", ""));
+			}
+			else {
+				obj = Utils::getJsonFromResources(":/translations/locations.json", replay.getLevel());
+			}
+
+			ui->mapNameLabel->setText(tr("Map: ") + obj.value(languageCode).toString());
+			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + obj.value(languageCode).toString("Uknown map"));
 			fileNameItem->setData(replay.getSessionId(), Qt::UserRole);
 			fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
 			dateItem->appendRow({ fileNameItem });
@@ -265,6 +261,11 @@ void MainWindow::onTreeItemClicked(const QModelIndex& index)
 
 void MainWindow::executeCommand(const QString& sessionId)
 {
+	QSettings settings("sgambe33", "wtplotter");
+	QString languageCode = settings.value("language", "en").toString();
+
+	qDebug() << languageCode;
+
 	Replay rep = m_dbmanager.getReplayBySessionId(sessionId);
 
 	if (rep.getSessionId().isEmpty()) {
@@ -293,52 +294,59 @@ void MainWindow::executeCommand(const QString& sessionId)
 	}
 
 	ui->mapImage->setPixmap(mapPixmap);
+	QJsonObject obj;
+	if (rep.getLevel().endsWith("_snow")) {
+		obj = Utils::getJsonFromResources(":/translations/locations.json", rep.getLevel().replace("_snow", ""));
+	}
+	else {
+		obj = Utils::getJsonFromResources(":/translations/locations.json", rep.getLevel());
+	}
 
-	ui->mapNameLabel->setText(tr("Map: ") + Constants::MAPS.value(rep.getLevel(), QObject::tr("Unknown Map")));
-	ui->difficultyLabel->setText(tr("Difficulty: ") + Utils::difficultyToString(rep.getDifficulty()));
+	ui->sessionIdLabel->setText(tr("Session ID: ") + rep.getSessionId());
+	ui->mapNameLabel->setText(tr("Map: ") + obj.value(languageCode).toString("Uknown map"));
+	ui->difficultyLabel->setText(tr("Difficulty: ") + Utils::difficultyToStringLocaleAware(rep.getDifficulty()));
 	ui->startTimeLabel->setText(tr("Start time: ") + Utils::epochSToFormattedTime(rep.getStartTime()));
 	ui->timePlayedLabel->setText(tr("Time played: ") + Utils::replayLengthToString(rep.getTimePlayed()));
 	ui->resultLabel->setText(tr("Result: ") + rep.getStatus());
 
-	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();
-
-	QList<QPair<Player, PlayerReplayData>> allies;
-	QList<QPair<Player, PlayerReplayData>> axis;
+	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();	
+	this->allies->clear();
+	this->axis->clear();
 	for (const auto& playerPair : players) {
 		const PlayerReplayData& playerData = playerPair.second;
 
 		if (playerData.getTeam() == 1) {
-			allies.append(playerPair);
+			this->allies->append(playerPair);
 		}
 		else if (playerData.getTeam() == 2) {
-			axis.append(playerPair);
+			this->axis->append(playerPair);
 		}
 	}
 
-	std::sort(allies.begin(), allies.end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+	std::sort(this->allies->begin(), this->allies->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
 		return p1.second.getScore() > p2.second.getScore();
 		});
 
-	std::sort(axis.begin(), axis.end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+	std::sort(this->axis->begin(), this->axis->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
 		return p1.second.getScore() > p2.second.getScore();
 		});
 
 	ui->alliesTable->clear();
 	ui->axisTable->clear();
 
-	populateTeamTable(ui->alliesTable, allies);
-	populateTeamTable(ui->axisTable, axis);
+	populateTeamTable(ui->alliesTable, allies, true);
+	populateTeamTable(ui->axisTable, axis, false);
 }
 
 
 
-void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>& players)
+void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies)
 {
 	QPalette palette = qApp->palette();
 	bool isDarkTheme = palette.color(QPalette::Window).lightness() < 128;
 
 	table->clear();
-	table->setRowCount(players.size());
+	table->setRowCount(players->size());
 	table->setColumnCount(11);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
@@ -379,9 +387,9 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	table->setHorizontalHeaderItem(10, new QTableWidgetItem(QIcon(deathsPixmap), ""));
 
 	int row = 0;
-	for (const auto& playerPair : players) {
-		const Player& player = playerPair.first;
-		const PlayerReplayData& prd = playerPair.second;
+	for (int i = 0; i < players->size(); i++) {
+		const Player& player = players->at(i).first;
+		const PlayerReplayData& prd = players->at(i).second;
 
 		QTableWidgetItem* item = new QTableWidgetItem();
 		if (player.getUsername().contains("@psn")) {
@@ -441,6 +449,32 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 		table->setItem(row, 10, deathsItem);
 
 		row++;
+	}
+	static bool alliesTableIsConnected = false;
+	static bool axisTableIsConnected = false;
+	if (!alliesTableIsConnected && allies) {
+		connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, [this](QTableWidgetItem* item) {
+			int row = item->row();
+
+			if (row >= 0 && row < this->allies->size()) {
+				PlayerProfileDialog dialog(this);
+				dialog.setPlayerData(this->allies->at(row));
+				dialog.exec();
+			}
+			});
+		alliesTableIsConnected = true;
+	}
+	if (!axisTableIsConnected && !allies) {
+		connect(ui->axisTable, &QTableWidget::itemDoubleClicked, [this](QTableWidgetItem* item) {
+			int row = item->row();
+
+			if (row >= 0 && row < this->axis->size()) {
+				PlayerProfileDialog dialog(this);
+				dialog.setPlayerData(this->axis->at(row));
+				dialog.exec();
+			}
+			});
+		axisTableIsConnected = true;
 	}
 	table->resizeColumnsToContents();
 }

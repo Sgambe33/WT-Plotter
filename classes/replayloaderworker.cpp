@@ -11,6 +11,7 @@ ReplayLoaderWorker::ReplayLoaderWorker(const QString& folderPath,
 void ReplayLoaderWorker::loadReplays() {
 	DbManager localDbManager(m_dbFilePath, "replayloader");
 	localDbManager.createTables();
+	localDbManager.deleteDanglingRecords();
 
 	qint64 latestReplayEpoch = localDbManager.getLatestReplay();
 

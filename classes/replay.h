@@ -14,6 +14,7 @@ class Replay {
 public:
 	explicit Replay(const QByteArray& buffer);
 	Replay();
+	~Replay();
 
 	static Replay fromFile(const QString& filePath);
 

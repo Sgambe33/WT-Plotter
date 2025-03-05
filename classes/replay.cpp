@@ -9,6 +9,10 @@
 #include <QProcess>
 
 const QByteArray Replay::MAGIC = QByteArray::fromHex("e5ac0010");
+Replay::~Replay()
+{
+}
+
 
 Replay::Replay(const QByteArray& buffer) {
 	QDataStream stream(buffer);
@@ -51,6 +55,10 @@ Replay::Replay(const QByteArray& buffer) {
 	try {
 		auto results = unpackResults(m_rezOffset, buffer);
 		parseResults(results);
+		qDebug() << results;
+
+
+
 	}
 	catch (const std::exception& e) {
 		qWarning() << "Error unpacking results:" << e.what();

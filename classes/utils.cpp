@@ -209,6 +209,15 @@ QString Utils::difficultyToString(Constants::Difficulty difficulty) {
 	}
 }
 
+QString Utils::difficultyToStringLocaleAware(Constants::Difficulty difficulty) {
+	switch (difficulty) {
+	case Constants::Difficulty::ARCADE:    return QObject::tr("Arcade");
+	case Constants::Difficulty::REALISTIC: return QObject::tr("Realistic");
+	case Constants::Difficulty::SIMULATOR: return QObject::tr("Simulator");
+	default:                    return QObject::tr("UNKNOWN");
+	}
+}
+
 Constants::Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
 {
 	QString upperStr = difficultyStr.toUpper();
@@ -238,4 +247,49 @@ QIcon Utils::invertIconColors(const QIcon& icon) {
 	QImage image = pixmap.toImage();
 	image.invertPixels();
 	return QIcon(QPixmap::fromImage(image));
+}
+
+QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QString& identifier) {
+	QFile file(resourceName);
+	if (!file.open(QIODevice::ReadOnly)) {
+		qCritical() << "Failed to open file:" << resourceName;
+		return QJsonObject();
+	}
+
+	QByteArray data = file.readAll();
+	QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+	if (jsonDoc.isNull() || !jsonDoc.isArray()) {
+		qCritical() << "Failed to parse JSON array from file:" << resourceName;
+		return QJsonObject();
+	}
+
+	QJsonArray jsonArray = jsonDoc.array();
+
+	for (const QJsonValue& value : jsonArray) {
+		if (value.isObject()) {
+			QJsonObject obj = value.toObject();
+			if (obj.contains("identifier") && obj["identifier"].toString() == identifier) {
+				return obj;
+			}
+		}
+	}
+
+	qCritical() << "No object found with identifier:" << identifier;
+	return QJsonObject();
+}
+
+void Utils::setCustomFont(const QString& fontPath, QWidget* widget) {
+	int id = QFontDatabase::addApplicationFont(fontPath);
+	if (id != -1) {
+		QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+		QFont customFont(family);
+		widget->setFont(customFont);
+		for (auto child : widget->findChildren<QWidget*>()) {
+			child->setFont(customFont);
+		}
+	}
+	else {
+		qDebug() << "Failed to load font from" << fontPath;
+	}
 }

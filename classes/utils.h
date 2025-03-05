@@ -28,6 +28,7 @@
 #include <QMap>
 #include <QIcon>
 #include <QImage>
+#include <QFontDatabase>
 
 class Utils {
 public:
@@ -37,9 +38,13 @@ public:
     static void saveImage(QPixmap drawedMapImage);
     static QString replayLengthToString(int length);
     static QString difficultyToString(Constants::Difficulty difficulty);
+    static QString difficultyToStringLocaleAware(Constants::Difficulty difficulty);
     static Constants::Difficulty stringToDifficulty(const QString& difficultyStr);
     static QString epochSToFormattedTime(int time);
     static QIcon invertIconColors(const QIcon& icon);
+    static QJsonObject getJsonFromResources(const QString& resourceName, const QString& identifier);
+    static void setCustomFont(const QString& fontPath, QWidget* widget) {
+
 
 private:    
     static QJsonArray exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi);

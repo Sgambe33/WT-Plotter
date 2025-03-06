@@ -4,7 +4,7 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../mainwindow.cpp" line="117"/>
+        <location filename="../../mainwindow.cpp" line="119"/>
         <source>
         &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
         project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
@@ -21,43 +21,43 @@
     </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="124"/>
+        <location filename="../../mainwindow.cpp" line="126"/>
         <source>About WT Plotter</source>
         <translation>О программе WT Plotter</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="241"/>
+        <location filename="../../mainwindow.cpp" line="220"/>
         <source>File Name</source>
         <translation>Имя файла</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="258"/>
-        <location filename="../../mainwindow.cpp" line="321"/>
+        <location filename="../../mainwindow.cpp" line="237"/>
+        <location filename="../../mainwindow.cpp" line="296"/>
         <source>Map: </source>
         <translation>Карта: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="320"/>
+        <location filename="../../mainwindow.cpp" line="295"/>
         <source>Session ID: </source>
         <translation>ID сессии: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="322"/>
+        <location filename="../../mainwindow.cpp" line="297"/>
         <source>Difficulty: </source>
         <translation>Сложность: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="323"/>
+        <location filename="../../mainwindow.cpp" line="298"/>
         <source>Start time: </source>
         <translation>Время начала: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="324"/>
+        <location filename="../../mainwindow.cpp" line="299"/>
         <source>Time played: </source>
         <translation>Время игры: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="325"/>
+        <location filename="../../mainwindow.cpp" line="300"/>
         <source>Result: </source>
         <translation>Результат: </translation>
     </message>
@@ -66,57 +66,57 @@
         <translation type="vanished">Имя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="393"/>
+        <location filename="../../mainwindow.cpp" line="362"/>
         <source>Username</source>
         <translation>Имя пользователя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="429"/>
+        <location filename="../../mainwindow.cpp" line="395"/>
         <source>Score</source>
         <translation>Счет</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="432"/>
+        <location filename="../../mainwindow.cpp" line="396"/>
         <source>Air kills</source>
         <translation>Воздух убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="436"/>
+        <location filename="../../mainwindow.cpp" line="397"/>
         <source>Ground kills</source>
         <translation>Уничтожено наземных целей</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="440"/>
+        <location filename="../../mainwindow.cpp" line="398"/>
         <source>Naval kills</source>
         <translation>Морские убийства</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="444"/>
+        <location filename="../../mainwindow.cpp" line="399"/>
         <source>Assists</source>
         <translation>Ассисты</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="448"/>
+        <location filename="../../mainwindow.cpp" line="400"/>
         <source>Captured zones</source>
         <translation>Захваченные зоны</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="452"/>
+        <location filename="../../mainwindow.cpp" line="401"/>
         <source>AI kills</source>
         <translation>ИИ убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="456"/>
+        <location filename="../../mainwindow.cpp" line="402"/>
         <source>Awarded damage</source>
         <translation>Присужденный ущерб</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="460"/>
+        <location filename="../../mainwindow.cpp" line="403"/>
         <source>Bombing damage</source>
         <translation>Ущерб от бомбардировки</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="464"/>
+        <location filename="../../mainwindow.cpp" line="404"/>
         <source>Deaths</source>
         <translation>Смерти</translation>
     </message>
@@ -151,90 +151,172 @@
         <translation>ID сессии:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="175"/>
+        <location filename="../../mainwindow.ui" line="178"/>
         <source>Map:</source>
         <translation>Карта:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="182"/>
+        <location filename="../../mainwindow.ui" line="185"/>
         <source>Difficulty:</source>
         <translation>Сложность:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="189"/>
+        <location filename="../../mainwindow.ui" line="192"/>
         <source>Start time:</source>
         <translation>Время начала:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="196"/>
+        <location filename="../../mainwindow.ui" line="199"/>
         <source>Time played:</source>
         <translation>Время игры:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="203"/>
+        <location filename="../../mainwindow.ui" line="206"/>
         <source>Result:</source>
         <translation>Результат:</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="225"/>
+        <location filename="../../mainwindow.ui" line="228"/>
         <source>Server replay</source>
         <translation>Воспроизведение сервера</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="239"/>
+        <location filename="../../mainwindow.ui" line="242"/>
         <source>Allies Team</source>
         <translation>Команда союзников</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="249"/>
+        <location filename="../../mainwindow.ui" line="252"/>
         <source>Axis Team</source>
         <translation>Команда Axis</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="292"/>
+        <location filename="../../mainwindow.ui" line="295"/>
         <source>Awaiting match start...</source>
         <translation>Ждем начала матча...</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="379"/>
+        <location filename="../../mainwindow.ui" line="382"/>
         <source>Replays</source>
         <translation>Повторы</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="391"/>
+        <location filename="../../mainwindow.ui" line="394"/>
         <source>Plotter</source>
         <translation>Построитель</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="417"/>
+        <location filename="../../mainwindow.ui" line="420"/>
         <source>File</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="424"/>
+        <location filename="../../mainwindow.ui" line="427"/>
         <source>Help</source>
         <translation>Помощь</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="433"/>
+        <location filename="../../mainwindow.ui" line="436"/>
         <source>Preferences</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="438"/>
+        <location filename="../../mainwindow.ui" line="441"/>
         <source>Quit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="443"/>
+        <location filename="../../mainwindow.ui" line="446"/>
         <source>About</source>
         <translation>О программе</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.ui" line="448"/>
+        <location filename="../../mainwindow.ui" line="451"/>
         <source>Open replay</source>
         <translation>Открыть повтор</translation>
     </message>
+	<message>
+		<source>success</source>
+		<translation>успех</translation>
+	</message>
+	<message>
+		<source>fail</source>
+		<translation>провалиться</translation>
+	</message>
+	<message>
+		<source>left</source>
+		<translation>провалиться</translation>
+	</message>
+</context>
+<context>
+    <name>PlayerProfileDialog</name>
+    <message>
+        <location filename="../../playerprofiledialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation>Диалог</translation>
+    </message>
+    <message>
+        <location filename="../../playerprofiledialog.ui" line="50"/>
+        <source>Player profile</source>
+        <translation>Профиль игрока</translation>
+    </message>
+    <message>
+        <location filename="../../playerprofiledialog.cpp" line="15"/>
+        <source>Vehicle</source>
+        <translation>Автомобиль</translation>
+    </message>
+    <message>
+        <location filename="../../playerprofiledialog.cpp" line="15"/>
+        <source>Rank</source>
+        <translation>звание</translation>
+    </message>
+    <message>
+        <location filename="../../playerprofiledialog.cpp" line="15"/>
+        <source>Arcade BR</source>
+        <translation>Аркада БР</translation>
+    </message>
+    <message>
+        <location filename="../../playerprofiledialog.cpp" line="15"/>
+        <source>Realistic BR</source>
+        <translation>Реалистичный BR</translation>
+    </message>
+    <message>
+        <location filename="../../playerprofiledialog.cpp" line="15"/>
+        <source>Simulator BR</source>
+        <translation>Симулятор BR</translation>
+    </message>
+	<message>
+		<source>win64</source>
+		<translation>Windows 64-бит</translation>
+	</message>
+	<message>
+		<source>macosx</source>
+		<translation>macOS</translation>
+	</message>
+	<message>
+		<source>linux64</source>
+		<translation>Linux 64-бит</translation>
+	</message>
+	<message>
+		<source>win32_wow64</source>
+		<translation>Windows 32-бит на 64-бит</translation>
+	</message>
+	<message>
+		<source>ps5</source>
+		<translation>PlayStation 5</translation>
+	</message>
+	<message>
+		<source>ps4</source>
+		<translation>PlayStation 4</translation>
+	</message>
+	<message>
+		<source>xboxScarlett</source>
+		<translation>Xbox Series X|S</translation>
+	</message>
+	<message>
+		<source>xboxOne</source>
+		<translation>Xbox One</translation>
+	</message>
 </context>
 <context>
     <name>PreferencesDialog</name>
@@ -291,30 +373,54 @@
         <translation type="vanished">Заброшенный город</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="214"/>
+        <location filename="../../classes/utils.cpp" line="213"/>
+        <location filename="../../classes/utils.cpp" line="237"/>
         <source>Arcade</source>
         <translation>Аркада</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="215"/>
+        <location filename="../../classes/utils.cpp" line="214"/>
+        <location filename="../../classes/utils.cpp" line="238"/>
         <source>Realistic</source>
         <translation>Реалистичный</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="216"/>
+        <location filename="../../classes/utils.cpp" line="215"/>
+        <location filename="../../classes/utils.cpp" line="239"/>
         <source>Simulator</source>
         <translation>Симулятор</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="217"/>
+        <location filename="../../classes/utils.cpp" line="216"/>
+        <location filename="../../classes/utils.cpp" line="240"/>
         <source>UNKNOWN</source>
         <translation>Неизвестный</translation>
+    </message>
+    <message>
+        <location filename="../../classes/utils.cpp" line="222"/>
+        <source>success</source>
+        <translation>успех</translation>
+    </message>
+    <message>
+        <location filename="../../classes/utils.cpp" line="225"/>
+        <source>fail</source>
+        <translation>провалиться</translation>
+    </message>
+    <message>
+        <location filename="../../classes/utils.cpp" line="228"/>
+        <source>left</source>
+        <translation>провалиться</translation>
+    </message>
+    <message>
+        <location filename="../../classes/utils.cpp" line="231"/>
+        <source>unknown</source>
+        <translation>неизвестно</translation>
     </message>
 </context>
 <context>
     <name>Worker</name>
     <message>
-        <location filename="../../worker.cpp" line="108"/>
+        <location filename="../../worker.cpp" line="107"/>
         <source>Awaiting match start...</source>
         <translation>Ждем начала матча...</translation>
     </message>

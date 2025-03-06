@@ -15,6 +15,7 @@
 #include <QDebug>
 #include <QTableWidget>
 #include <QStackedWidget>
+#include <QFont>
 
 #include "classes/player.h"
 #include "classes/dbmanager.h"
@@ -54,6 +55,8 @@ private:
 	Worker* m_worker;
 	DbManager m_dbmanager;
 	QTranslator* appTranslator;
+	QFont wtSymbols;
+	QSettings settings;
 	QList<QPair<Player, PlayerReplayData>>* allies = new QList<QPair<Player, PlayerReplayData>>();
 	QList<QPair<Player, PlayerReplayData>>* axis = new QList<QPair<Player, PlayerReplayData>>();
 

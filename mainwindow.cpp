@@ -40,10 +40,12 @@ MainWindow::MainWindow(QWidget* parent)
 	m_thread(nullptr),
 	m_worker(nullptr),
 	appTranslator(new QTranslator(this)),
-	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow")
+	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
+	settings("sgambe33", "wtplotter")
 {
 	ui->setupUi(this);
-	QSettings settings("sgambe33", "wtplotter");
+	int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
+	wtSymbols = QFont(QFontDatabase::applicationFontFamilies(id).at(0));
 
 	emit refreshReplays();
 
@@ -125,7 +127,6 @@ void MainWindow::openAboutDialog()
 }
 
 void MainWindow::startPlotter() {
-	qDebug() << "Starting plotter...";
 	m_thread = new QThread();
 	m_worker = new Worker(ui->mappa);
 
@@ -148,15 +149,13 @@ void MainWindow::updatePixmap(const QPixmap& pixmap)
 }
 
 void MainWindow::refreshReplays() {
-	QSettings settings("sgambe33", "wtplotter");
-
 	if (!settings.value("replayFolderPath").isNull()) {
+		qDebug() << "REFRESHING!";
 		loadReplaysFromFolder();
 	}
 }
 
 void MainWindow::loadReplaysFromFolder() {
-	QSettings settings("sgambe33", "wtplotter");
 	QString folderPath = settings.value("replayFolderPath").toString();
 	if (folderPath.isEmpty())
 		return;
@@ -182,7 +181,6 @@ void MainWindow::loadReplaysFromFolder() {
 void MainWindow::onReplayLoaderFinished()
 {
 	ui->stackedWidget_1->setCurrentIndex(0);
-	QSettings settings("sgambe33", "wtplotter");
 	populateReplayTreeView(ui->replayTreeView, settings.value("replayFolderPath").toString());
 }
 
@@ -213,14 +211,11 @@ void MainWindow::stopPlotter() {
 
 		m_thread = nullptr;
 		m_worker = nullptr;
-
-		qDebug() << "Killing plotter and thread...";
 	}
 }
 
 void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath)
 {
-	QSettings settings("sgambe33", "wtplotter");
 	QString languageCode = settings.value("language", "en").toString();
 	model->clear();
 	model->setHorizontalHeaderLabels({ tr("File Name") });
@@ -240,7 +235,6 @@ void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString
 				obj = Utils::getJsonFromResources(":/translations/locations.json", replay.getLevel());
 			}
 
-			ui->mapNameLabel->setText(tr("Map: ") + obj.value(languageCode).toString());
 			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + obj.value(languageCode).toString("Uknown map"));
 			fileNameItem->setData(replay.getSessionId(), Qt::UserRole);
 			fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
@@ -261,11 +255,7 @@ void MainWindow::onTreeItemClicked(const QModelIndex& index)
 
 void MainWindow::executeCommand(const QString& sessionId)
 {
-	QSettings settings("sgambe33", "wtplotter");
 	QString languageCode = settings.value("language", "en").toString();
-
-	qDebug() << languageCode;
-
 	Replay rep = m_dbmanager.getReplayBySessionId(sessionId);
 
 	if (rep.getSessionId().isEmpty()) {
@@ -307,9 +297,9 @@ void MainWindow::executeCommand(const QString& sessionId)
 	ui->difficultyLabel->setText(tr("Difficulty: ") + Utils::difficultyToStringLocaleAware(rep.getDifficulty()));
 	ui->startTimeLabel->setText(tr("Start time: ") + Utils::epochSToFormattedTime(rep.getStartTime()));
 	ui->timePlayedLabel->setText(tr("Time played: ") + Utils::replayLengthToString(rep.getTimePlayed()));
-	ui->resultLabel->setText(tr("Result: ") + rep.getStatus());
+	ui->resultLabel->setText(tr("Result: ") + tr(rep.getStatus().toStdString().c_str()));
 
-	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();	
+	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();
 	this->allies->clear();
 	this->axis->clear();
 	for (const auto& playerPair : players) {
@@ -350,29 +340,24 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	table->setColumnCount(11);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-	QPixmap scorePixmap(":/icons/score.png");
-	QPixmap killsPixmap(":/icons/kills.png");
-	QPixmap groundKillsPixmap(":/icons/groundKills.png");
-	QPixmap navalKillsPixmap(":/icons/navalKills.png");
-	QPixmap assistsPixmap(":/icons/assists.png");
-	QPixmap capturedZonesPixmap(":/icons/capturedZones.png");
-	QPixmap aiKillsPixmap(":/icons/aiKills.png");
-	QPixmap awardDamagePixmap(":/icons/awardDamage.png");
-	QPixmap damageZonePixmap(":/icons/damageZone.png");
-	QPixmap deathsPixmap(":/icons/deaths.png");
+	auto loadIcon = [isDarkTheme](const QString& path) {
+		QPixmap pixmap(path);
+		if (isDarkTheme) {
+			return Utils::invertIconColors(QIcon(pixmap)).pixmap(32, 32);
+		}
+		return pixmap;
+		};
 
-	if (isDarkTheme) {
-		scorePixmap = Utils::invertIconColors(QIcon(scorePixmap)).pixmap(32, 32);
-		killsPixmap = Utils::invertIconColors(QIcon(killsPixmap)).pixmap(32, 32);
-		groundKillsPixmap = Utils::invertIconColors(QIcon(groundKillsPixmap)).pixmap(32, 32);
-		navalKillsPixmap = Utils::invertIconColors(QIcon(navalKillsPixmap)).pixmap(32, 32);
-		assistsPixmap = Utils::invertIconColors(QIcon(assistsPixmap)).pixmap(32, 32);
-		capturedZonesPixmap = Utils::invertIconColors(QIcon(capturedZonesPixmap)).pixmap(32, 32);
-		aiKillsPixmap = Utils::invertIconColors(QIcon(aiKillsPixmap)).pixmap(32, 32);
-		awardDamagePixmap = Utils::invertIconColors(QIcon(awardDamagePixmap)).pixmap(32, 32);
-		damageZonePixmap = Utils::invertIconColors(QIcon(damageZonePixmap)).pixmap(32, 32);
-		deathsPixmap = Utils::invertIconColors(QIcon(deathsPixmap)).pixmap(32, 32);
-	}
+	QPixmap scorePixmap = loadIcon(":/icons/score.png");
+	QPixmap killsPixmap = loadIcon(":/icons/kills.png");
+	QPixmap groundKillsPixmap = loadIcon(":/icons/groundKills.png");
+	QPixmap navalKillsPixmap = loadIcon(":/icons/navalKills.png");
+	QPixmap assistsPixmap = loadIcon(":/icons/assists.png");
+	QPixmap capturedZonesPixmap = loadIcon(":/icons/capturedZones.png");
+	QPixmap aiKillsPixmap = loadIcon(":/icons/aiKills.png");
+	QPixmap awardDamagePixmap = loadIcon(":/icons/awardDamage.png");
+	QPixmap damageZonePixmap = loadIcon(":/icons/damageZone.png");
+	QPixmap deathsPixmap = loadIcon(":/icons/deaths.png");
 
 	table->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Username")));
 	table->setHorizontalHeaderItem(1, new QTableWidgetItem(QIcon(scorePixmap), ""));
@@ -386,76 +371,45 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	table->setHorizontalHeaderItem(9, new QTableWidgetItem(QIcon(damageZonePixmap), ""));
 	table->setHorizontalHeaderItem(10, new QTableWidgetItem(QIcon(deathsPixmap), ""));
 
-	int row = 0;
-	for (int i = 0; i < players->size(); i++) {
-		const Player& player = players->at(i).first;
-		const PlayerReplayData& prd = players->at(i).second;
+	for (int row = 0; row < players->size(); ++row) {
+		const Player& player = players->at(row).first;
+		const PlayerReplayData& prd = players->at(row).second;
 
-		QTableWidgetItem* item = new QTableWidgetItem();
-		if (player.getUsername().contains("@psn")) {
-			item->setIcon(QIcon(":/icons/psn.png"));
-		}
-		else if (player.getUsername().contains("@live")) {
-			item->setIcon(QIcon(":/icons/xbox.png"));
-		}
-		else {
-			item->setIcon(QIcon(":/icons/pc.png"));
-		}
-
+		QTableWidgetItem* usernameItem = new QTableWidgetItem();
+		QString platformIconPath = player.getUsername().contains("@psn") ? ":/icons/psn.png" :
+			player.getUsername().contains("@live") ? ":/icons/xbox.png" : ":/icons/pc.png";
+		usernameItem->setIcon(QIcon(platformIconPath));
 		if (isDarkTheme) {
-			item->setIcon(Utils::invertIconColors(item->icon()));
+			usernameItem->setIcon(Utils::invertIconColors(usernameItem->icon()));
 		}
+		usernameItem->setFont(wtSymbols);
+		usernameItem->setText(player.getSquadronTag() + " " + player.getUsername().replace("@psn", "").replace("@live", ""));
+		table->setItem(row, 0, usernameItem);
 
-		item->setText(player.getSquadronTag() + " " + player.getUsername().replace("@psn", "").replace("@live", ""));
-		table->setItem(row, 0, item);
+		auto createItem = [](const QString& text, const QString& tooltip) {
+			QTableWidgetItem* item = new QTableWidgetItem(text);
+			item->setToolTip(tooltip);
+			return item;
+			};
 
-		table->setItem(row, 1, new QTableWidgetItem(QString::number(prd.getScore())));
-		table->item(row, 1)->setToolTip(tr("Score"));
-
-		QTableWidgetItem* killsItem = new QTableWidgetItem(QString::number(prd.getKills()));
-		killsItem->setToolTip(tr("Air kills"));
-		table->setItem(row, 2, killsItem);
-
-		QTableWidgetItem* groundKillsItem = new QTableWidgetItem(QString::number(prd.getGroundKills()));
-		groundKillsItem->setToolTip(tr("Ground kills"));
-		table->setItem(row, 3, groundKillsItem);
-
-		QTableWidgetItem* navalKillsItem = new QTableWidgetItem(QString::number(prd.getNavalKills()));
-		navalKillsItem->setToolTip(tr("Naval kills"));
-		table->setItem(row, 4, navalKillsItem);
-
-		QTableWidgetItem* assistsItem = new QTableWidgetItem(QString::number(prd.getAssists()));
-		assistsItem->setToolTip(tr("Assists"));
-		table->setItem(row, 5, assistsItem);
-
-		QTableWidgetItem* captureZoneItem = new QTableWidgetItem(QString::number(prd.getCaptureZone()));
-		captureZoneItem->setToolTip(tr("Captured zones"));
-		table->setItem(row, 6, captureZoneItem);
-
-		QTableWidgetItem* aiKillsItem = new QTableWidgetItem(QString::number(prd.getAiKills() + prd.getAiGroundKills() + prd.getAiNavalKills()));
-		aiKillsItem->setToolTip(tr("AI kills"));
-		table->setItem(row, 7, aiKillsItem);
-
-		QTableWidgetItem* awardDamageItem = new QTableWidgetItem(QString::number(prd.getAwardDamage()));
-		awardDamageItem->setToolTip(tr("Awarded damage"));
-		table->setItem(row, 8, awardDamageItem);
-
-		QTableWidgetItem* damageZoneItem = new QTableWidgetItem(QString::number(prd.getDamageZone()));
-		damageZoneItem->setToolTip(tr("Bombing damage"));
-		table->setItem(row, 9, damageZoneItem);
-
-		QTableWidgetItem* deathsItem = new QTableWidgetItem(QString::number(prd.getDeaths()));
-		deathsItem->setToolTip(tr("Deaths"));
-		table->setItem(row, 10, deathsItem);
-
-		row++;
+		table->setItem(row, 1, createItem(QString::number(prd.getScore()), tr("Score")));
+		table->setItem(row, 2, createItem(QString::number(prd.getKills()), tr("Air kills")));
+		table->setItem(row, 3, createItem(QString::number(prd.getGroundKills()), tr("Ground kills")));
+		table->setItem(row, 4, createItem(QString::number(prd.getNavalKills()), tr("Naval kills")));
+		table->setItem(row, 5, createItem(QString::number(prd.getAssists()), tr("Assists")));
+		table->setItem(row, 6, createItem(QString::number(prd.getCaptureZone()), tr("Captured zones")));
+		table->setItem(row, 7, createItem(QString::number(prd.getAiKills() + prd.getAiGroundKills() + prd.getAiNavalKills()), tr("AI kills")));
+		table->setItem(row, 8, createItem(QString::number(prd.getAwardDamage()), tr("Awarded damage")));
+		table->setItem(row, 9, createItem(QString::number(prd.getDamageZone()), tr("Bombing damage")));
+		table->setItem(row, 10, createItem(QString::number(prd.getDeaths()), tr("Deaths")));
 	}
+
 	static bool alliesTableIsConnected = false;
 	static bool axisTableIsConnected = false;
-	if (!alliesTableIsConnected && allies) {
-		connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, [this](QTableWidgetItem* item) {
-			int row = item->row();
 
+	if (!alliesTableIsConnected && allies) {
+		connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem* item) {
+			int row = item->row();
 			if (row >= 0 && row < this->allies->size()) {
 				PlayerProfileDialog dialog(this);
 				dialog.setPlayerData(this->allies->at(row));
@@ -464,10 +418,10 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 			});
 		alliesTableIsConnected = true;
 	}
-	if (!axisTableIsConnected && !allies) {
-		connect(ui->axisTable, &QTableWidget::itemDoubleClicked, [this](QTableWidgetItem* item) {
-			int row = item->row();
 
+	if (!axisTableIsConnected && !allies) {
+		connect(ui->axisTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem* item) {
+			int row = item->row();
 			if (row >= 0 && row < this->axis->size()) {
 				PlayerProfileDialog dialog(this);
 				dialog.setPlayerData(this->axis->at(row));
@@ -476,23 +430,17 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 			});
 		axisTableIsConnected = true;
 	}
+
 	table->resizeColumnsToContents();
 }
 
 void MainWindow::onLanguageChanged(const QString& languageCode)
-{
-	changeLanguage(languageCode);
-	qDebug() << "Language changed to:" << languageCode;
-}
-
-void MainWindow::changeLanguage(const QString& languageCode)
 {
 	qApp->removeTranslator(appTranslator);
 
 	QString translationFile = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
 	if (appTranslator->load(translationFile)) {
 		qApp->installTranslator(appTranslator);
-		qDebug() << "Loaded translation file:" << translationFile;
 	}
 	else {
 		qWarning() << "Failed to load translation file:" << translationFile;

@@ -19,21 +19,21 @@
      <item>
       <widget class="QLabel" name="countryLabel">
        <property name="text">
-        <string>Country</string>
+        <string/>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="usernameLabel">
        <property name="text">
-        <string>USERNAME + SQUADRON</string>
+        <string/>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="platformLabel">
        <property name="text">
-        <string>PLATFORM</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -48,16 +48,6 @@
       <widget class="QPushButton" name="playerProfileButton">
        <property name="text">
         <string>Player profile</string>
-       </property>
-       <property name="icon">
-        <iconset theme="QIcon::ThemeIcon::WindowNew"/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="playerSquadronButton">
-       <property name="text">
-        <string>Player squadron</string>
        </property>
        <property name="icon">
         <iconset theme="QIcon::ThemeIcon::WindowNew"/>

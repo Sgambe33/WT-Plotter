@@ -2,13 +2,23 @@
 #define PLAYERPROFILEDIALOG_H
 
 #include <QDialog>
+#include <QFont>
+#include <QSettings>
 #include <QPair>
-#include "classes/player.h"
-#include "classes/playerreplaydata.h"
+#include <QTableWidgetItem>
+#include <QJsonObject>
+#include <QFileDialog>
+#include <QDesktopServices>
+#include <classes/utils.h>
+#include <classes/player.h>
+#include <classes/playerreplaydata.h>
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class PlayerProfileDialog; }
-QT_END_NAMESPACE
+namespace Ui {
+	class PlayerProfileDialog;
+}
+
+class Player;
+class PlayerReplayData;
 
 class PlayerProfileDialog : public QDialog
 {
@@ -17,17 +27,14 @@ class PlayerProfileDialog : public QDialog
 public:
 	explicit PlayerProfileDialog(QWidget* parent = nullptr);
 	~PlayerProfileDialog();
+
 	void setPlayerData(const QPair<Player, PlayerReplayData>& playerData);
-
-//private slots:
-
-//signals:
-
 
 private:
 	Ui::PlayerProfileDialog* ui;
+	QFont wtSymbols;
+	QSettings* settings;
 	QPair<Player, PlayerReplayData> playerData;
 };
 
 #endif // PLAYERPROFILEDIALOG_H
-

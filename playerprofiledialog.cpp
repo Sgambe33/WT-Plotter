@@ -1,14 +1,24 @@
 #include "playerprofiledialog.h"
-#include "./ui_playerprofiledialog.h"
-#include <QFileDialog>
-#include <classes/utils.h>
-#include <QDesktopServices>
+#include "ui_playerprofiledialog.h"
 
 PlayerProfileDialog::PlayerProfileDialog(QWidget* parent) :
 	QDialog(parent),
-	ui(new Ui::PlayerProfileDialog)
+	ui(new Ui::PlayerProfileDialog),
+	settings(new QSettings("sgambe33", "wtplotter", this))
 {
 	ui->setupUi(this);
+
+	int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
+	wtSymbols = QFont(QFontDatabase::applicationFontFamilies(id).at(0));
+
+	ui->lineupTable->setColumnCount(5);
+	ui->lineupTable->setHorizontalHeaderLabels({ tr("Vehicle"), tr("Rank"), tr("Arcade BR"), tr("Realistic BR"), tr("Simulator BR") });
+	ui->lineupTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+	connect(ui->playerProfileButton, &QPushButton::clicked, this, [this] {
+		QString url = "https://warthunder.com/en/community/searchplayers?name=" + playerData.first.getUserId();
+		QDesktopServices::openUrl(QUrl(url));
+		});
 }
 
 PlayerProfileDialog::~PlayerProfileDialog()
@@ -18,50 +28,30 @@ PlayerProfileDialog::~PlayerProfileDialog()
 
 void PlayerProfileDialog::setPlayerData(const QPair<Player, PlayerReplayData>& playerData)
 {
-	QSettings settings("sgambe33", "wtplotter");
-	QString languageCode = settings.value("language", "en").toString();
 	this->playerData = playerData;
-	setWindowTitle(playerData.first.getUsername() + "'s profile");
-	ui->usernameLabel->setText(playerData.first.getSquadronTag() + " " + playerData.first.getUsername());
-	ui->platformLabel->setText(playerData.first.getPlatform());
+	QString username = playerData.first.getUsername().replace("@psn", "").replace("@live", "");
+	setWindowTitle(username);
+	ui->countryLabel->setPixmap(QPixmap(":/icons/" + Utils::getJsonFromResources(":/translations/vehicles.json", playerData.second.getLineup().first()).value("country").toString("ussr") + ".png"));
+	ui->usernameLabel->setText(playerData.first.getSquadronTag() + " " + username);
+	ui->usernameLabel->setFont(wtSymbols);
+	ui->platformLabel->setText(tr(playerData.first.getPlatform().toStdString().c_str()));
 
-	ui->lineupTable->clear();
-	ui->lineupTable->setRowCount(playerData.second.getLineup().size());
-	ui->lineupTable->setColumnCount(5);
+	ui->lineupTable->setRowCount(0);
 
-	ui->lineupTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-	ui->lineupTable->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Vehicle")));
-	ui->lineupTable->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Rank")));
-	ui->lineupTable->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Arcade BR")));
-	ui->lineupTable->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Realistic BR")));
-	ui->lineupTable->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("Simulator BR")));
-
-	int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
-	qDebug() << "Font ID:" << id;
-	QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-	QFont customFont(family);
-
-
-	int row = 0;
 	for (const auto& vehicle : playerData.second.getLineup()) {
 		QJsonObject obj = Utils::getJsonFromResources(":/translations/vehicles.json", vehicle);
-		QTableWidgetItem* item = new QTableWidgetItem();
-		item->setFont(customFont);
-		item->setText(obj.value(languageCode).toString());
+		int row = ui->lineupTable->rowCount();
+		ui->lineupTable->insertRow(row);
 
+		QTableWidgetItem* item = new QTableWidgetItem(obj.value(settings->value("language", "en").toString()).toString());
+		item->setFont(wtSymbols);
+		
 		ui->lineupTable->setItem(row, 0, item);
 		ui->lineupTable->setItem(row, 1, new QTableWidgetItem(QString::number(obj.value("rank").toInt())));
 		ui->lineupTable->setItem(row, 2, new QTableWidgetItem(QString::number(obj.value("ab_br").toDouble())));
 		ui->lineupTable->setItem(row, 3, new QTableWidgetItem(QString::number(obj.value("rb_br").toDouble())));
 		ui->lineupTable->setItem(row, 4, new QTableWidgetItem(QString::number(obj.value("sb_br").toDouble())));
-		row++;
 	}
-	// Adjust column widths
-	ui->lineupTable->resizeColumnsToContents();
 
-	connect(ui->playerProfileButton, &QPushButton::clicked, [=] {
-		QString url = "https://warthunder.com/en/community/searchplayers?name=" + playerData.first.getUserId();
-		QDesktopServices::openUrl(QUrl(url));
-		});
+	ui->lineupTable->resizeColumnsToContents();
 }

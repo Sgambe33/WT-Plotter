@@ -57,7 +57,6 @@ void Worker::stopTimer()
 	}
 	if (m_timer->isActive()) {
 		m_timer->stop();
-		qDebug() << "Timer stopped.";
 	}
 }
 
@@ -110,7 +109,7 @@ void Worker::onTimeout()
 	}
 	catch (const std::exception& e)
 	{
-		qDebug() << "An error occurred during scheduled task execution:" << e.what();
+		qCritical() << "An error occurred during scheduled task execution:" << e.what();
 	}
 }
 
@@ -134,7 +133,7 @@ void Worker::updatePOI() {
 		}
 	}
 	catch (const std::exception& e) {
-		qDebug() << "Exception while fetching map objects:" << e.what();
+		qCritical() << "Exception while fetching map objects:" << e.what();
 		throw std::runtime_error(e.what());
 	}
 }
@@ -291,7 +290,7 @@ void Worker::fetchMapObjects()
 		}
 	}
 	catch (const std::exception& e) {
-		qDebug() << "Exception while fetching map objects:" << e.what();
+		qCritical() << "Exception while fetching map objects:" << e.what();
 		throw std::runtime_error(e.what());
 	}
 }

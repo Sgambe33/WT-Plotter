@@ -43,7 +43,7 @@ public:
     static QString epochSToFormattedTime(int time);
     static QIcon invertIconColors(const QIcon& icon);
     static QJsonObject getJsonFromResources(const QString& resourceName, const QString& identifier);
-    static void setCustomFont(const QString& fontPath, QWidget* widget) {
+    static void setCustomFont(const QString& fontPath, QWidget* widget);
 
 
 private:    

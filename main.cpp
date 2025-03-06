@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 
     if (!QSqlDatabase::isDriverAvailable("QSQLITE"))
     {
-        qDebug() << "SQLite driver not available!";
+        qCritical() << "SQLite driver not available!";
         return -1;
     }
 

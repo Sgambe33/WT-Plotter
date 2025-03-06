@@ -18,7 +18,7 @@ void Utils::checkAppVersion() {
 		.arg(APP_VERSION_MINOR)
 		.arg(APP_VERSION_PATCH);
 
-	qDebug() << "Current app version:" << appVersion;
+	qInfo() << "Running wtplotter version " << appVersion;
 
 	QEventLoop loop;
 	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -61,7 +61,6 @@ void Utils::checkAppVersion() {
 		return;
 	}
 	else {
-		qInfo() << "You are using the latest version.";
 		return;
 	}
 }
@@ -179,10 +178,10 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 		return;
 	}
 
-	QString fileName = savePathDir.absoluteFilePath(QString::number(QDateTime::currentSecsSinceEpoch()) + ".png");
+	QString fileName = savePathDir.absoluteFilePath(QString::number(QDateTime::currentSecsSinceEpoch()) + ".jpg");
 
 	QImageWriter writer;
-	writer.setFormat("webp");
+	writer.setFormat("jpg");
 	writer.setFileName(fileName);
 
 	if (!writer.write(drawedMapImage.toImage())) {
@@ -226,7 +225,6 @@ Constants::Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
 		{"REALISTIC", Constants::Difficulty::REALISTIC},
 		{"SIMULATOR", Constants::Difficulty::SIMULATOR}
 	};
-
 
 	auto it = difficultyMap.find(upperStr);
 	if (it != difficultyMap.end()) {
@@ -290,6 +288,6 @@ void Utils::setCustomFont(const QString& fontPath, QWidget* widget) {
 		}
 	}
 	else {
-		qDebug() << "Failed to load font from" << fontPath;
+		qCritical() << "Failed to load font from" << fontPath;
 	}
 }

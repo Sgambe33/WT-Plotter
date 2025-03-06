@@ -220,8 +220,6 @@ function(deploy_linux TARGET DEPLOY_SOURCE_DIR)
         ${DEPLOY_PREFIX_PATH}/${TARGET}.png SYMBOLIC)
     file(CREATE_LINK usr/share/icons/hicolor/128x128/apps/${TARGET}.png
         ${DEPLOY_PREFIX_PATH}/.DirIcon SYMBOLIC)
-
-    # Copy the binary to the bin directory
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli
         DESTINATION ${DEPLOY_PREFIX_PATH}/usr/bin FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
 

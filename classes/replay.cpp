@@ -55,10 +55,6 @@ Replay::Replay(const QByteArray& buffer) {
 	try {
 		auto results = unpackResults(m_rezOffset, buffer);
 		parseResults(results);
-		qDebug() << results;
-
-
-
 	}
 	catch (const std::exception& e) {
 		qWarning() << "Error unpacking results:" << e.what();

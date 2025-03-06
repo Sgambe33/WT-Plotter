@@ -56,12 +56,9 @@ void PreferencesDialog::loadLanguages()
     QStringList translationFiles = QDir(QCoreApplication::applicationDirPath()).entryList(QStringList("*.qm"));
 
     for (const QString& file : translationFiles) {
-        qDebug() << "Found translation file:" << file;
-
         QString languageCode = file.mid(10, 2);
 
         if (languageCode == "en") {
-            qDebug() << "Skipping English translation file:" << file;
             continue;
         }
 

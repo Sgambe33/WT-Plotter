@@ -4,119 +4,106 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../mainwindow.cpp" line="119"/>
-        <source>
-        &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
-        project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
-        source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;
-        GitHub&lt;/a&gt;.&lt;/p&gt;
-        &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
-    </source>
-        <translation>
-        &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
-        project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
-        source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;
-        GitHub&lt;/a&gt;.&lt;/p&gt;
-        &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
-    </translation>
-    </message>
-    <message>
-        <location filename="../../mainwindow.cpp" line="126"/>
+        <location filename="../../mainwindow.cpp" line="129"/>
         <source>About WT Plotter</source>
         <translation>О программе WT Plotter</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="220"/>
+        <location filename="../../mainwindow.cpp" line="224"/>
         <source>File Name</source>
         <translation>Имя файла</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="237"/>
-        <location filename="../../mainwindow.cpp" line="296"/>
+        <location filename="../../mainwindow.cpp" line="299"/>
         <source>Map: </source>
         <translation>Карта: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="295"/>
+        <location filename="../../mainwindow.cpp" line="298"/>
         <source>Session ID: </source>
         <translation>ID сессии: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="297"/>
+        <location filename="../../mainwindow.cpp" line="300"/>
         <source>Difficulty: </source>
         <translation>Сложность: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="298"/>
+        <location filename="../../mainwindow.cpp" line="301"/>
         <source>Start time: </source>
         <translation>Время начала: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="299"/>
+        <location filename="../../mainwindow.cpp" line="302"/>
         <source>Time played: </source>
         <translation>Время игры: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="300"/>
+        <location filename="../../mainwindow.cpp" line="303"/>
         <source>Result: </source>
         <translation>Результат: </translation>
     </message>
     <message>
         <source>Name</source>
-        <translation type="vanished">Имя</translation>
+        <translation>Имя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="362"/>
+        <location filename="../../mainwindow.cpp" line="122"/>
+        <source>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Текущая версия: %1&lt;/p&gt;&lt;p&gt;WT Plotter — это инструмент для чтения реплеев War Thunder и записи хода матча. Этот проект разработан &lt;strong&gt;Sgambe33&lt;/strong&gt; и является полностью открытым. Вы можете найти исходный код и внести свой вклад в проект на &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Спасибо за использование WT Plotter!&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../mainwindow.cpp" line="365"/>
         <source>Username</source>
         <translation>Имя пользователя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="395"/>
+        <location filename="../../mainwindow.cpp" line="398"/>
         <source>Score</source>
         <translation>Счет</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="396"/>
+        <location filename="../../mainwindow.cpp" line="399"/>
         <source>Air kills</source>
         <translation>Воздух убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="397"/>
+        <location filename="../../mainwindow.cpp" line="400"/>
         <source>Ground kills</source>
         <translation>Уничтожено наземных целей</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="398"/>
+        <location filename="../../mainwindow.cpp" line="401"/>
         <source>Naval kills</source>
         <translation>Морские убийства</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="399"/>
+        <location filename="../../mainwindow.cpp" line="402"/>
         <source>Assists</source>
         <translation>Ассисты</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="400"/>
+        <location filename="../../mainwindow.cpp" line="403"/>
         <source>Captured zones</source>
         <translation>Захваченные зоны</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="401"/>
+        <location filename="../../mainwindow.cpp" line="404"/>
         <source>AI kills</source>
         <translation>ИИ убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="402"/>
+        <location filename="../../mainwindow.cpp" line="405"/>
         <source>Awarded damage</source>
         <translation>Присужденный ущерб</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="403"/>
+        <location filename="../../mainwindow.cpp" line="406"/>
         <source>Bombing damage</source>
         <translation>Ущерб от бомбардировки</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="404"/>
+        <location filename="../../mainwindow.cpp" line="407"/>
         <source>Deaths</source>
         <translation>Смерти</translation>
     </message>
@@ -235,18 +222,18 @@
         <source>Open replay</source>
         <translation>Открыть повтор</translation>
     </message>
-	<message>
-		<source>success</source>
-		<translation>успех</translation>
-	</message>
-	<message>
-		<source>fail</source>
-		<translation>провалиться</translation>
-	</message>
-	<message>
-		<source>left</source>
-		<translation>провалиться</translation>
-	</message>
+    <message>
+        <source>success</source>
+        <translation>успех</translation>
+    </message>
+    <message>
+        <source>fail</source>
+        <translation>провалиться</translation>
+    </message>
+    <message>
+        <source>left</source>
+        <translation>провалиться</translation>
+    </message>
 </context>
 <context>
     <name>PlayerProfileDialog</name>
@@ -285,38 +272,38 @@
         <source>Simulator BR</source>
         <translation>Симулятор BR</translation>
     </message>
-	<message>
-		<source>win64</source>
-		<translation>Windows 64-бит</translation>
-	</message>
-	<message>
-		<source>macosx</source>
-		<translation>macOS</translation>
-	</message>
-	<message>
-		<source>linux64</source>
-		<translation>Linux 64-бит</translation>
-	</message>
-	<message>
-		<source>win32_wow64</source>
-		<translation>Windows 32-бит на 64-бит</translation>
-	</message>
-	<message>
-		<source>ps5</source>
-		<translation>PlayStation 5</translation>
-	</message>
-	<message>
-		<source>ps4</source>
-		<translation>PlayStation 4</translation>
-	</message>
-	<message>
-		<source>xboxScarlett</source>
-		<translation>Xbox Series X|S</translation>
-	</message>
-	<message>
-		<source>xboxOne</source>
-		<translation>Xbox One</translation>
-	</message>
+    <message>
+        <source>win64</source>
+        <translation>Windows 64-бит</translation>
+    </message>
+    <message>
+        <source>macosx</source>
+        <translation>macOS</translation>
+    </message>
+    <message>
+        <source>linux64</source>
+        <translation>Linux 64-бит</translation>
+    </message>
+    <message>
+        <source>win32_wow64</source>
+        <translation>Windows 32-бит на 64-бит</translation>
+    </message>
+    <message>
+        <source>ps5</source>
+        <translation>PlayStation 5</translation>
+    </message>
+    <message>
+        <source>ps4</source>
+        <translation>PlayStation 4</translation>
+    </message>
+    <message>
+        <source>xboxScarlett</source>
+        <translation>Xbox Series X|S</translation>
+    </message>
+    <message>
+        <source>xboxOne</source>
+        <translation>Xbox One</translation>
+    </message>
 </context>
 <context>
     <name>PreferencesDialog</name>
@@ -366,53 +353,45 @@
     <name>QObject</name>
     <message>
         <source>Abandoned Factory</source>
-        <translation type="vanished">Заброшенный Завод</translation>
+        <translation>Заброшенный Завод</translation>
     </message>
     <message>
         <source>Abandoned Town</source>
-        <translation type="vanished">Заброшенный город</translation>
+        <translation>Заброшенный город</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="213"/>
-        <location filename="../../classes/utils.cpp" line="237"/>
+        <location filename="../../classes/utils.cpp" line="215"/>
         <source>Arcade</source>
         <translation>Аркада</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="214"/>
-        <location filename="../../classes/utils.cpp" line="238"/>
+        <location filename="../../classes/utils.cpp" line="216"/>
         <source>Realistic</source>
         <translation>Реалистичный</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="215"/>
-        <location filename="../../classes/utils.cpp" line="239"/>
+        <location filename="../../classes/utils.cpp" line="217"/>
         <source>Simulator</source>
         <translation>Симулятор</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="216"/>
-        <location filename="../../classes/utils.cpp" line="240"/>
+        <location filename="../../classes/utils.cpp" line="218"/>
         <source>UNKNOWN</source>
         <translation>Неизвестный</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="222"/>
         <source>success</source>
         <translation>успех</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="225"/>
         <source>fail</source>
         <translation>провалиться</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="228"/>
         <source>left</source>
         <translation>провалиться</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="231"/>
         <source>unknown</source>
         <translation>неизвестно</translation>
     </message>

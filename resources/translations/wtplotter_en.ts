@@ -4,115 +4,102 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../mainwindow.cpp" line="119"/>
-        <source>
-        &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
-        project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
-        source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;
-        GitHub&lt;/a&gt;.&lt;/p&gt;
-        &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
-    </source>
-        <translation>
-        &lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This 
-        project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the 
-        source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;
-        GitHub&lt;/a&gt;.&lt;/p&gt;
-        &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;
-    </translation>
-    </message>
-    <message>
-        <location filename="../../mainwindow.cpp" line="126"/>
+        <location filename="../../mainwindow.cpp" line="129"/>
         <source>About WT Plotter</source>
         <translation>About WT Plotter</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="220"/>
+        <location filename="../../mainwindow.cpp" line="224"/>
         <source>File Name</source>
         <translation>FIle Name</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="237"/>
-        <location filename="../../mainwindow.cpp" line="296"/>
+        <location filename="../../mainwindow.cpp" line="299"/>
         <source>Map: </source>
         <translation>Map: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="295"/>
+        <location filename="../../mainwindow.cpp" line="298"/>
         <source>Session ID: </source>
         <translation>Session ID: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="297"/>
+        <location filename="../../mainwindow.cpp" line="122"/>
+        <source>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../mainwindow.cpp" line="300"/>
         <source>Difficulty: </source>
         <translation>Difficulty: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="298"/>
+        <location filename="../../mainwindow.cpp" line="301"/>
         <source>Start time: </source>
         <translation>Start time: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="299"/>
+        <location filename="../../mainwindow.cpp" line="302"/>
         <source>Time played: </source>
         <translation>Time played: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="300"/>
+        <location filename="../../mainwindow.cpp" line="303"/>
         <source>Result: </source>
         <translation>Result: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="362"/>
+        <location filename="../../mainwindow.cpp" line="365"/>
         <source>Username</source>
         <translation>Username</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="395"/>
+        <location filename="../../mainwindow.cpp" line="398"/>
         <source>Score</source>
         <translation>Score</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="396"/>
+        <location filename="../../mainwindow.cpp" line="399"/>
         <source>Air kills</source>
         <translation>Air kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="397"/>
+        <location filename="../../mainwindow.cpp" line="400"/>
         <source>Ground kills</source>
         <translation>Ground kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="398"/>
+        <location filename="../../mainwindow.cpp" line="401"/>
         <source>Naval kills</source>
         <translation>Naval kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="399"/>
+        <location filename="../../mainwindow.cpp" line="402"/>
         <source>Assists</source>
         <translation>Assists</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="400"/>
+        <location filename="../../mainwindow.cpp" line="403"/>
         <source>Captured zones</source>
         <translation>Captured zones</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="401"/>
+        <location filename="../../mainwindow.cpp" line="404"/>
         <source>AI kills</source>
         <translation>AI kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="402"/>
+        <location filename="../../mainwindow.cpp" line="405"/>
         <source>Awarded damage</source>
         <translation>Awarded damage</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="403"/>
+        <location filename="../../mainwindow.cpp" line="406"/>
         <source>Bombing damage</source>
         <translation>Bombing damage</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="404"/>
+        <location filename="../../mainwindow.cpp" line="407"/>
         <source>Deaths</source>
         <translation>Deaths</translation>
     </message>
@@ -231,18 +218,18 @@
         <source>Open replay</source>
         <translation>Open replay</translation>
     </message>
-	<message>
-		<source>success</source>
-		<translation>success</translation>
-	</message>
-	<message>
-		<source>fail</source>
-		<translation>fail</translation>
-	</message>
-	<message>
-		<source>left</source>
-		<translation>left</translation>
-	</message>
+    <message>
+        <source>success</source>
+        <translation>success</translation>
+    </message>
+    <message>
+        <source>fail</source>
+        <translation>fail</translation>
+    </message>
+    <message>
+        <source>left</source>
+        <translation>left</translation>
+    </message>
 </context>
 <context>
     <name>PlayerProfileDialog</name>
@@ -282,42 +269,37 @@
         <translation>Simulator BR</translation>
     </message>
     <message>
-        <location filename="../../playerprofiledialog.cpp" line="33"/>
-        <source>&apos;s profile</source>
-        <translation type="unfinished"></translation>
+        <source>win64</source>
+        <translation>Windows 64-bit</translation>
     </message>
-	<message>
-		<source>win64</source>
-		<translation>Windows 64-bit</translation>
-	</message>
-	<message>
-		<source>macosx</source>
-		<translation>macOS</translation>
-	</message>
-	<message>
-		<source>linux64</source>
-		<translation>Linux 64-bit</translation>
-	</message>
-	<message>
-		<source>win32_wow64</source>
-		<translation>Windows 32-bit on 64-bit</translation>
-	</message>
-	<message>
-		<source>ps5</source>
-		<translation>PlayStation 5</translation>
-	</message>
-	<message>
-		<source>ps4</source>
-		<translation>PlayStation 4</translation>
-	</message>
-	<message>
-		<source>xboxScarlett</source>
-		<translation>Xbox Series X|S</translation>
-	</message>
-	<message>
-		<source>xboxOne</source>
-		<translation>Xbox One</translation>
-	</message>
+    <message>
+        <source>macosx</source>
+        <translation>macOS</translation>
+    </message>
+    <message>
+        <source>linux64</source>
+        <translation>Linux 64-bit</translation>
+    </message>
+    <message>
+        <source>win32_wow64</source>
+        <translation>Windows 32-bit on 64-bit</translation>
+    </message>
+    <message>
+        <source>ps5</source>
+        <translation>PlayStation 5</translation>
+    </message>
+    <message>
+        <source>ps4</source>
+        <translation>PlayStation 4</translation>
+    </message>
+    <message>
+        <source>xboxScarlett</source>
+        <translation>Xbox Series X|S</translation>
+    </message>
+    <message>
+        <source>xboxOne</source>
+        <translation>Xbox One</translation>
+    </message>
 </context>
 <context>
     <name>PreferencesDialog</name>
@@ -367,53 +349,45 @@
     <name>QObject</name>
     <message>
         <source>Abandoned Factory</source>
-        <translation type="vanished">Abandoned Factory</translation>
+        <translation>Abandoned Factory</translation>
     </message>
     <message>
         <source>Abandoned Town</source>
-        <translation type="vanished">Abandoned Town</translation>
+        <translation>Abandoned Town</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="213"/>
-        <location filename="../../classes/utils.cpp" line="237"/>
+        <location filename="../../classes/utils.cpp" line="215"/>
         <source>Arcade</source>
         <translation>Arcade</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="214"/>
-        <location filename="../../classes/utils.cpp" line="238"/>
+        <location filename="../../classes/utils.cpp" line="216"/>
         <source>Realistic</source>
         <translation>Realistic</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="215"/>
-        <location filename="../../classes/utils.cpp" line="239"/>
+        <location filename="../../classes/utils.cpp" line="217"/>
         <source>Simulator</source>
         <translation>Simulator</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="216"/>
-        <location filename="../../classes/utils.cpp" line="240"/>
+        <location filename="../../classes/utils.cpp" line="218"/>
         <source>UNKNOWN</source>
         <translation>UNKNOWN</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="222"/>
         <source>success</source>
         <translation>success</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="225"/>
         <source>fail</source>
         <translation>fail</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="228"/>
         <source>left</source>
         <translation>left</translation>
     </message>
     <message>
-        <location filename="../../classes/utils.cpp" line="231"/>
         <source>unknown</source>
         <translation>unknown</translation>
     </message>

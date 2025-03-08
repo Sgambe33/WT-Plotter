@@ -50,54 +50,65 @@ void PreferencesDialog::on_autosaveCheck_stateChanged(int state)
 
 void PreferencesDialog::loadLanguages()
 {
-    ui->languageComboBox->clear();
-    ui->languageComboBox->addItem("American English", "en");
+	ui->languageComboBox->clear();
+	ui->languageComboBox->addItem("American English", "en");
 
-    QStringList translationFiles = QDir(QCoreApplication::applicationDirPath()).entryList(QStringList("*.qm"));
+	QStringList translationFiles;
 
-    for (const QString& file : translationFiles) {
-        QString languageCode = file.mid(10, 2);
+	QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
+	if (translationsDir.exists()) {
+		translationFiles = translationsDir.entryList(QStringList("wtplotter_*.qm"));
+	}
+	else {
+		translationFiles = QDir(QCoreApplication::applicationDirPath()).entryList(QStringList("wtplotter_*.qm"));
+	}
+	for (const QString& file : translationFiles) {
+		QString languageCode = file.mid(10, 2);
 
-        if (languageCode == "en") {
-            continue;
-        }
+		if (languageCode == "en") {
+			continue;
+		}
 
-        QString languageName = QLocale(languageCode).nativeLanguageName();
+		QString languageName = QLocale(languageCode).nativeLanguageName();
 
-        if (!languageName.isEmpty()) {
-            ui->languageComboBox->addItem(languageName, languageCode);
-        }
-    }
+		if (!languageName.isEmpty()) {
+			ui->languageComboBox->addItem(languageName, languageCode);
+		}
+	}
 
-    QString currentLanguage = settings.value("language", "en").toString();
-    int index = ui->languageComboBox->findData(currentLanguage);
-    if (index >= 0) {
-        ui->languageComboBox->setCurrentIndex(index);
-    }
+	QString currentLanguage = settings.value("language", "en").toString();
+	int index = ui->languageComboBox->findData(currentLanguage);
+	if (index >= 0) {
+		ui->languageComboBox->setCurrentIndex(index);
+	}
 }
 
 void PreferencesDialog::changeLanguage(const QString& languageCode)
 {
-    qApp->removeTranslator(&appTranslator);
+	qApp->removeTranslator(&appTranslator);
+	QString translationPath;
 
-    if (languageCode != "en") {
-        QString translationFile = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
-        if (appTranslator.load(translationFile)) {
-            qApp->installTranslator(&appTranslator);
-        }
-        else {
-            qWarning() << "Failed to load translation file:" << translationFile;
-        }
-    }
+	QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
+	if (translationsDir.exists()) {
+		translationPath = translationsDir.filePath(QString("wtplotter_%1.qm").arg(languageCode));
+	}
+	else {
+		translationPath = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
+	}
+	if (appTranslator.load(translationPath)) {
+		qApp->installTranslator(&appTranslator);
+	}
+	else {
+		qWarning() << "Failed to load translation file:" << translationPath;
+	}
 
-    settings.setValue("language", languageCode);
-    ui->retranslateUi(this);
+	settings.setValue("language", languageCode);
+	ui->retranslateUi(this);
 }
 
 void PreferencesDialog::onLanguageChanged(int index)
 {
-    QString languageCode = ui->languageComboBox->itemData(index).toString();
-    changeLanguage(languageCode);
-    emit languageChanged(languageCode);
+	QString languageCode = ui->languageComboBox->itemData(index).toString();
+	changeLanguage(languageCode);
+	emit languageChanged(languageCode);
 }
-

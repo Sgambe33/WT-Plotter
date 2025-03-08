@@ -33,6 +33,7 @@
 #include <QDesktopServices>
 #include <QPalette>
 #include <playerprofiledialog.h>
+#include <version.h>
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
@@ -85,6 +86,8 @@ MainWindow::MainWindow(QWidget* parent)
 		});
 
 
+
+
 	ui->replayTreeView->setDisabled(true);
 	ui->plotterButton->setDisabled(true);
 	ui->openServerReplayButton->setDisabled(true);
@@ -116,13 +119,13 @@ void MainWindow::openPreferencesDialog()
 
 void MainWindow::openAboutDialog()
 {
-	QString aboutText = tr(R"(
-        <p>WT Plotter is a tool for reading War Thunder replays and record match development. This 
-        project is developed by <strong>Sgambe33</strong> and is fully open source.You can find the 
-        source code and contribute to the project on <a href='https://github.com/sgambe33/wt-plotter'>
-        GitHub</a>.</p>
-        <p>Thank you for using WT Plotter!</p>
-    )");
+	QString aboutText = tr(R"(<p>Current version: %1</p><p>WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by <strong>Sgambe33</strong> and is fully open source.You can find the source code and contribute to the project on <a href='https://github.com/sgambe33/wt-plotter'> GitHub</a>.</p> <p>Thank you for using WT Plotter!</p>)");
+
+	aboutText = aboutText.arg(QString("%1.%2.%3")
+		.arg(APP_VERSION_MAJOR)
+		.arg(APP_VERSION_MINOR)
+		.arg(APP_VERSION_PATCH));
+
 	QMessageBox::about(this, tr("About WT Plotter"), aboutText);
 }
 
@@ -437,8 +440,15 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 void MainWindow::onLanguageChanged(const QString& languageCode)
 {
 	qApp->removeTranslator(appTranslator);
+	QString translationFile;
 
-	QString translationFile = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
+	QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
+	if (translationsDir.exists()) {
+		translationFile = translationsDir.filePath(QString("wtplotter_%1.qm").arg(languageCode));
+	}
+	else {
+		translationFile = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
+	}
 	if (appTranslator->load(translationFile)) {
 		qApp->installTranslator(appTranslator);
 	}

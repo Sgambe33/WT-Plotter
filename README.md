@@ -1,42 +1,75 @@
 # WT-Plotter
 
-[![Windows Release](https://github.com/Sgambe33/WT-Plotter/actions/workflows/windows_release.yaml/badge.svg)](https://github.com/Sgambe33/WT-Plotter/actions/workflows/windows_release.yaml)
+WT-Plotter is a lightweight application designed to parse and display information from War Thunder replay files, including older versions. Special thanks to [FlareFlo](https://github.com/FlareFlo) for his  [wt_ext_cli](https://github.com/Warthunder-Open-Source-Foundation/wt_ext_cli) project, as well as Klensy and Kotiq for their work on replay file parsing.
 
-A simple application to display the contents of War Thunder's replay files, even older ones.
-Huge thanks to [FlareFlo](https://github.com/FlareFlo) for his work on the [wt_ext_cli](https://github.com/Warthunder-Open-Source-Foundation/wt_ext_cli)
-> **Note:** This project is still in development and many things need to be finished/polished, expect bugs.
+**Note:** This project is still under active development. Some features may be incomplete or contain bugs. Feedback and contributions are welcome!
 
-## Features
+---
 
-- Display replay metadata such as the map, game mode, date and if the player won or lost.
-- Display result leaderboard for both allies and axis teams with all possible information.
-- Ability to record players'positions in an ongoing match to later display them in a map or contribute to my other project [WT-Heatmaps](http://warthunder-heatmaps.crabdance.com/).
+## Key Features
 
-![img.png](.github/readme_assets/image.png)
+- **Replay Metadata:** View essential details such as map name, game mode, difficulty, session ID, match date, and match outcome (win/loss).
+- **Leaderboard Analysis:** Explore detailed results for both Allied and Axis teams, including:
+  - Player and AI kills
+  - Deaths and assists
+  - Bomb damage to bases
+  - Naval damage
+  - Zones captured
+- **Player Information:** Check player platform, vehicle lineups and country used.
+- **Local Database:** Store replay data persistently for easy access and analysis.
+- **Multi-Language Support:** English and Russian translations (Russian translations may need refinement—contributions are appreciated!).
+- **Live Match Tracking:** Record player positions during an ongoing match for later visualization or contribution to the [WT-Heatmaps](https://warthunder-heatmaps.crabdance.com/) project.
 
-![img_1.png](.github/readme_assets/image2.png)
+The application now supports dark mode, with automatic theme switching based on your system preferences.
 
+![Dark and Light Theme Screenshots](.github/readme_assets/dark-light-theme.png)
 
-**Planned features:**
+---
 
-- Display each player used/unused vehicles.
-- Image export of the player's path in the map.
-- Replay data export/persistence using a local database.
-- Open arbitrary replays.
-- MacOS support if requested.
+## Planned Features
 
-## How to use
+- **Open Arbitrary Replays:** Load replay files from any location.
+- **MacOS Support:** If there's enough demand, MacOS compatibility will be added.
 
-1. Download the latest release from the releases page.
-2. Unzip the archive in an empty folder.
-3. Make sure to have `Autosave replays` setting active in War Thunder.
-4. Open the executable.
-5. From the `File` menu select `Preferences` and set the path to your War Thunder replays directory. Click OK.
-6. Restart the app.
-7. The left side of the application will show a list of all the replays in the directory that can be read.
-8. Select a replay from the list and the right side of the application will show the contents of the replay.
+---
 
-# DISCLAIMER
-This project is not affiliated with Gaijin Entertainment in any way. War Thunder is a registered trademark of Gaijin Entertainment. All rights reserved.
+## Getting Started
 
-By using this software you agree to share the data (such as players' positions, match map, match start time, author's user id) gathered while *both the game and this software are in execution* with the [WT-Heatmaps](http://warthunder-heatmaps.crabdance.com/) project.
+1. **Download:** Grab the latest release from the [Releases page](https://github.com/Sgambe33/WT-Plotter/releases/tag/latest).
+2. **Install:** Run the installer on Windows or the AppImage on Linux.
+3. **Enable Replay Autosave:** Ensure the "Autosave Replays" setting is enabled in War Thunder.
+4. **Launch WT-Plotter:** Start the application.
+5. **Set Preferences:**
+   - Go to `File > Preferences`.
+   - Set the path to your War Thunder replays directory.
+   - Optionally, enable automatic map saving.
+![preferences-dialog](.github/readme_assets/preferences-dialog.png)
+
+6. **Load Replays:** The application will scan and store replays in a local database. The left panel will display a list of available replays.
+7. **Analyze Replays:** Select a replay to view its details on the right side. Double-click a player's name to open their profile dialog.
+
+![player-profile](.github/readme_assets/player-profile.png)
+
+---
+
+## Technical Insights
+
+WT-Plotter currently extracts basic information from replay files. Advanced data, such as player positions, remains in an undecoded format. All parsed data is stored locally in the `wtplotter` folder within your documents directory:
+
+- **Database:** A SQLite database stores replay data. Avoid modifying its structure to prevent compatibility issues.
+- **Exported Maps:** Maps are saved in the same directory as the database by default.
+- **Position Tracking:** Player positions are fetched using War Thunder's localhost:8111 API. This method is safe and does not risk account bans.
+
+![plotter](.github/readme_assets/plotter.png)
+
+---
+
+## Disclaimer
+
+This project is not affiliated with or endorsed by Gaijin Entertainment. War Thunder is a registered trademark of Gaijin Entertainment. All rights reserved.
+
+By using WT-Plotter, you agree to share data (e.g., player positions, match maps, match start times, and your user ID) collected while both War Thunder and WT-Plotter are running with the [WT-Heatmaps](https://warthunder-heatmaps.crabdance.com/) project.
+
+---
+
+Feel free to contribute, report issues, or suggest improvements! Your feedback helps make WT-Plotter better for the War Thunder community.

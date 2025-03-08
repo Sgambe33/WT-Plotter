@@ -39,7 +39,7 @@ void DbManager::prepareQueries()
 	// Player table insert
 	m_insertPlayerQuery = QSqlQuery(m_db);
 	m_insertPlayerQuery.prepare(R"(
-        INSERT OR IGNORE INTO Player 
+        INSERT OR REPLACE INTO Player 
         (player_id, username, squadron_tag, squadron_id, platform)
         VALUES 
         (:player_id, :username, :squadron_tag, :squadron_id, :platform)
@@ -62,7 +62,7 @@ void DbManager::prepareQueries()
 void DbManager::createTables()
 {
 	QSqlQuery query(m_db);
-	query.exec("PRAGMA journal_mode = WAL");  // Better concurrency
+	query.exec("PRAGMA journal_mode = WAL");
 	query.exec("PRAGMA synchronous = NORMAL");
 
 	const QStringList tableDefinitions = {
@@ -82,7 +82,7 @@ void DbManager::createTables()
                 start_time INTEGER,
                 map TEXT,
                 game_mode TEXT ,
-                difficulty TEXT,
+                difficulty INTEGER,
                 status TEXT,
                 time_played REAL,
                 FOREIGN KEY (author_id) REFERENCES Player(player_id) ON DELETE CASCADE
@@ -139,7 +139,7 @@ bool DbManager::insertReplay(const Replay& replay)
 		m_insertReplayQuery.bindValue(":start_time", replay.getStartTime());
 		m_insertReplayQuery.bindValue(":map", replay.getLevel());
 		m_insertReplayQuery.bindValue(":game_mode", replay.getBattleType());
-		m_insertReplayQuery.bindValue(":difficulty", Utils::difficultyToString(replay.getDifficulty()));
+		m_insertReplayQuery.bindValue(":difficulty", static_cast<int>(replay.getDifficulty()));
 		m_insertReplayQuery.bindValue(":status", replay.getStatus());
 		m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
 
@@ -226,7 +226,7 @@ QMap<QDate, QList<Replay>> DbManager::fetchReplaysGroupedByDate()
 		replay.setStartTime(query.value("start_time").toLongLong());
 		replay.setLevel(query.value("map").toString());
 		replay.setBattleType(query.value("game_mode").toString());
-		replay.setDifficulty(Utils::stringToDifficulty(query.value("difficulty").toString()));
+		replay.setDifficulty(static_cast<Constants::Difficulty>(query.value("difficulty").toInt()));
 		replay.setStatus(query.value("status").toString());
 		replay.setTimePlayed(query.value("time_played").toFloat());
 
@@ -271,11 +271,10 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 	replay.setStartTime(query.value("start_time").toLongLong());
 	replay.setLevel(query.value("map").toString());
 	replay.setBattleType(query.value("game_mode").toString());
-	replay.setDifficulty(Utils::stringToDifficulty(query.value("difficulty").toString()));
+	replay.setDifficulty(static_cast<Constants::Difficulty>(query.value("difficulty").toInt()));
 	replay.setStatus(query.value("status").toString());
 	replay.setTimePlayed(query.value("time_played").toFloat());
 
-	//Get all players data for that replay
 	query.prepare(R"(SELECT * FROM PlayerReplayData JOIN Player ON PlayerReplayData.player_id=Player.player_id WHERE session_id = :session_id)");
 	query.bindValue(":session_id", sessionId);
 

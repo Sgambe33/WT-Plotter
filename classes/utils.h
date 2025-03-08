@@ -39,7 +39,6 @@ public:
     static QString replayLengthToString(int length);
     static QString difficultyToString(Constants::Difficulty difficulty);
     static QString difficultyToStringLocaleAware(Constants::Difficulty difficulty);
-    static Constants::Difficulty stringToDifficulty(const QString& difficultyStr);
     static QString epochSToFormattedTime(int time);
     static QIcon invertIconColors(const QIcon& icon);
     static QJsonObject getJsonFromResources(const QString& resourceName, const QString& identifier);

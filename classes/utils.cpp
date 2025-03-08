@@ -44,6 +44,8 @@ void Utils::checkAppVersion() {
 	QString changelog = jsonObj.value("changelog").toString();
 	bool isCritical = jsonObj.value("critical").toBool();
 
+	qDebug() << isCritical;
+
 	if (latestVersion.isEmpty()) {
 		qWarning() << "Version key not found in JSON.";
 		return;
@@ -53,7 +55,7 @@ void Utils::checkAppVersion() {
 		QMessageBox::warning(nullptr, "Update Required", R"(
         <p>A new version of this app has been found. In order to keep shared data consistent, please update by 
         downloading the latest version <a href='https://github.com/Sgambe33/WT-Plotter/releases/latest'>
-        here</a>.</p><p>Thank you</p>)");
+        here</a>.</p>)" + changelog + R"(<p>Thank you< / p>)");
 		std::exit(0);
 	}
 	else if (appVersion != latestVersion && !isCritical) {
@@ -214,24 +216,6 @@ QString Utils::difficultyToStringLocaleAware(Constants::Difficulty difficulty) {
 	case Constants::Difficulty::REALISTIC: return QObject::tr("Realistic");
 	case Constants::Difficulty::SIMULATOR: return QObject::tr("Simulator");
 	default:                    return QObject::tr("UNKNOWN");
-	}
-}
-
-Constants::Difficulty Utils::stringToDifficulty(const QString& difficultyStr)
-{
-	QString upperStr = difficultyStr.toUpper();
-	static const QMap<QString, Constants::Difficulty> difficultyMap = {
-		{"ARCADE", Constants::Difficulty::ARCADE},
-		{"REALISTIC", Constants::Difficulty::REALISTIC},
-		{"SIMULATOR", Constants::Difficulty::SIMULATOR}
-	};
-
-	auto it = difficultyMap.find(upperStr);
-	if (it != difficultyMap.end()) {
-		return it.value();
-	}
-	else {
-		return Constants::Difficulty::ARCADE;
 	}
 }
 

@@ -22,6 +22,7 @@ private slots:
 	void on_chooseReplayFolder_clicked();
 	void on_choosePlotSavePath_clicked();
 	void on_autosaveCheck_stateChanged(int state);
+	void on_startMinimizedCheck_stateChanged(int state);
 	void onLanguageChanged(int index);
 
 signals:

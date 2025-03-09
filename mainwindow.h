@@ -48,6 +48,10 @@ public slots:
 	void changeStackedWidget2(int index);
 	void onLanguageChanged(const QString& languageCode);
 
+protected:
+	void closeEvent(QCloseEvent* event) override;
+	void changeEvent(QEvent* event) override;
+
 private:
 	Ui::MainWindow* ui;
 	QStandardItemModel* model;

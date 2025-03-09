@@ -13,6 +13,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
 	ui->replayFolderTextEdit->setPlainText(settings.value("replayFolderPath").toString());
 	ui->plotSavePathTextEdit->setPlainText(settings.value("plotSavePath").toString());
 	ui->autosaveCheck->setChecked(settings.value("autosave").toBool());
+	ui->startMinimizedCheck->setChecked(settings.value("startMinimized").toBool());
 
 	loadLanguages();
 
@@ -46,6 +47,11 @@ void PreferencesDialog::on_choosePlotSavePath_clicked()
 void PreferencesDialog::on_autosaveCheck_stateChanged(int state)
 {
 	settings.setValue("autosave", state == Qt::Checked);
+}
+
+void PreferencesDialog::on_startMinimizedCheck_stateChanged(int state)
+{
+	settings.setValue("startMinimized", state == Qt::Checked);
 }
 
 void PreferencesDialog::loadLanguages()

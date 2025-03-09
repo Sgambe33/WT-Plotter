@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
@@ -7,54 +6,102 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QTranslator>
-#include <QLocale>
+#include <QSystemTrayIcon>
+#include <QMenu>
 #include <QDebug>
+
+void setupApplicationDirectories() {
+    QDir docDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter");
+    if (!docDir.exists()) {
+        docDir.mkpath(".");
+    }
+
+    QDir plotDir(docDir.filePath("plots"));
+    if (!plotDir.exists()) {
+        plotDir.mkpath(".");
+    }
+
+    QSettings settings("sgambe33", "wtplotter");
+    if (settings.value("plotSavePath").toString().isEmpty()) {
+        settings.setValue("plotSavePath", plotDir.path());
+    }
+}
+
+bool isSqliteDriverAvailable() {
+    if (!QSqlDatabase::isDriverAvailable("QSQLITE")) {
+        qCritical() << "SQLite driver not available!";
+        return false;
+    }
+    return true;
+}
+
+void setupTranslations(QSettings& settings) {
+    QTranslator translator;
+    QString languageCode = settings.value("language", "en").toString();
+    QString translationPath;
+
+    QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
+    if (translationsDir.exists()) {
+        translationPath = translationsDir.filePath(QString("wtplotter_%1.qm").arg(languageCode));
+    }
+    else {
+        translationPath = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
+    }
+
+    if (translator.load(translationPath)) {
+        QCoreApplication::installTranslator(&translator);
+    }
+    else {
+        qWarning() << "Failed to load translation file:" << translationPath;
+    }
+}
+
+void setupSystemTray(QSystemTrayIcon& trayIcon, MainWindow& mainWindow, QApplication& app) {
+    trayIcon.setIcon(QIcon(":/icons/logo.png"));
+
+    QMenu* trayMenu = new QMenu();
+    QAction* quitAction = trayMenu->addAction("Quit");
+    QObject::connect(quitAction, &QAction::triggered, &app, &QApplication::quit);
+
+    trayIcon.setContextMenu(trayMenu);
+
+    QObject::connect(&trayIcon, &QSystemTrayIcon::activated, [&mainWindow](QSystemTrayIcon::ActivationReason reason) {
+        if (reason == QSystemTrayIcon::DoubleClick) {
+            mainWindow.show();
+            mainWindow.setWindowState(Qt::WindowNoState);
+        }
+        });
+
+    QSettings settings("sgambe33", "wtplotter");
+	if (settings.value("startMinimized", false).toBool()) {
+		mainWindow.hide();
+		mainWindow.setWindowState(Qt::WindowMinimized);
+    }
+    else {
+		mainWindow.show();
+    }
+
+    trayIcon.show();
+}
 
 int main(int argc, char* argv[])
 {
-	QApplication a(argc, argv);
-	a.setStyle("Fusion");
+    QApplication app(argc, argv);
+    app.setStyle("Fusion");
 
-	QDir docDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter");
-	if (!docDir.exists())
-		docDir.mkpath(".");
-	QDir plotDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/plots");
-	if (!plotDir.exists())
-		plotDir.mkpath(".");
+    setupApplicationDirectories();
 
-	QSettings settings("sgambe33", "wtplotter");
-	if (settings.value("plotSavePath").toString().isEmpty())
-	{
-		settings.setValue("plotSavePath", QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/plots");
-	}
+    if (!isSqliteDriverAvailable()) {
+        return -1;
+    }
 
-	if (!QSqlDatabase::isDriverAvailable("QSQLITE"))
-	{
-		qCritical() << "SQLite driver not available!";
-		return -1;
-	}
+    QSettings settings("sgambe33", "wtplotter");
+    setupTranslations(settings);
 
-	QTranslator appTranslator;
-	QString languageCode = settings.value("language", "en").toString();
-	QString translationPath;
+    MainWindow mainWindow;
 
-	QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
-	if (translationsDir.exists()) {
-		translationPath = translationsDir.filePath(QString("wtplotter_%1.qm").arg(languageCode));
-	}
-	else {
-		translationPath = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
-	}
-	QTranslator translator;
-	if (translator.load(translationPath)) {
-		QCoreApplication::installTranslator(&translator);
-	}
-	else {
-		qWarning() << "Failed to load translation file:" << translationPath;
-	}
+    QSystemTrayIcon trayIcon;
+    setupSystemTray(trayIcon, mainWindow, app);
 
-	MainWindow w;
-	w.show();
-
-	return a.exec();
+    return app.exec();
 }

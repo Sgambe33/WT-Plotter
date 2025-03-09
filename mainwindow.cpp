@@ -85,9 +85,6 @@ MainWindow::MainWindow(QWidget* parent)
 		ui->replayTreeView->collapseAll();
 		});
 
-
-
-
 	ui->replayTreeView->setDisabled(true);
 	ui->plotterButton->setDisabled(true);
 	ui->openServerReplayButton->setDisabled(true);
@@ -115,6 +112,20 @@ void MainWindow::openPreferencesDialog()
 	if (dialog.exec()) {
 		refreshReplays();
 	}
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+	QApplication::quit();
+}
+
+void MainWindow::changeEvent(QEvent* event) {
+	if (event->type() == QEvent::WindowStateChange) {
+		if (isMinimized()) {
+			this->hide();
+			event->ignore();
+		}
+	}
+	QMainWindow::changeEvent(event);
 }
 
 void MainWindow::openAboutDialog()

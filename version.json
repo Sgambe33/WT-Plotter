@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "critical": true,
-  "changelog": "<p>New major and stable version available🎉! Changelog:</p><ul><li>Translations: now you can switch language from preferences (only english and russian for now)</li><li>Completed local database integration, never lose a replay. (Quick note, if you are upgrading, you MUST delete the old database. It is located in /Documents/wtplotter)</li><li>Added player profile: now you can see what vehicles a specific user used in a battle.</li><li>Open server replay and player profile on War Thunder website.</li><li>Added all maps images.</li><li>Button to expand, collapse and refresh the replay list.</li></ul><p>Download new version <a href='https://github.com/Sgambe33/WT-Plotter/releases/latest'>here</a></p>"
+  "version": "1.1.0",
+  "critical": false,
+  "changelog": "<p>Changelog:</p><ul>New option to start the program in tray mode reducing screen cluttering. Thanks to u/untitled1048576 for suggestion.<li></ul></p>"
 }

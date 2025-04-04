@@ -4,42 +4,42 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../mainwindow.cpp" line="129"/>
+        <location filename="../../mainwindow.cpp" line="140"/>
         <source>About WT Plotter</source>
         <translation>О программе WT Plotter</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="224"/>
+        <location filename="../../mainwindow.cpp" line="235"/>
         <source>File Name</source>
         <translation>Имя файла</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="299"/>
+        <location filename="../../mainwindow.cpp" line="310"/>
         <source>Map: </source>
         <translation>Карта: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="298"/>
+        <location filename="../../mainwindow.cpp" line="309"/>
         <source>Session ID: </source>
         <translation>ID сессии: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="300"/>
+        <location filename="../../mainwindow.cpp" line="311"/>
         <source>Difficulty: </source>
         <translation>Сложность: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="301"/>
+        <location filename="../../mainwindow.cpp" line="312"/>
         <source>Start time: </source>
         <translation>Время начала: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="302"/>
+        <location filename="../../mainwindow.cpp" line="313"/>
         <source>Time played: </source>
         <translation>Время игры: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="303"/>
+        <location filename="../../mainwindow.cpp" line="314"/>
         <source>Result: </source>
         <translation>Результат: </translation>
     </message>
@@ -48,62 +48,62 @@
         <translation>Имя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="122"/>
+        <location filename="../../mainwindow.cpp" line="133"/>
         <source>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</source>
         <translation>&lt;p&gt;Текущая версия: %1&lt;/p&gt;&lt;p&gt;WT Plotter — это инструмент для чтения реплеев War Thunder и записи хода матча. Этот проект разработан &lt;strong&gt;Sgambe33&lt;/strong&gt; и является полностью открытым. Вы можете найти исходный код и внести свой вклад в проект на &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Спасибо за использование WT Plotter!&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="365"/>
+        <location filename="../../mainwindow.cpp" line="376"/>
         <source>Username</source>
         <translation>Имя пользователя</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="398"/>
+        <location filename="../../mainwindow.cpp" line="409"/>
         <source>Score</source>
         <translation>Счет</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="399"/>
+        <location filename="../../mainwindow.cpp" line="410"/>
         <source>Air kills</source>
         <translation>Воздух убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="400"/>
+        <location filename="../../mainwindow.cpp" line="411"/>
         <source>Ground kills</source>
         <translation>Уничтожено наземных целей</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="401"/>
+        <location filename="../../mainwindow.cpp" line="412"/>
         <source>Naval kills</source>
         <translation>Морские убийства</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="402"/>
+        <location filename="../../mainwindow.cpp" line="413"/>
         <source>Assists</source>
         <translation>Ассисты</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="403"/>
+        <location filename="../../mainwindow.cpp" line="414"/>
         <source>Captured zones</source>
         <translation>Захваченные зоны</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="404"/>
+        <location filename="../../mainwindow.cpp" line="415"/>
         <source>AI kills</source>
         <translation>ИИ убивает</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="405"/>
+        <location filename="../../mainwindow.cpp" line="416"/>
         <source>Awarded damage</source>
         <translation>Присужденный ущерб</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="406"/>
+        <location filename="../../mainwindow.cpp" line="417"/>
         <source>Bombing damage</source>
         <translation>Ущерб от бомбардировки</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="407"/>
+        <location filename="../../mainwindow.cpp" line="418"/>
         <source>Deaths</source>
         <translation>Смерти</translation>
     </message>
@@ -313,38 +313,43 @@
         <translation>Предпочтения</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="69"/>
-        <location filename="../../preferencesdialog.ui" line="86"/>
+        <location filename="../../preferencesdialog.ui" line="115"/>
+        <location filename="../../preferencesdialog.ui" line="132"/>
         <source>Choose</source>
         <translation>Выбрать</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="76"/>
+        <location filename="../../preferencesdialog.ui" line="27"/>
         <source>Save plots:</source>
         <translation>Сохранять графики:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="116"/>
+        <location filename="../../preferencesdialog.ui" line="40"/>
+        <source>Start minimized:</source>
+        <translation>Запуск сведен к минимуму:</translation>
+    </message>
+    <message>
+        <location filename="../../preferencesdialog.ui" line="50"/>
         <source>Language:</source>
         <translation>Язык:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="20"/>
+        <location filename="../../preferencesdialog.ui" line="60"/>
         <source>Replay folder:</source>
         <translation>Папка для воспроизведения:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="30"/>
+        <location filename="../../preferencesdialog.ui" line="122"/>
         <source>Plot save path:</source>
         <translation>Путь сохранения сюжета:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.cpp" line="30"/>
+        <location filename="../../preferencesdialog.cpp" line="31"/>
         <source>Select Replay Folder</source>
         <translation>Выберите папку для воспроизведения</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.cpp" line="39"/>
+        <location filename="../../preferencesdialog.cpp" line="40"/>
         <source>Select Plot Save Path</source>
         <translation>Выберите путь сохранения сюжета</translation>
     </message>
@@ -394,6 +399,11 @@
     <message>
         <source>unknown</source>
         <translation>неизвестно</translation>
+    </message>
+    <message>
+        <location filename="../../main.cpp" line="64"/>
+        <source>Quit</source>
+        <translation>Выход</translation>
     </message>
 </context>
 <context>

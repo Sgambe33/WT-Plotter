@@ -4,102 +4,102 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../mainwindow.cpp" line="129"/>
+        <location filename="../../mainwindow.cpp" line="140"/>
         <source>About WT Plotter</source>
         <translation>About WT Plotter</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="224"/>
+        <location filename="../../mainwindow.cpp" line="235"/>
         <source>File Name</source>
         <translation>FIle Name</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="299"/>
+        <location filename="../../mainwindow.cpp" line="310"/>
         <source>Map: </source>
         <translation>Map: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="298"/>
+        <location filename="../../mainwindow.cpp" line="309"/>
         <source>Session ID: </source>
         <translation>Session ID: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="122"/>
+        <location filename="../../mainwindow.cpp" line="133"/>
         <source>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</source>
         <translation>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="300"/>
+        <location filename="../../mainwindow.cpp" line="311"/>
         <source>Difficulty: </source>
         <translation>Difficulty: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="301"/>
+        <location filename="../../mainwindow.cpp" line="312"/>
         <source>Start time: </source>
         <translation>Start time: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="302"/>
+        <location filename="../../mainwindow.cpp" line="313"/>
         <source>Time played: </source>
         <translation>Time played: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="303"/>
+        <location filename="../../mainwindow.cpp" line="314"/>
         <source>Result: </source>
         <translation>Result: </translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="365"/>
+        <location filename="../../mainwindow.cpp" line="376"/>
         <source>Username</source>
         <translation>Username</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="398"/>
+        <location filename="../../mainwindow.cpp" line="409"/>
         <source>Score</source>
         <translation>Score</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="399"/>
+        <location filename="../../mainwindow.cpp" line="410"/>
         <source>Air kills</source>
         <translation>Air kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="400"/>
+        <location filename="../../mainwindow.cpp" line="411"/>
         <source>Ground kills</source>
         <translation>Ground kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="401"/>
+        <location filename="../../mainwindow.cpp" line="412"/>
         <source>Naval kills</source>
         <translation>Naval kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="402"/>
+        <location filename="../../mainwindow.cpp" line="413"/>
         <source>Assists</source>
         <translation>Assists</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="403"/>
+        <location filename="../../mainwindow.cpp" line="414"/>
         <source>Captured zones</source>
         <translation>Captured zones</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="404"/>
+        <location filename="../../mainwindow.cpp" line="415"/>
         <source>AI kills</source>
         <translation>AI kills</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="405"/>
+        <location filename="../../mainwindow.cpp" line="416"/>
         <source>Awarded damage</source>
         <translation>Awarded damage</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="406"/>
+        <location filename="../../mainwindow.cpp" line="417"/>
         <source>Bombing damage</source>
         <translation>Bombing damage</translation>
     </message>
     <message>
-        <location filename="../../mainwindow.cpp" line="407"/>
+        <location filename="../../mainwindow.cpp" line="418"/>
         <source>Deaths</source>
         <translation>Deaths</translation>
     </message>
@@ -309,38 +309,43 @@
         <translation>Preferences</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="20"/>
+        <location filename="../../preferencesdialog.ui" line="40"/>
+        <source>Start minimized:</source>
+        <translation>Start minimized:</translation>
+    </message>
+    <message>
+        <location filename="../../preferencesdialog.ui" line="60"/>
         <source>Replay folder:</source>
         <translation>Replay folder:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="30"/>
+        <location filename="../../preferencesdialog.ui" line="122"/>
         <source>Plot save path:</source>
         <translation>Plot save path:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="69"/>
-        <location filename="../../preferencesdialog.ui" line="86"/>
+        <location filename="../../preferencesdialog.ui" line="115"/>
+        <location filename="../../preferencesdialog.ui" line="132"/>
         <source>Choose</source>
         <translation>Choose</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="76"/>
+        <location filename="../../preferencesdialog.ui" line="27"/>
         <source>Save plots:</source>
         <translation>Save plots:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.ui" line="116"/>
+        <location filename="../../preferencesdialog.ui" line="50"/>
         <source>Language:</source>
         <translation>Language:</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.cpp" line="30"/>
+        <location filename="../../preferencesdialog.cpp" line="31"/>
         <source>Select Replay Folder</source>
         <translation>Select Replay Folder</translation>
     </message>
     <message>
-        <location filename="../../preferencesdialog.cpp" line="39"/>
+        <location filename="../../preferencesdialog.cpp" line="40"/>
         <source>Select Plot Save Path</source>
         <translation>Select Plot Save Path</translation>
     </message>
@@ -349,11 +354,9 @@
     <name>QObject</name>
     <message>
         <source>Abandoned Factory</source>
-        <translation>Abandoned Factory</translation>
     </message>
     <message>
         <source>Abandoned Town</source>
-        <translation>Abandoned Town</translation>
     </message>
     <message>
         <location filename="../../classes/utils.cpp" line="215"/>
@@ -377,19 +380,21 @@
     </message>
     <message>
         <source>success</source>
-        <translation>success</translation>
     </message>
     <message>
         <source>fail</source>
-        <translation>fail</translation>
     </message>
     <message>
         <source>left</source>
-        <translation>left</translation>
     </message>
     <message>
         <source>unknown</source>
-        <translation>unknown</translation>
+    </message>
+    <message>
+        <location filename="../../main.cpp" line="64"/>
+        <source>Quit</source>
+        <translatorcomment>Quit</translatorcomment>
+        <translation>Quit</translation>
     </message>
 </context>
 <context>

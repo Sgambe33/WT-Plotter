@@ -249,7 +249,7 @@ void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString
 				obj = Utils::getJsonFromResources(":/translations/locations.json", replay.getLevel());
 			}
 
-			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + obj.value(languageCode).toString("Uknown map"));
+			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + obj.value(languageCode).toString(replay.getLevel()));
 			fileNameItem->setData(replay.getSessionId(), Qt::UserRole);
 			fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
 			dateItem->appendRow({ fileNameItem });
@@ -307,7 +307,7 @@ void MainWindow::executeCommand(const QString& sessionId)
 	}
 
 	ui->sessionIdLabel->setText(tr("Session ID: ") + rep.getSessionId());
-	ui->mapNameLabel->setText(tr("Map: ") + obj.value(languageCode).toString("Uknown map"));
+	ui->mapNameLabel->setText(tr("Map: ") + obj.value(languageCode).toString(rep.getLevel()));
 	ui->difficultyLabel->setText(tr("Difficulty: ") + Utils::difficultyToStringLocaleAware(rep.getDifficulty()));
 	ui->startTimeLabel->setText(tr("Start time: ") + Utils::epochSToFormattedTime(rep.getStartTime()));
 	ui->timePlayedLabel->setText(tr("Time played: ") + Utils::replayLengthToString(rep.getTimePlayed()));

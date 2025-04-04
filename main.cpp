@@ -8,6 +8,7 @@
 #include <QTranslator>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QObject>
 #include <QDebug>
 
 void setupApplicationDirectories() {
@@ -36,7 +37,7 @@ bool isSqliteDriverAvailable() {
 }
 
 void setupTranslations(QSettings& settings) {
-    QTranslator translator;
+    static QTranslator translator;
     QString languageCode = settings.value("language", "en").toString();
     QString translationPath;
 
@@ -60,7 +61,8 @@ void setupSystemTray(QSystemTrayIcon& trayIcon, MainWindow& mainWindow, QApplica
     trayIcon.setIcon(QIcon(":/icons/logo.png"));
 
     QMenu* trayMenu = new QMenu();
-    QAction* quitAction = trayMenu->addAction("Quit");
+    QAction* quitAction = new QAction(QObject::tr("Quit"), trayMenu);
+    trayMenu->addAction(quitAction);
     QObject::connect(quitAction, &QAction::triggered, &app, &QApplication::quit);
 
     trayIcon.setContextMenu(trayMenu);

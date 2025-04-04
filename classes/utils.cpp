@@ -44,8 +44,6 @@ void Utils::checkAppVersion() {
 	QString changelog = jsonObj.value("changelog").toString();
 	bool isCritical = jsonObj.value("critical").toBool();
 
-	qDebug() << isCritical;
-
 	if (latestVersion.isEmpty()) {
 		qWarning() << "Version key not found in JSON.";
 		return;
@@ -59,7 +57,7 @@ void Utils::checkAppVersion() {
 		std::exit(0);
 	}
 	else if (appVersion != latestVersion && !isCritical) {
-		QMessageBox::information(nullptr, "Update Available", changelog);
+		QMessageBox::information(nullptr, "Update Available", changelog + R"(Update by downloading the latest version <a href='https://github.com/Sgambe33/WT-Plotter/releases/latest'> here</a>)");
 		return;
 	}
 	else {

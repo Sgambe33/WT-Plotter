@@ -91,12 +91,16 @@ QJsonObject Replay::unpackResults(int offset, const QByteArray& buffer) {
 	QByteArray dataAfterRez = buffer.mid(offset);
 
 	QProcess process;
-	QString executablePath = QCoreApplication::applicationDirPath() + QString("/wt_ext_cli");
-	QStringList arguments{ "--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json" };
+	QString exe = QCoreApplication::applicationDirPath() + "/wt_ext_cli";
+#ifdef Q_OS_WIN
+	exe += ".exe";
+#endif
+	QStringList args{ "--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json" };
 
-	process.start(executablePath, arguments);
-	if (!process.waitForStarted()) {
-		throw std::runtime_error("Failed to start process");
+	process.start(exe, args);
+	if (!process.waitForStarted(3000)) {
+		qCritical() << "Failed to start process:" << process.error() << process.errorString();
+		throw std::runtime_error("Failed to start wt_ext_cli");
 	}
 
 	process.write(dataAfterRez);

@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         include:
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           conanops: "-s compiler.libcxx=libstdc++11"
         - os: windows-2019
           conanops: " "
@@ -31,7 +31,7 @@ jobs:
 
     steps:
     - name: Install Linux system dependencies
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt-get update -y
         sudo apt-get install -y build-essential libfuse2 pip \

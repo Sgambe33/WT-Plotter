@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
-  "critical": false,
-  "changelog": "<p>Changelog:</p><ul>New option to start the program in tray mode reducing screen cluttering. Thanks to u/untitled1048576 for suggestion.<li></ul></p>"
+  "version": "1.1.1",
+  "critical": true,
+  "changelog": "<p>Changelog:</p><ul>Fixed application not opening when reduced to tray icon on Linux OS.<li></ul></p>"
 }

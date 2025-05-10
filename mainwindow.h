@@ -49,6 +49,9 @@ public slots:
 	void changeStackedWidget2(int index);
 	void onLanguageChanged(const QString& languageCode);
 
+signals:
+	void sendActivityToDiscord(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
+
 protected:
 	void closeEvent(QCloseEvent* event) override;
 	void changeEvent(QEvent* event) override;
@@ -69,6 +72,7 @@ private:
 
 	void startPlotter();
 	void startDiscordPresence();
+	void setActivityFromMainWindow(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
 	void stopPlotter();
 	void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
 	void onTreeItemClicked(const QModelIndex& index);

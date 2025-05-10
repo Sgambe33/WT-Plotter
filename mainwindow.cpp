@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget* parent)
 		ui->plotterButton->setDisabled(false);
 		ui->replayButton->setDisabled(true);
 		stopPlotter();
+		setActivityFromMainWindow("", "Browsing replays", "logowt_stripe_flat");
 		});
 
 	connect(ui->plotterButton, &QPushButton::clicked, [=] {
@@ -99,7 +100,7 @@ MainWindow::MainWindow(QWidget* parent)
 	connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
 	connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
-
+	connect(this, &MainWindow::sendActivityToDiscord,m_discord_worker, &DiscordWorker::updateActivity,Qt::QueuedConnection);	
 	loadReplaysFromFolder();
 }
 
@@ -155,7 +156,7 @@ void MainWindow::startPlotter() {
 	connect(m_worker, &Worker::updateStatusLabel, this, &MainWindow::updateStatusLabel);
 	connect(m_worker, &Worker::updateProgressBar, this, &MainWindow::updateProgressBar);
 	connect(m_worker, &Worker::changeStackedWidget2, this, &MainWindow::changeStackedWidget2);
-
+	connect(m_worker, &Worker::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity, Qt::QueuedConnection);
 	m_worker->moveToThread(m_worker_thread);
 	m_worker_thread->start();
 }
@@ -170,6 +171,10 @@ void MainWindow::startDiscordPresence() {
 
 	m_discord_worker->moveToThread(m_discord_thread);
 	m_discord_thread->start();
+}
+
+void MainWindow::setActivityFromMainWindow(const QString& state, const QString& details, const QString& logo, time_t epochStartTime, const QString& largeText) {
+	emit sendActivityToDiscord(state, details, logo, epochStartTime, largeText);
 }
 
 void MainWindow::updatePixmap(const QPixmap& pixmap)
@@ -356,8 +361,6 @@ void MainWindow::executeCommand(const QString& sessionId)
 	populateTeamTable(ui->alliesTable, allies, true);
 	populateTeamTable(ui->axisTable, axis, false);
 }
-
-
 
 void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies)
 {

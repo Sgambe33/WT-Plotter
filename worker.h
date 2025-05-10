@@ -40,6 +40,7 @@ public slots:
 	void performTask();
 
 signals:
+	void sendActivityToDiscord(const QString& state, const QString& details, const QString& logo, time_t epochStartTime= -1, const QString& largeText = QString());
 	void updatePixmap(const QPixmap& pixmap);
 	void refreshReplays();
 	void changeStackedWidget2(int index);
@@ -61,9 +62,10 @@ private:
 	static void drawRespawnBaseTank(QPixmap& displayImage, QPainter& painter, const QList<Position>& group);
 	QJsonObject fetchJsonElement(QString url);
 	QJsonArray fetchJsonArray(QString url);
-	QPixmap fetchMapImage();
+	QImage fetchMapImage();
 	Position getPositionFromJsonElement(QJsonObject element);
 	bool shouldLoadMap();
+	void setActivityFromWorker(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
 
 
 	QPixmap originalMapImage;
@@ -82,6 +84,9 @@ private:
 
 	QString currentMap;
 	QString currentVehicle;
+	QElapsedTimer activityTimer;
+	bool showAltActivity = false;
+	time_t matchStartEpoch = 0;
 };
 
 #endif // WORKER_H

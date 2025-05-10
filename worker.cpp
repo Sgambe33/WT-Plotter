@@ -18,6 +18,7 @@
 #include <chrono>
 #include <iostream>
 #include <QMessageBox>
+#include <qbuffer.h>
 
 bool Worker::havePOIBeenDrawn = false;
 QString Worker::DATA_URL = "http://localhost:8111/map_obj.json";
@@ -47,6 +48,7 @@ void Worker::startTimer()
 	}
 
 	m_timer->start(1000);
+	activityTimer.start();
 }
 
 void Worker::stopTimer()
@@ -80,14 +82,46 @@ void Worker::onTimeout()
 			if (matchStartTime == 0)
 			{
 				matchStartTime = QDateTime::currentMSecsSinceEpoch();
+				matchStartEpoch = time(nullptr);
 				updatePOI();
 				emit updateStatusLabel(QString("Match started..."));
+				emit sendActivityToDiscord("Match started", "Entering lobby", "logowt_stripe_flat");
 			}
 			updateMarkers();
+
+			if (activityTimer.elapsed() >= 10000) {
+				showAltActivity = !showAltActivity;
+				if (showAltActivity) {
+					emit sendActivityToDiscord("In mission", "Abandoned town", "avg_abandoned_town_tankmap", matchStartEpoch);
+				}
+				else {
+					QJsonObject vehicleIndicators = fetchJsonElement("http://localhost:8111/indicators");
+					QJsonObject vehicleState = fetchJsonElement("http://localhost:8111/state");
+					if (vehicleIndicators.value("type").toString().contains("tankModels/")) {
+						//The player is in a tank
+						QString vehicleName = vehicleIndicators.value("type").toString().replace("tankModels/", "");
+						int totalCrew = vehicleIndicators.value("crew_total").toInt();
+						int aliveCrew = vehicleIndicators.value("crew_current").toInt();
+						int currentSpeed = vehicleIndicators.value("speed").toInt();
+						QString formattedText = QString("Crew: %1/%2 | Speed: %3").arg(aliveCrew).arg(totalCrew).arg(currentSpeed);
+						emit sendActivityToDiscord("In mission", vehicleName, "https://static.encyclopedia.warthunder.com/images/" + vehicleName + ".png", matchStartEpoch, formattedText);
+					}
+					else {
+						//The player is in a plane
+						QString vehicleName = vehicleIndicators.value("type").toString();
+						int speed = vehicleState.value("TAS, km/h").toInt();
+						int altitude = vehicleState.value("H, m").toInt();
+						QString formattedText = QString("Speed: %1 | Altitude: %2").arg(speed).arg(altitude);
+						emit sendActivityToDiscord("In mission", vehicleName, "https://static.encyclopedia.warthunder.com/images/" + vehicleName + ".png", matchStartEpoch, formattedText);
+					}
+				}
+				activityTimer.restart();
+			}
 		}
 		else if (shouldEndMatch())
 		{
 			matchStartTime = 0;
+			matchStartEpoch = 0;
 
 			emit updateStatusLabel(QString("Match ended..."));
 
@@ -105,6 +139,7 @@ void Worker::onTimeout()
 		}
 		else {
 			emit updateStatusLabel(tr("Awaiting match start..."));
+			sendActivityToDiscord("", "In hangar", "logowt_stripe_flat");
 		}
 	}
 	catch (const std::exception& e)
@@ -260,9 +295,17 @@ void Worker::fetchAndDisplayMap()
 	if (!isMatchRunning())
 		return;
 
-	QPixmap mapImage = fetchMapImage();
+	QImage mapImage = fetchMapImage();
 	if (!mapImage.isNull()) {
-		setOriginalMapImage(mapImage);
+		setOriginalMapImage(QPixmap::fromImage(mapImage));
+		QString md5 = QCryptographicHash::hash([mapImage] {
+			QByteArray ba;
+			QBuffer buf(&ba);
+			buf.open(QIODevice::WriteOnly);
+			mapImage.save(&buf, "PNG");
+			return ba;
+			}(), QCryptographicHash::Md5).toHex();
+		qDebug() << "Map MD5:" << md5;
 	}
 }
 
@@ -466,14 +509,14 @@ QJsonArray Worker::fetchJsonArray(QString url)
 	return jsonDoc.array();
 }
 
-QPixmap Worker::fetchMapImage()
+QImage Worker::fetchMapImage()
 {
 	QNetworkReply* reply = networkManager->get(QNetworkRequest(QUrl(MAP_URL)));
 	QEventLoop loop;
 	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	loop.exec();
 
-	QPixmap pixmap;
+	QImage pixmap;
 	if (reply->error() == QNetworkReply::NoError) {
 		pixmap.loadFromData(reply->readAll());
 	}
@@ -494,4 +537,8 @@ Position Worker::getPositionFromJsonElement(QJsonObject element)
 	qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->matchStartTime) / 1000;
 
 	return Position(x, y, color, type, icon, timeSinceBeginning);
+}
+
+void Worker::setActivityFromWorker(const QString& state, const QString& details, const QString& logo, time_t epochStartTime, const QString& largeText) {
+	emit sendActivityToDiscord(state, details, logo, epochStartTime, largeText);
 }

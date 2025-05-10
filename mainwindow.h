@@ -21,6 +21,7 @@
 #include "classes/dbmanager.h"
 #include "worker.h"
 #include "sceneimageviewer.h"
+#include <classes/discordworker.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -55,8 +56,10 @@ protected:
 private:
 	Ui::MainWindow* ui;
 	QStandardItemModel* model;
-	QThread* m_thread = nullptr;
+	QThread* m_worker_thread = nullptr;
 	Worker* m_worker;
+	QThread* m_discord_thread = nullptr;
+	DiscordWorker* m_discord_worker;
 	DbManager m_dbmanager;
 	QTranslator* appTranslator;
 	QFont wtSymbols;
@@ -65,6 +68,7 @@ private:
 	QList<QPair<Player, PlayerReplayData>>* axis = new QList<QPair<Player, PlayerReplayData>>();
 
 	void startPlotter();
+	void startDiscordPresence();
 	void stopPlotter();
 	void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
 	void onTreeItemClicked(const QModelIndex& index);

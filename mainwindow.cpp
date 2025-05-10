@@ -38,8 +38,10 @@
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	model(new QStandardItemModel(this)),
-	m_thread(nullptr),
+	m_worker_thread(nullptr),
 	m_worker(nullptr),
+	m_discord_thread(nullptr),
+	m_discord_worker(new DiscordWorker(this)),
 	appTranslator(new QTranslator(this)),
 	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
 	settings("sgambe33", "wtplotter")
@@ -92,6 +94,7 @@ MainWindow::MainWindow(QWidget* parent)
 	Utils::checkAppVersion();
 
 	startPlotter();
+	startDiscordPresence();
 	connect(ui->replayTreeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
 	connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
@@ -141,20 +144,32 @@ void MainWindow::openAboutDialog()
 }
 
 void MainWindow::startPlotter() {
-	m_thread = new QThread();
+	m_worker_thread = new QThread();
 	m_worker = new Worker(ui->mappa);
 
-	connect(m_thread, &QThread::started, m_worker, &Worker::performTask);
+	connect(m_worker_thread, &QThread::started, m_worker, &Worker::performTask);
 	connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::stopPlotter);
-	connect(m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
-	connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
+	connect(m_worker_thread, &QThread::finished, m_worker, &QObject::deleteLater);
+	connect(m_worker_thread, &QThread::finished, m_worker_thread, &QObject::deleteLater);
 	connect(m_worker, &Worker::updatePixmap, ui->mappa, &SceneImageViewer::setPixmap);
 	connect(m_worker, &Worker::updateStatusLabel, this, &MainWindow::updateStatusLabel);
 	connect(m_worker, &Worker::updateProgressBar, this, &MainWindow::updateProgressBar);
 	connect(m_worker, &Worker::changeStackedWidget2, this, &MainWindow::changeStackedWidget2);
 
-	m_worker->moveToThread(m_thread);
-	m_thread->start();
+	m_worker->moveToThread(m_worker_thread);
+	m_worker_thread->start();
+}
+
+void MainWindow::startDiscordPresence() {
+	m_discord_thread = new QThread();
+	m_discord_worker = new DiscordWorker(this);
+
+	connect(m_discord_thread, &QThread::started, m_discord_worker, &DiscordWorker::start);
+	connect(qApp, &QCoreApplication::aboutToQuit, m_discord_worker, &DiscordWorker::stop);
+	connect(m_discord_thread, &QThread::finished, m_discord_worker, &QObject::deleteLater);
+
+	m_discord_worker->moveToThread(m_discord_thread);
+	m_discord_thread->start();
 }
 
 void MainWindow::updatePixmap(const QPixmap& pixmap)
@@ -217,13 +232,13 @@ void MainWindow::updateStatusLabel(QString msg) {
 }
 
 void MainWindow::stopPlotter() {
-	if (m_thread && m_worker) {
+	if (m_worker_thread && m_worker) {
 		QMetaObject::invokeMethod(m_worker, "stopTimer", Qt::QueuedConnection);
 
-		m_thread->quit();
-		m_thread->wait();
+		m_worker_thread->quit();
+		m_worker_thread->wait();
 
-		m_thread = nullptr;
+		m_worker_thread = nullptr;
 		m_worker = nullptr;
 	}
 }

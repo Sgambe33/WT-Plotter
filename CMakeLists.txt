@@ -50,7 +50,7 @@ qt_add_executable(wtplotter
     preferencesdialog.h
     playerprofiledialog.cpp
     playerprofiledialog.h
-    SceneImageViewer.cpp
+    sceneimageviewer.cpp
     sceneimageviewer.h
     worker.cpp
     worker.h

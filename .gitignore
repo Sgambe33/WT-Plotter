@@ -55,7 +55,8 @@ Thumbs.db
 *.opensdf
 *.vcxproj
 *vcxproj.*
-
+*.TMP
+*.txt.*
 # MinGW generated files
 *.Debug
 *.Release
@@ -71,3 +72,4 @@ Thumbs.db
 out
 version.h
 discord-files
+build

@@ -21,24 +21,12 @@ public:
 	int getVersion() const;
 	QString getSessionId() const;
 	QString getLevel() const;
-	QString getLevelSettings() const;
 	QString getBattleType() const;
-	QString getEnvironment() const;
-	QString getVisibility() const;
-	int getRezOffset() const;
 	Constants::Difficulty getDifficulty() const;
-	quint8 getSessionType() const;
-	int getSetSize() const;
-	QString getLocName() const;
 	int getStartTime() const;
-	int getTimeLimit() const;
-	int getScoreLimit() const;
-	QString getBattleClass() const;
-	QString getBattleKillStreak() const;
 	QString getStatus() const;
 	double getTimePlayed() const;
 	QString getAuthorUserId() const;
-	QString getAuthor() const;
 	QList<QPair<Player, PlayerReplayData>> getPlayers() const;
 
 	void setSessionId(QString sessionId);

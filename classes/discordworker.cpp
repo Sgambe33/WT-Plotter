@@ -32,7 +32,7 @@ void DiscordWorker::updateActivity(const QString& state, const QString& details,
 		epochStartTime = time(nullptr);
 	}
 	discord::Activity activity{};
-	activity.SetName("War Thunder");
+    activity.SetName("WT Plotter");
 	activity.GetParty().GetSize().SetCurrentSize(0);
 	activity.GetParty().GetSize().SetMaxSize(0);
 	activity.SetState(state.toStdString().c_str());

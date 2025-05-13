@@ -42,8 +42,6 @@ public:
     static QString epochSToFormattedTime(int time);
     static QIcon invertIconColors(const QIcon& icon);
     static QJsonObject getJsonFromResources(const QString& resourceName, const QString& identifier);
-    static void setCustomFont(const QString& fontPath, QWidget* widget);
-
 
 private:    
     static QJsonArray exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi);

@@ -16,7 +16,7 @@ PlayerProfileDialog::PlayerProfileDialog(QWidget* parent) :
 	ui->lineupTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	connect(ui->playerProfileButton, &QPushButton::clicked, this, [this] {
-		QString url = "https://warthunder.com/en/community/searchplayers?name=" + playerData.first.getUserId();
+        QString url = "https://warthunder.com/en/community/searchplayers?name=" + playerId;
 		QDesktopServices::openUrl(QUrl(url));
 		});
 }
@@ -28,7 +28,7 @@ PlayerProfileDialog::~PlayerProfileDialog()
 
 void PlayerProfileDialog::setPlayerData(const QPair<Player, PlayerReplayData>& playerData)
 {
-	this->playerData = playerData;
+    this->playerId = playerData.first.getUserId();
 	QString username = playerData.first.getUsername().replace("@psn", "").replace("@live", "");
 	setWindowTitle(username);
 	ui->countryLabel->setPixmap(QPixmap(":/icons/" + Utils::getJsonFromResources(":/translations/vehicles.json", playerData.second.getLineup().first()).value("country").toString("ussr") + ".png"));

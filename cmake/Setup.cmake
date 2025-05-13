@@ -36,7 +36,7 @@ if(NOT ANDROID)
 endif()
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR})
-list(APPEND CMAKE_PREFIX_PATH "E:/Qt/6.8.1/msvc2022_64")
+list(APPEND CMAKE_PREFIX_PATH "D:/Qt/6.9.0/msvc2022_64")
 
 include(GenerateExportHeader)
 include(InstallRequiredSystemLibraries)

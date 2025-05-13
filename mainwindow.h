@@ -67,14 +67,14 @@ private:
 	QTranslator* appTranslator;
 	QFont wtSymbols;
 	QSettings settings;
-	QList<QPair<Player, PlayerReplayData>>* allies = new QList<QPair<Player, PlayerReplayData>>();
-	QList<QPair<Player, PlayerReplayData>>* axis = new QList<QPair<Player, PlayerReplayData>>();
+    QList<QPair<Player, PlayerReplayData>>* alliesList = new QList<QPair<Player, PlayerReplayData>>();
+    QList<QPair<Player, PlayerReplayData>>* axisList = new QList<QPair<Player, PlayerReplayData>>();
 
 	void startPlotter();
 	void startDiscordPresence();
 	void setActivityFromMainWindow(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
 	void stopPlotter();
-	void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
+    void populateReplayTreeView(QTreeView* replayTreeView);
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);
 	void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);

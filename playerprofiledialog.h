@@ -34,7 +34,7 @@ private:
 	Ui::PlayerProfileDialog* ui;
 	QFont wtSymbols;
 	QSettings* settings;
-	QPair<Player, PlayerReplayData> playerData;
+    QString playerId;
 };
 
 #endif // PLAYERPROFILEDIALOG_H

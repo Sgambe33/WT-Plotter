@@ -43,22 +43,6 @@ bool Position::isRespawnBaseTank() const {
 	return m_type.compare("respawn_base_tank", Qt::CaseInsensitive) == 0;
 }
 
-bool Position::isPlayer() const {
-	return m_icon.compare("Player", Qt::CaseInsensitive) == 0;
-}
-
-bool Position::isAirfield() const {
-	return m_type.compare("airfield", Qt::CaseInsensitive) == 0;
-}
-
-bool Position::isAircraft() const {
-	return m_type.compare("aircraft", Qt::CaseInsensitive) == 0;
-}
-
-bool Position::isRespawnBaseFighter() const {
-	return m_type.compare("respawn_base_fighter", Qt::CaseInsensitive) == 0;
-}
-
 bool Position::isValid() const {
 	return m_x >= 0 && m_x <= 1 && m_y >= 0 && m_y <= 1;
 }

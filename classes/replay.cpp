@@ -157,27 +157,14 @@ void Replay::parseResults(const QJsonObject& results) {
 	}
 }
 
-int Replay::getVersion() const { return m_version; }
 QString Replay::getSessionId() const { return m_sessionId; }
 QString Replay::getLevel() const { return m_level; }
-QString Replay::getLevelSettings() const { return m_levelSettings; }
 QString Replay::getBattleType() const { return m_battleType; }
-QString Replay::getEnvironment() const { return m_environment; }
-QString Replay::getVisibility() const { return m_visibility; }
-int Replay::getRezOffset() const { return m_rezOffset; }
 Constants::Difficulty Replay::getDifficulty() const { return m_difficulty; }
-quint8 Replay::getSessionType() const { return m_sessionType; }
-int Replay::getSetSize() const { return m_mSetSize; }
-QString Replay::getLocName() const { return m_locName; }
 int Replay::getStartTime() const { return m_startTime; }
-int Replay::getTimeLimit() const { return m_timeLimit; }
-int Replay::getScoreLimit() const { return m_scoreLimit; }
-QString Replay::getBattleClass() const { return m_battleClass; }
-QString Replay::getBattleKillStreak() const { return m_battleKillStreak; }
 QString Replay::getStatus() const { return m_status; }
 double Replay::getTimePlayed() const { return m_timePlayed; }
 QString Replay::getAuthorUserId() const { return m_authorUserId; }
-QString Replay::getAuthor() const { return m_author; }
 QList<QPair<Player, PlayerReplayData>> Replay::getPlayers() const { return m_players; }
 
 void Replay::setSessionId(QString sessionId)

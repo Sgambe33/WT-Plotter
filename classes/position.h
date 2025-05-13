@@ -16,10 +16,6 @@ public:
 
 	bool isCaptureZone() const;
 	bool isRespawnBaseTank() const;
-	bool isPlayer() const;
-	bool isAirfield() const;
-	bool isAircraft() const;
-	bool isRespawnBaseFighter() const;
 
 	bool isValid() const;
 

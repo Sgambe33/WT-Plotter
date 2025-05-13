@@ -42,8 +42,8 @@ MainWindow::MainWindow(QWidget* parent)
 	m_worker(nullptr),
 	m_discord_thread(nullptr),
 	m_discord_worker(new DiscordWorker(this)),
-	appTranslator(new QTranslator(this)),
-	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
+    m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
+    appTranslator(new QTranslator(this)),
 	settings("sgambe33", "wtplotter")
 {
 	ui->setupUi(this);
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget* parent)
 		ui->plotterButton->setDisabled(false);
 		ui->replayButton->setDisabled(true);
 		stopPlotter();
-		setActivityFromMainWindow("", "Browsing replays", "logowt_stripe_flat");
+        setActivityFromMainWindow("", "Browsing replays", "logo_512");
 		});
 
 	connect(ui->plotterButton, &QPushButton::clicked, [=] {
@@ -215,7 +215,7 @@ void MainWindow::loadReplaysFromFolder() {
 void MainWindow::onReplayLoaderFinished()
 {
 	ui->stackedWidget_1->setCurrentIndex(0);
-	populateReplayTreeView(ui->replayTreeView, settings.value("replayFolderPath").toString());
+    populateReplayTreeView(ui->replayTreeView);
 }
 
 void MainWindow::changeStackedWidget1(int index)
@@ -248,7 +248,7 @@ void MainWindow::stopPlotter() {
 	}
 }
 
-void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath)
+void MainWindow::populateReplayTreeView(QTreeView* replayTreeView)
 {
 	QString languageCode = settings.value("language", "en").toString();
 	model->clear();
@@ -272,7 +272,7 @@ void MainWindow::populateReplayTreeView(QTreeView* replayTreeView, const QString
 			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + obj.value(languageCode).toString(replay.getLevel()));
 			fileNameItem->setData(replay.getSessionId(), Qt::UserRole);
 			fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
-			dateItem->appendRow({ fileNameItem });
+            dateItem->appendRow(fileNameItem);
 		}
 		model->appendRow(dateItem);
 	}
@@ -334,32 +334,32 @@ void MainWindow::executeCommand(const QString& sessionId)
 	ui->resultLabel->setText(tr("Result: ") + tr(rep.getStatus().toStdString().c_str()));
 
 	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();
-	this->allies->clear();
-	this->axis->clear();
+    this->alliesList->clear();
+    this->axisList->clear();
 	for (const auto& playerPair : players) {
 		const PlayerReplayData& playerData = playerPair.second;
 
 		if (playerData.getTeam() == 1) {
-			this->allies->append(playerPair);
+            this->alliesList->append(playerPair);
 		}
 		else if (playerData.getTeam() == 2) {
-			this->axis->append(playerPair);
+            this->axisList->append(playerPair);
 		}
 	}
 
-	std::sort(this->allies->begin(), this->allies->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+    std::sort(this->alliesList->begin(), this->alliesList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
 		return p1.second.getScore() > p2.second.getScore();
 		});
 
-	std::sort(this->axis->begin(), this->axis->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+    std::sort(this->axisList->begin(), this->axisList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
 		return p1.second.getScore() > p2.second.getScore();
 		});
 
 	ui->alliesTable->clear();
 	ui->axisTable->clear();
 
-	populateTeamTable(ui->alliesTable, allies, true);
-	populateTeamTable(ui->axisTable, axis, false);
+    populateTeamTable(ui->alliesTable, alliesList, true);
+    populateTeamTable(ui->axisTable, axisList, false);
 }
 
 void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies)
@@ -442,9 +442,9 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	if (!alliesTableIsConnected && allies) {
 		connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem* item) {
 			int row = item->row();
-			if (row >= 0 && row < this->allies->size()) {
+            if (row >= 0 && row < this->alliesList->size()) {
 				PlayerProfileDialog dialog(this);
-				dialog.setPlayerData(this->allies->at(row));
+                dialog.setPlayerData(this->alliesList->at(row));
 				dialog.exec();
 			}
 			});
@@ -454,9 +454,9 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	if (!axisTableIsConnected && !allies) {
 		connect(ui->axisTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem* item) {
 			int row = item->row();
-			if (row >= 0 && row < this->axis->size()) {
+            if (row >= 0 && row < this->axisList->size()) {
 				PlayerProfileDialog dialog(this);
-				dialog.setPlayerData(this->axis->at(row));
+                dialog.setPlayerData(this->axisList->at(row));
 				dialog.exec();
 			}
 			});

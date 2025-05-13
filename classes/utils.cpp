@@ -67,7 +67,7 @@ void Utils::checkAppVersion() {
 
 QFile Utils::getLatestReplay(const QDir& replayDirectory)
 {
-	QFileInfoList files = replayDirectory.entryInfoList(QDir::Files, QDir::Time);
+    const QFileInfoList files = replayDirectory.entryInfoList(QDir::Files, QDir::Time);
 	if (files.isEmpty())
 	{
 		return QFile();
@@ -244,7 +244,7 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 		return QJsonObject();
 	}
 
-	QJsonArray jsonArray = jsonDoc.array();
+    const QJsonArray jsonArray = jsonDoc.array();
 
 	for (const QJsonValue& value : jsonArray) {
 		if (value.isObject()) {
@@ -257,19 +257,4 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 
 	qCritical() << "No object found with identifier:" << identifier;
 	return QJsonObject();
-}
-
-void Utils::setCustomFont(const QString& fontPath, QWidget* widget) {
-	int id = QFontDatabase::addApplicationFont(fontPath);
-	if (id != -1) {
-		QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-		QFont customFont(family);
-		widget->setFont(customFont);
-		for (auto child : widget->findChildren<QWidget*>()) {
-			child->setFont(customFont);
-		}
-	}
-	else {
-		qCritical() << "Failed to load font from" << fontPath;
-	}
 }

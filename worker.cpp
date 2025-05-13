@@ -15,8 +15,6 @@
 #include <QDir>
 #include <QSettings>
 #include "classes/replay.h"
-#include <chrono>
-#include <iostream>
 #include <QMessageBox>
 #include <qbuffer.h>
 
@@ -25,11 +23,12 @@ QString Worker::DATA_URL = "http://localhost:8111/map_obj.json";
 QString Worker::MAP_URL = "http://localhost:8111/map.img";
 QString Worker::MAP_INFO = "http://localhost:8111/map_info.json";
 QString Worker::INDICATORS = "http://localhost:8111/indicators";
+QString Worker::STATE = "http://localhost:8111/state";
 
 Worker::Worker(SceneImageViewer* imageViewer, QObject* parent)
 	: QObject(parent),
 	m_timer(new QTimer(this)),
-	matchStartTime(0),
+    m_matchStartTime(0),
 	networkManager(new QNetworkAccessManager(this))
 {
 	connect(m_timer, &QTimer::timeout, this, &Worker::onTimeout);
@@ -78,10 +77,10 @@ void Worker::onTimeout()
 			emit updateStatusLabel(QString("Map loaded..."));
 		}
 		else if (shouldUpdateMarkers())
-		{
-			if (matchStartTime == 0)
+        {
+            if (m_matchStartTime == 0)
 			{
-				matchStartTime = QDateTime::currentMSecsSinceEpoch();
+                m_matchStartTime = QDateTime::currentMSecsSinceEpoch();
 				matchStartEpoch = time(nullptr);
 				updatePOI();
 				emit updateStatusLabel(QString("Match started..."));
@@ -92,27 +91,36 @@ void Worker::onTimeout()
 			if (activityTimer.elapsed() >= 10000) {
 				showAltActivity = !showAltActivity;
 				if (showAltActivity) {
-					emit sendActivityToDiscord("In mission", "Abandoned town", "avg_abandoned_town_tankmap", matchStartEpoch);
+                    QString lookedupMapName = Constants::lookupMapName(currentMap);
+                    QString mapName = Utils::getJsonFromResources(":/translations/locations.json", Constants::lookupMapName(currentMap)).value("en").toString();
+                    if(mapName.isEmpty()){
+                        mapName = "Unknown map";
+                        lookedupMapName = "unknownmap";
+                    }
+                    emit sendActivityToDiscord("In mission", mapName, lookedupMapName+"_tankmap", matchStartEpoch);
 				}
 				else {
-					QJsonObject vehicleIndicators = fetchJsonElement("http://localhost:8111/indicators");
-					QJsonObject vehicleState = fetchJsonElement("http://localhost:8111/state");
+					QJsonObject vehicleIndicators = fetchJsonElement(Worker::INDICATORS);
+					QJsonObject vehicleState = fetchJsonElement(Worker::STATE);
 					if (vehicleIndicators.value("type").toString().contains("tankModels/")) {
 						//The player is in a tank
 						QString vehicleName = vehicleIndicators.value("type").toString().replace("tankModels/", "");
+						QString translatedVehicleName = Utils::getJsonFromResources(":/translations/vehicles.json", vehicleName).value("en").toString();
 						int totalCrew = vehicleIndicators.value("crew_total").toInt();
 						int aliveCrew = vehicleIndicators.value("crew_current").toInt();
 						int currentSpeed = vehicleIndicators.value("speed").toInt();
+                        qInfo()<< currentSpeed;
 						QString formattedText = QString("Crew: %1/%2 | Speed: %3").arg(aliveCrew).arg(totalCrew).arg(currentSpeed);
-						emit sendActivityToDiscord("In mission", vehicleName, "https://static.encyclopedia.warthunder.com/images/" + vehicleName + ".png", matchStartEpoch, formattedText);
+                        emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName), matchStartEpoch, formattedText);
 					}
 					else {
 						//The player is in a plane
 						QString vehicleName = vehicleIndicators.value("type").toString();
+						QString translatedVehicleName = Utils::getJsonFromResources(":/translations/vehicles.json", vehicleName).value("en").toString();
 						int speed = vehicleState.value("TAS, km/h").toInt();
 						int altitude = vehicleState.value("H, m").toInt();
 						QString formattedText = QString("Speed: %1 | Altitude: %2").arg(speed).arg(altitude);
-						emit sendActivityToDiscord("In mission", vehicleName, "https://static.encyclopedia.warthunder.com/images/" + vehicleName + ".png", matchStartEpoch, formattedText);
+                        emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName), matchStartEpoch, formattedText);
 					}
 				}
 				activityTimer.restart();
@@ -120,24 +128,23 @@ void Worker::onTimeout()
 		}
 		else if (shouldEndMatch())
 		{
-			matchStartTime = 0;
+            m_matchStartTime = 0;
 			matchStartEpoch = 0;
 
 			emit updateStatusLabel(QString("Match ended..."));
 
-			QPixmap drawedMapImage = getOriginalMapImage();
-			drawSpecialMarkers(drawedMapImage);
-			drawMarkers(drawedMapImage);
-			this->drawedMapImage = drawedMapImage;
+            QPixmap originalMap = getOriginalMapImage();
+            drawSpecialMarkers(originalMap);
+            drawMarkers(originalMap);
+            this->m_drawedMapImage = originalMap;
 
 			emit changeStackedWidget2(1);
-
-			emit updatePixmap(drawedMapImage);
+            emit updatePixmap(originalMap);
 
 			endMatch();
 			restartScheduler();
 		}
-		else {
+        else {
 			emit updateStatusLabel(tr("Awaiting match start..."));
 			sendActivityToDiscord("", "In hangar", "logowt_stripe_flat");
 		}
@@ -209,7 +216,7 @@ void Worker::endMatch()
 		int retries = 60;
 
 		if (autosave) {
-			Utils::saveImage(this->drawedMapImage);
+            Utils::saveImage(this->m_drawedMapImage);
 		}
 
 		do {
@@ -224,7 +231,7 @@ void Worker::endMatch()
 			Replay replayData = Replay::fromFile(latestReplay.fileName());
 			QString uploader = replayData.getAuthorUserId();
 			if (!uploader.isEmpty()) {
-				Utils::uploadReplay(replayData, uploader, this->positionCache, this->poi);
+                Utils::uploadReplay(replayData, uploader, this->m_positionCache, this->m_poi);
 			}
 			else {
 				qCritical() << "Failed to get user UID. Data will not be validated against replay.";
@@ -243,7 +250,7 @@ void Worker::endMatch()
 
 	clearMarkers();
 	setOriginalMapImage(QPixmap());
-	this->drawedMapImage = QPixmap();
+    this->m_drawedMapImage = QPixmap();
 	qInfo() << "Match ended, markers cleared.";
 }
 
@@ -251,11 +258,6 @@ void Worker::restartScheduler()
 {
 	stopTimer();
 	startTimer();
-}
-
-void Worker::setMatchStartTime(long matchStartTime)
-{
-	this->matchStartTime = matchStartTime;
 }
 
 bool Worker::isMatchRunning()
@@ -306,6 +308,7 @@ void Worker::fetchAndDisplayMap()
 			return ba;
 			}(), QCryptographicHash::Md5).toHex();
 		qDebug() << "Map MD5:" << md5;
+		currentMap = md5;
 	}
 }
 
@@ -338,43 +341,33 @@ void Worker::fetchMapObjects()
 	}
 }
 
-QPixmap Worker::getDrawedMapImage()
-{
-	return drawedMapImage;
-}
-
 QPixmap Worker::getOriginalMapImage() const
 {
-	return originalMapImage;
+    return m_originalMapImage;
 }
 
 void Worker::setOriginalMapImage(const QPixmap& originalMapImage)
 {
-	this->originalMapImage = originalMapImage;
+    this->m_originalMapImage = originalMapImage;
 }
 
 void Worker::clearMarkers()
 {
-	positionCache.clear();
-	poi.clear();
+    m_positionCache.clear();
+    m_poi.clear();
 	havePOIBeenDrawn = false;
 }
 
 void Worker::addPosition(const Position& position)
 {
-	positionCache.append(position);
+    m_positionCache.append(position);
 }
 
 void Worker::addPOI(const Position& position)
 {
 	if (!havePOIBeenDrawn) {
-		poi.append(position);
+        m_poi.append(position);
 	}
-}
-
-bool Worker::havePOIBeenDrawnFunc() const
-{
-	return havePOIBeenDrawn;
 }
 
 void Worker::drawMarkers(QPixmap& displayImage)
@@ -389,7 +382,7 @@ void Worker::drawMarkers(QPixmap& displayImage)
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-	drawMarkers(displayImage, painter, positionCache);
+    drawMarkers(displayImage, painter, m_positionCache);
 }
 
 void Worker::drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<Position>& positionCache)
@@ -424,7 +417,7 @@ void Worker::drawSpecialMarkers(QPixmap& displayImage)
 	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 	QMap<QString, QList<Position>> respawnBaseTankGroups;
 
-	for (const Position& pos : poi) {
+    for (const Position& pos : m_poi) {
 		if (pos.type() == "capture_zone") {
 			drawCaptureZoneMarker(displayImage, painter, pos);
 		}
@@ -433,7 +426,7 @@ void Worker::drawSpecialMarkers(QPixmap& displayImage)
 		}
 	}
 
-	if (!poi.isEmpty() && !respawnBaseTankGroups.isEmpty()) {
+    if (!m_poi.isEmpty() && !respawnBaseTankGroups.isEmpty()) {
 		havePOIBeenDrawn = true;
 	}
 
@@ -534,7 +527,7 @@ Position Worker::getPositionFromJsonElement(QJsonObject element)
 	QString color = element["color"].toString();
 	QString type = element["type"].toString();
 	QString icon = element["icon"].toString();
-	qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->matchStartTime) / 1000;
+    qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->m_matchStartTime) / 1000;
 
 	return Position(x, y, color, type, icon, timeSinceBeginning);
 }

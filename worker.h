@@ -11,7 +11,6 @@
 #include <QList>
 #include "classes/position.h"
 #include "sceneimageviewer.h"
-#include "classes/replay.h"
 
 class Worker : public QObject
 {
@@ -21,18 +20,15 @@ public:
 	explicit Worker(SceneImageViewer* imageViewer, QObject* parent = nullptr);
 	~Worker();
 
-	void setMatchStartTime(long matchStartTime);
 	bool isMatchRunning();
 	bool isPlayerOnTank();
 	void fetchAndDisplayMap();
 	void fetchMapObjects();
-	QPixmap getDrawedMapImage();
 	QPixmap getOriginalMapImage() const;
 	void setOriginalMapImage(const QPixmap& originalMapImage);
 	void clearMarkers();
 	void addPosition(const Position& position);
 	void addPOI(const Position& position);
-	bool havePOIBeenDrawnFunc() const;
 
 public slots:
 	void startTimer();
@@ -68,18 +64,19 @@ private:
 	void setActivityFromWorker(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
 
 
-	QPixmap originalMapImage;
-	QPixmap drawedMapImage;
-	QList<Position> positionCache;
-	QList<Position> poi;
+    QPixmap m_originalMapImage;
+    QPixmap m_drawedMapImage;
+    QList<Position> m_positionCache;
+    QList<Position> m_poi;
 	static bool havePOIBeenDrawn;
 	SceneImageViewer* imageViewer;
 	QTimer* m_timer;
-	qint64 matchStartTime;
+    qint64 m_matchStartTime;
 	static QString DATA_URL;
 	static QString MAP_URL;
 	static QString MAP_INFO;
 	static QString INDICATORS;
+	static QString STATE;
 	QNetworkAccessManager* networkManager;
 
 	QString currentMap;

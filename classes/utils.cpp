@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "version.h"
+#include "logger.h"
 
 
 void Utils::checkAppVersion() {
@@ -18,14 +19,17 @@ void Utils::checkAppVersion() {
 		.arg(APP_VERSION_MINOR)
 		.arg(APP_VERSION_PATCH);
 
-	qInfo() << "Running wtplotter version " << appVersion;
+    LOG_INFO_GLOBAL(QString("Running wtplotter version %1").arg(appVersion));
+
+    //qInfo() << "Running wtplotter version " << appVersion;
 
 	QEventLoop loop;
 	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	loop.exec();
 
 	if (reply->error() != QNetworkReply::NoError) {
-		qWarning() << "Failed to fetch version information:" << reply->errorString();
+        LOG_INFO_GLOBAL(QString("Failed to fetch version information: %1").arg(reply->errorString()));
+        //qWarning() << "Failed to fetch version information:" << reply->errorString();
 		reply->deleteLater();
 		return;
 	}
@@ -35,7 +39,8 @@ void Utils::checkAppVersion() {
 	reply->deleteLater();
 
 	if (!jsonDoc.isObject()) {
-		qWarning() << "Invalid JSON received.";
+        LOG_WARN_GLOBAL("Invalid JSON received");
+        //qWarning() << "Invalid JSON received.";
 		return;
 	}
 
@@ -45,7 +50,8 @@ void Utils::checkAppVersion() {
 	bool isCritical = jsonObj.value("critical").toBool();
 
 	if (latestVersion.isEmpty()) {
-		qWarning() << "Version key not found in JSON.";
+        LOG_WARN_GLOBAL("Version key not found in JSON");
+        //qWarning() << "Version key not found in JSON.";
 		return;
 	}
 
@@ -84,7 +90,7 @@ QFile Utils::getLatestReplay(const QDir& replayDirectory)
 
 	return QFile();
 }
-
+//TODO:Optimize
 void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Position> positionCache, QList<Position> poi)
 {
 	QNetworkAccessManager networkManager;
@@ -112,7 +118,7 @@ void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Posi
 	data["positions"] = exportPositionsToJson(replayData, positionCache, poi);
 
 	QJsonDocument doc(data);
-	QByteArray jsonData = doc.toJson();
+    QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
 	QNetworkReply* reply = networkManager.post(request, jsonData);
 	QEventLoop loop;
@@ -121,12 +127,15 @@ void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Posi
 
 	if (reply->error() != QNetworkReply::NoError)
 	{
-		qWarning() << "Failed to upload replay:" << reply->errorString();
+        LOG_WARN_GLOBAL(QString("Failed to upload replay: %1").arg(reply->errorString()));
+        //qWarning() << "Failed to upload replay:" << reply->errorString();
 	}
 	else
-	{
-		qInfo() << "Replay uploaded successfully.";
-		qInfo() << "Uploaded " << data["positions"].toArray().size() << " positions.";
+    {
+        LOG_INFO_GLOBAL(QString("Replay uploaded successfully. Uploaded %1 positions").arg(data["positions"].toArray().size()));
+
+        //qInfo() << "Replay uploaded successfully.";
+        //qInfo() << "Uploaded " << data["positions"].toArray().size() << " positions.";
 	}
 	reply->deleteLater();
 }

@@ -34,6 +34,7 @@
 #include <QPalette>
 #include <playerprofiledialog.h>
 #include <version.h>
+#include "classes/logger.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
@@ -49,6 +50,12 @@ MainWindow::MainWindow(QWidget* parent)
 	ui->setupUi(this);
 	int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
 	wtSymbols = QFont(QFontDatabase::applicationFontFamilies(id).at(0));
+
+    if (!Logger::instance().init("application.log")) {
+        qWarning("Could not initialize log file!");
+    }
+
+    LOG_INFO("Application started");
 
 	emit refreshReplays();
 
@@ -184,7 +191,8 @@ void MainWindow::updatePixmap(const QPixmap& pixmap)
 
 void MainWindow::refreshReplays() {
 	if (!settings.value("replayFolderPath").isNull()) {
-		qDebug() << "REFRESHING!";
+        LOG_INFO("Refreshing replay list");
+        //qDebug() << "REFRESHING!";
 		loadReplaysFromFolder();
 	}
 }

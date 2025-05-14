@@ -22,8 +22,9 @@ namespace Constants
         QPair<QString, QString>(u"76ec6c53ca3ebb0367b3757e6f66c3b8", u"avg_soviet_suburban_snow"),
         QPair<QString, QString>(u"a21c5b0b969845f51f1a2fa34fb23879", u"avg_korea_lake"),
         QPair<QString, QString>(u"ccb69826a962cba2be0eb8860e22ac22", u"avg_netherlands"),
-        QPair<QString, QString>(u"de7bafb1e6f35341214c363c845f966b", u"avg_testdrive")
-
+        QPair<QString, QString>(u"de7bafb1e6f35341214c363c845f966b", u"avg_testdrive"),
+        QPair<QString, QString>(u"4925758bf1561df53dd28adb76e59eb1", u"avg_northern_valley"),
+        QPair<QString, QString>(u"8998e189132e592434af3f46698ec473", u"avg_western_europe")
     };
 
     inline QString lookupMapName(const QString& hash) {

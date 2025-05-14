@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QDebug>
+#include <QThread>
 #include "discord-files/cpp/discord.h"
 
 class DiscordWorker : public QObject {

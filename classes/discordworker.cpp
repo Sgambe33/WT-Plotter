@@ -1,18 +1,22 @@
 // discordworker.cpp
 #include "discordworker.h"
-#include <QDebug>
-
+#include <QMetaEnum>
 DiscordWorker::DiscordWorker(QObject* parent) : QObject(parent) {
 	updateTimer = new QTimer(this);
-	discord::Core::Create(1338259195455344650, DiscordCreateFlags_Default, &core);
-	if (core) {
-		core->SetLogHook(discord::LogLevel::Debug, [](discord::LogLevel level, const char* message) {
-			qDebug() << "Discord SDK:" << message;
-			});
-	}
+    if(discord::Core::Create(1338259195455344650, DiscordCreateFlags_NoRequireDiscord, &core) != discord::Result::Ok){
+        QThread::currentThread()->quit();
+        return;
+    }
+    if (core) {
 	connect(updateTimer, &QTimer::timeout, this, [this]() mutable {
-		core->RunCallbacks();
-		});
+        discord::Result result = core->RunCallbacks();
+        if( result != discord::Result::Ok){
+            qDebug() << "From connect: " << static_cast<int>(result);
+
+            QThread::currentThread()->quit();
+            return;
+        }});
+    }
 }
 
 DiscordWorker::~DiscordWorker() {}
@@ -48,5 +52,10 @@ void DiscordWorker::updateActivity(const QString& state, const QString& details,
 		}
 		});
 
-	core->RunCallbacks();
+    discord::Result result = core->RunCallbacks();
+    if( result != discord::Result::Ok){
+        qDebug() << "From updateactivity: " << static_cast<int>(result);
+        QThread::currentThread()->quit();
+        return;
+    };
 }

@@ -46,9 +46,9 @@ jobs:
         echo "OPENSSL_ROOT_DIR=`pwd`/openssl" >> $GITHUB_ENV
   
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.1'
+        version: '6.9.0'
         cache: 'true'
         install-deps: 'false'
         # tools: 'tools_qtcreator'

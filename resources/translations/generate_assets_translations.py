@@ -59,9 +59,7 @@ for index, row in df.iterrows():
 
 for triple in [("avn_mediterranean_port", "Mediterranean port", "Средиземноморский порт"),
                ("avn_africa_gulf", "African gulf", "Африканский залив"),
-               ("avn_phang_nga_bay_islands", "Andaman sea", "Андаманское море"),
-               ("avg_maginot_rework", "The Great War", "Великая война"),
-               ("avn_north_sea", "North sea", "Северное море")]:
+               ("avn_phang_nga_bay_islands", "Andaman sea", "Андаманское море")]:
     obj = {
         "identifier": triple[0],
         "en": triple[1],

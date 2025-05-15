@@ -170,12 +170,14 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 	QString savePath = QSettings("sgambe33", "wtplotter").value("plotSavePath", "").toString();
 
 	if (drawedMapImage.isNull()) {
-		qCritical() << "Error: drawedMapImage is null.";
+        LOG_ERROR_GLOBAL("drawedMapImage is null, cannot draw positions");
+        //qCritical() << "Error: drawedMapImage is null.";
 		return;
 	}
 
 	if (savePath.trimmed().isEmpty()) {
-		qCritical() << "Error: savePath is not set.";
+        LOG_ERROR_GLOBAL("savePath is not set");
+        //qCritical() << "Error: savePath is not set.";
 		QMessageBox msgBox;
 		msgBox.critical(nullptr, "Error", "You have not set the save folder in the preferences!");
 		return;
@@ -183,7 +185,8 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 
 	QDir savePathDir(savePath);
 	if (!savePathDir.exists()) {
-		qCritical() << "Error: savePath directory does not exist:" << savePath;
+        LOG_ERROR_GLOBAL(QString("savePath directory does not exist: %1").arg(savePath));
+        //qCritical() << "Error: savePath directory does not exist:" << savePath;
 		return;
 	}
 
@@ -194,10 +197,12 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 	writer.setFileName(fileName);
 
 	if (!writer.write(drawedMapImage.toImage())) {
-		qCritical() << "Error saving image:" << writer.errorString();
+        LOG_ERROR_GLOBAL(QString("Error while saving match plot to disk: %1").arg(writer.errorString()));
+        //qCritical() << "Error saving image:" << writer.errorString();
 	}
 	else {
-		qInfo() << "Image saved successfully.";
+        LOG_INFO_GLOBAL("Match plot saved successfully");
+        //qInfo() << "Image saved successfully.";
 	}
 }
 
@@ -241,7 +246,8 @@ QIcon Utils::invertIconColors(const QIcon& icon) {
 QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QString& identifier) {
 	QFile file(resourceName);
 	if (!file.open(QIODevice::ReadOnly)) {
-		qCritical() << "Failed to open file:" << resourceName;
+        LOG_WARN_GLOBAL(QString("Failed to oen file: %1").arg(resourceName));
+        //qCritical() << "Failed to open file:" << resourceName;
 		return QJsonObject();
 	}
 
@@ -249,7 +255,8 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
 
 	if (jsonDoc.isNull() || !jsonDoc.isArray()) {
-		qCritical() << "Failed to parse JSON array from file:" << resourceName;
+        LOG_WARN_GLOBAL(QString("Failed to parse JSON array from file: %1").arg(resourceName));
+        //qCritical() << "Failed to parse JSON array from file:" << resourceName;
 		return QJsonObject();
 	}
 
@@ -263,7 +270,7 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 			}
 		}
 	}
-
-	qCritical() << "No object found with identifier:" << identifier;
+    LOG_WARN_GLOBAL(QString("No ibject found with identifier: %1").arg(identifier));
+    //qCritical() << "No object found with identifier:" << identifier;
 	return QJsonObject();
 }

@@ -16,11 +16,9 @@ Logger::~Logger() {
 
 bool Logger::init(const QString& filePath) {
     m_file.setFileName(filePath);
-    // clear old log
     if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
         return false;
     m_file.close();
-    // reopen for append
     if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
         return false;
     return true;

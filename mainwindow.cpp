@@ -51,10 +51,6 @@ MainWindow::MainWindow(QWidget* parent)
 	int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
 	wtSymbols = QFont(QFontDatabase::applicationFontFamilies(id).at(0));
 
-    if (!Logger::instance().init("application.log")) {
-        qWarning("Could not initialize log file!");
-    }
-
     LOG_INFO("Application started");
 
 	emit refreshReplays();

@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#pragma once
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -23,8 +24,8 @@
 #include <QImageWriter>
 #include "classes/position.h"
 #include "sceneimageviewer.h"
-#include "classes/replay.h"
-#include "classes/constants.h"
+#include "replay.h"
+#include "constants.h"
 #include <QMap>
 #include <QIcon>
 #include <QImage>
@@ -42,8 +43,11 @@ public:
     static QString epochSToFormattedTime(int time);
     static QIcon invertIconColors(const QIcon& icon);
     static QJsonObject getJsonFromResources(const QString& resourceName, const QString& identifier);
+    static QString dhashFromQImage(const QImage &img, int size = 16);
+    static QString lookupMapName(const QString& hash);
 
-private:    
+private:
+    static int hammingDistanceHex(const QString &h1, const QString &h2);
     static QJsonArray exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi);
 };
 

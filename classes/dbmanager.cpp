@@ -11,7 +11,6 @@ DbManager::DbManager(const QString& path, const QString connName, QObject* paren
     if (!m_db.open()) {
         LOG_ERROR(QString("Database connection error: %1").arg(m_db.lastError().text()));
     } else {
-        LOG_INFO("Database connected successfully");
         prepareQueries();
         createTables();
     }
@@ -139,11 +138,13 @@ bool DbManager::insertReplay(const Replay& replay) {
         m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
 
         if (!m_insertReplayQuery.exec()) {
-            LOG_ERROR(QString("Replay insert failed: %1").arg(m_insertReplayQuery.lastError().text()));
-            throw std::runtime_error("Replay insert failed");
+            throw std::runtime_error("Replay insert faile: query error");
         }
 
         const QList<QPair<Player, PlayerReplayData>> players = replay.getPlayers();
+        if(players.size() == 0){
+            throw std::runtime_error("Replay insert failed: no players found");
+        }
         for (const QPair<Player, PlayerReplayData>& player : players) {
             m_insertPlayerQuery.bindValue(":player_id", player.first.getUserId().toULongLong());
             m_insertPlayerQuery.bindValue(":username", player.first.getUsername());
@@ -268,7 +269,7 @@ Replay DbManager::getReplayBySessionId(QString sessionId) {
     query.bindValue(":session_id", sessionId);
 
     if (!query.exec() || !query.next()) {
-        LOG_WARN(QString("Failed to fetch playerReplay with session_id: %1").arg(query.lastError().text()));
+        LOG_WARN(QString("Failed to fetch playerReplay with session_id: %1").arg(sessionId));
         return Replay();
     }
 
@@ -333,7 +334,7 @@ int DbManager::deleteDanglingRecords() {
         return 0;
     }
     query.prepare(R"(
-        DELETE FROM Replay WHERE session_id NOT IN (SELECT DISTINCT session_id FROM PlayerReplayData)
+        DELETE FROM Replay WHERE session_id NOT IN (SELECT DISTINCT session_id FROM PlayerReplayData) OR session_id = 0;
     )");
     if (!query.exec()) {
         LOG_WARN(QString("Failed to delete dangling records: %1").arg(query.lastError().text()));

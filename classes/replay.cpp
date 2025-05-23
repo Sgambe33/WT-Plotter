@@ -1,160 +1,232 @@
 #include "replay.h"
+#include "logger.h"
 #include <QBuffer>
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
 
 const QByteArray Replay::MAGIC = QByteArray::fromHex("e5ac0010");
-Replay::~Replay()
-{
-}
 
+Replay::~Replay() = default;
 
 Replay::Replay(const QByteArray& buffer) {
-	QDataStream stream(buffer);
-	stream.setByteOrder(QDataStream::LittleEndian);
+    QDataStream stream(buffer);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setVersion(QDataStream::Qt_6_9);
 
-	QByteArray magic(4, 0);
-	stream.readRawData(magic.data(), 4);
-	if (magic != MAGIC) {
-		throw std::runtime_error("Invalid magic number, maybe not a replay file?");
-	}
+    QByteArray magic(4, 0);
+    if (stream.readRawData(magic.data(), 4) != 4) {
+        LOG_WARN_GLOBAL("Failed to read magic number - insufficient data");
+        throw std::runtime_error("Invalid replay format (header too short)");
+    }
 
-	stream >> m_version;
-	m_level = readString(stream, 128).replace("levels/", "").replace(".bin", "");
-	m_levelSettings = readString(stream, 260);
-	m_battleType = readString(stream, 128);
-	m_environment = readString(stream, 128);
-	m_visibility = readString(stream, 32);
-	stream >> m_rezOffset;
-	quint8 difficultyTemp;
-	stream >> difficultyTemp;
-	difficultyTemp &= 0x0F;
-	m_difficulty = static_cast<Constants::Difficulty>(difficultyTemp);
-	stream.skipRawData(35); // Skip 35 bytes
-	stream >> m_sessionType;
-	stream.skipRawData(7); // Skip 7 bytes
+    if (magic != MAGIC) {
+        LOG_WARN_GLOBAL(QString("Invalid magic number. Expected: %1, Got: %2").arg(MAGIC.toHex().constData(),magic.toHex().constData()));
+        throw std::runtime_error("Invalid magic number, not a replay file");
+    }
 
-	quint64 sessionIdInt;
-	stream >> sessionIdInt;
-	m_sessionId = QString::number(sessionIdInt, 16);
+    try {
+        stream >> m_version;
+        m_level = readString(stream, 128).remove("levels/").remove(".bin");
+        m_levelSettings = readString(stream, 260);
+        m_battleType = readString(stream, 128);
+        m_environment = readString(stream, 128);
+        m_visibility = readString(stream, 32);
+        stream >> m_rezOffset;
 
-	stream.skipRawData(4); // Skip 4 bytes
-	stream >> m_mSetSize;
-	stream.skipRawData(32); // Skip 32 bytes
-	m_locName = readString(stream, 128);
-	stream >> m_startTime >> m_timeLimit >> m_scoreLimit;
-	stream.skipRawData(48); // Skip 48 bytes
-	m_battleClass = readString(stream, 128);
-	m_battleKillStreak = readString(stream, 128);
+        quint8 difficultyTemp;
+        stream >> difficultyTemp;
+        m_difficulty = static_cast<Constants::Difficulty>(difficultyTemp & 0x0F);
 
-	try {
-		auto results = unpackResults(m_rezOffset, buffer);
-		parseResults(results);
-	}
-	catch (const std::exception& e) {
-		qWarning() << "Error unpacking results:" << e.what();
-	}
+        stream.skipRawData(35);
+        stream >> m_sessionType;
+        stream.skipRawData(7);
+
+        quint64 sessionIdInt;
+        stream >> sessionIdInt;
+        m_sessionId = QString::number(sessionIdInt, 16);
+
+        if (m_sessionId == "0") {
+            throw std::runtime_error("Invalid session ID - test drive/user mission detected");
+        }
+
+        stream.skipRawData(4);
+        stream >> m_mSetSize;
+        stream.skipRawData(32);
+        m_locName = readString(stream, 128);
+        stream >> m_startTime >> m_timeLimit >> m_scoreLimit;
+        stream.skipRawData(48);
+        m_battleClass = readString(stream, 128);
+        m_battleKillStreak = readString(stream, 128);
+
+        if (stream.status() != QDataStream::Ok) {
+            throw std::runtime_error("Data stream corrupted during header parsing");
+        }
+
+        auto results = unpackResults(m_rezOffset, buffer);
+        parseResults(results);
+    } catch (const std::exception& e) {
+        LOG_ERROR_GLOBAL(QString("Replay parsing failed: %1").arg(e.what()));
+        throw;
+    }
 }
 
-Replay::Replay()
-{
-}
+Replay::Replay(){}
 
 Replay Replay::fromFile(const QString& filePath) {
-	QFile file(filePath);
-	if (!file.open(QIODevice::ReadOnly)) {
-		throw std::runtime_error("Failed to open file");
-	}
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        throw std::runtime_error("Failed to open file");
+    }
 
-	QByteArray fileContent = file.readAll();
-	return Replay(fileContent);
+    QByteArray fileContent = file.readAll();
+    return Replay(fileContent);
 }
 
-QString Replay::readString(QDataStream& stream, int length) {
-	QByteArray bytes(length, 0);
-	stream.readRawData(bytes.data(), length);
+QString Replay::readString(QDataStream& stream, int maxLength) {
+    QByteArray buffer(maxLength, 0);
+    if (stream.readRawData(buffer.data(), maxLength) != maxLength) {
+        LOG_ERROR_GLOBAL(QString("Failed to read full string buffer of length %1").arg(maxLength));
+        throw std::runtime_error("Unexpected end of data while reading string");
+    }
 
-	int nullIndex = bytes.indexOf('\0');
-	if (nullIndex != -1) {
-		bytes.truncate(nullIndex);
-	}
-
-	return QString::fromUtf8(bytes);
+    const int nullPos = buffer.indexOf('\0');
+    if (nullPos != -1) {
+        buffer.truncate(nullPos);
+    }
+    return QString::fromUtf8(buffer).trimmed();
 }
 
 QJsonObject Replay::unpackResults(int offset, const QByteArray& buffer) {
-	QByteArray dataAfterRez = buffer.mid(offset);
+    const QByteArray data = buffer.mid(offset);
+    if (data.isEmpty()) {
+        LOG_ERROR_GLOBAL(QString("Empty results data at offset %1").arg(offset));
+        return QJsonObject();
+    }
 
-	QProcess process;
-	QString exe = QCoreApplication::applicationDirPath() + "/wt_ext_cli";
+    const QString exePath = QCoreApplication::applicationDirPath() + "/wt_ext_cli" +
 #ifdef Q_OS_WIN
-	exe += ".exe";
+                            ".exe";
+#else
+                            "";
 #endif
-	QStringList args{ "--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json" };
 
-	process.start(exe, args);
-	if (!process.waitForStarted(3000)) {
-		qCritical() << "Failed to start process:" << process.error() << process.errorString();
-		throw std::runtime_error("Failed to start wt_ext_cli");
-	}
+    if (!QFileInfo::exists(exePath)) {
+        LOG_WARN_GLOBAL(QString("External tool not found: %1").arg(exePath.toUtf8().constData()));
+        throw std::runtime_error("Required unpacking tool not found");
+    }
 
-	process.write(dataAfterRez);
-	process.closeWriteChannel();
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    QStringList args = {"--unpack_raw_blk", "--stdout", "--stdin", "--format", "Json"};
 
-	if (!process.waitForFinished()) {
-		throw std::runtime_error("Process did not finish");
-	}
+    LOG_INFO_GLOBAL(QString("Starting unpack process: %1 %2").arg(exePath.toUtf8().constData(),args.join(' ').toUtf8().constData()));
 
-	QByteArray output = process.readAllStandardOutput();
-	QJsonDocument jsonDoc = QJsonDocument::fromJson(output);
-	if (jsonDoc.isNull() || !jsonDoc.isObject()) {
-		throw std::runtime_error("Invalid JSON output");
-	}
+    process.start(exePath, args);
+    if (!process.waitForStarted(5000)) {
+        LOG_ERROR_GLOBAL(QString("Process start failed: %1 (error code %2)").arg(process.errorString().toUtf8().constData(),process.error()));
+        throw std::runtime_error("Failed to start unpacking process");
+    }
 
-	return jsonDoc.object();
+    process.write(data);
+    process.closeWriteChannel();
+
+    if (!process.waitForFinished(15000)) {
+        LOG_ERROR_GLOBAL(QString("Process timeout exceeded: %1").arg(process.errorString().toUtf8().constData()));
+        throw std::runtime_error("Unpacking process timed out");
+    }
+
+    if (process.exitCode() != 0) {
+        const QByteArray errorOutput = process.readAllStandardError();
+        LOG_ERROR_GLOBAL(QString("Process failed with code %1. Error output: %2").arg((process.exitCode(),errorOutput.constData())));
+        throw std::runtime_error("Unpacking process returned error");
+    }
+
+    const QByteArray output = process.readAllStandardOutput();
+    if (output.isEmpty()) {
+        LOG_WARN_GLOBAL("Empty output from unpacking process");
+        return QJsonObject();
+    }
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(output, &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        LOG_ERROR_GLOBAL(QString("JSON parse error: %1 at offset %2. Data sample: %3 ...").arg((parseError.errorString().toUtf8().constData(),parseError.offset,output.constData())));
+        throw std::runtime_error("Invalid JSON output from unpacker");
+    }
+
+    if (!doc.isObject()) {
+        LOG_WARN_GLOBAL("Unexpected JSON structure - root is not an object");
+        throw std::runtime_error("Invalid JSON structure");
+    }
+
+    return doc.object();
 }
 
 void Replay::parseResults(const QJsonObject& results) {
-	this->m_status = results.value("status").toString("left");
-	this->m_timePlayed = results.value("timePlayed").toDouble();
-	this->m_authorUserId = results.value("authorUserId").toString();
-	this->m_author = results.value("author").toString();
+    m_status = results.value("status").toString("left");
+    m_timePlayed = results.value("timePlayed").toDouble();
+    m_authorUserId = results.value("authorUserId").toString();
+    m_author = results.value("author").toString();
 
-	if (this->m_authorUserId == "" || this->m_author == "") {
-		this->m_authorUserId = "-1";
-		this->m_author = "server";
-	}
+    // Handle server-authored replays
+    if (m_authorUserId.isEmpty() || m_author.isEmpty()) {
+        LOG_INFO_GLOBAL("No author information - assuming server replay");
+        m_authorUserId = "-1";
+        m_author = "server";
+    }
 
-	QJsonArray playersArray = results.value("player").toArray();
-	QJsonObject uiScriptsData = results.value("uiScriptsData").toObject();
-	QJsonObject playersInfoObject = uiScriptsData.value("playersInfo").toObject();
+    const QJsonArray playersArray = results.value("player").toArray();
+    const QJsonObject uiScriptsData = results.value("uiScriptsData").toObject();
+    const QJsonObject playersInfo = uiScriptsData.value("playersInfo").toObject();
 
-	for (const auto& playerElement : playersArray) {
-		QJsonObject playerObject = playerElement.toObject();
-		for (auto it = playersInfoObject.begin(); it != playersInfoObject.end(); ++it) {
-			QJsonObject playerInfoObject = it.value().toObject();
-			if (playerInfoObject.value("id").toInteger() == playerObject.value("userId").toString().toULongLong()) {
-				Player p = Player::fromJson(playerInfoObject);
-				PlayerReplayData prd = PlayerReplayData::fromJson(playerObject);
+    // Preprocess player info for O(1) lookups
+    QHash<quint64, QJsonObject> playerInfoMap;
+    for (auto it = playersInfo.constBegin(); it != playersInfo.constEnd(); ++it) {
+        const QJsonObject info = it.value().toObject();
+        const quint64 userId = info.value("id").toVariant().toULongLong();
+        playerInfoMap.insert(userId, info);
+    }
 
-				prd.setWaitTime(playerInfoObject.value("wait_time").toDouble());
-				QJsonObject crafts = playerInfoObject.value("crafts").toObject();
-				QList<QString> lineup;
-				for (auto it1 = crafts.constBegin(); it1 != crafts.constEnd(); ++it1) {
-					lineup.append(it1.value().toString());
-				}
-				prd.setLineup(lineup);
-				QPair<Player, PlayerReplayData> pPair(p, prd);
-				this->m_players.append(pPair);
-				break;
-			}
-		}
-	}
+    for (const QJsonValue& playerValue : playersArray) {
+        const QJsonObject playerObj = playerValue.toObject();
+        const quint64 userId = playerObj.value("userId").toString().toULongLong();
+
+        if (!playerInfoMap.contains(userId)) {
+            LOG_WARN_GLOBAL(QString("Missing player info for user ID %1").arg(userId));
+            continue;
+        }
+
+        const QJsonObject& infoObj = playerInfoMap.value(userId);
+        try {
+            Player p = Player::fromJson(infoObj);
+            PlayerReplayData prd = PlayerReplayData::fromJson(playerObj);
+
+            // Set additional replay-specific data
+            prd.setWaitTime(infoObj.value("wait_time").toDouble());
+
+            // Process vehicle lineup
+            QJsonObject crafts = infoObj.value("crafts").toObject();
+            QList<QString> lineup;
+            for (auto craftIt = crafts.constBegin(); craftIt != crafts.constEnd(); ++craftIt) {
+                lineup.append(craftIt.value().toString());
+            }
+            prd.setLineup(lineup);
+
+            m_players.append(qMakePair(p, prd));
+        } catch (const std::exception& e) {
+            LOG_WARN_GLOBAL(QString("Failed to parse player data for user %1: %2").arg((userId, e.what())));
+        }
+    }
+
+    if (m_players.isEmpty()) {
+        LOG_WARN_GLOBAL("No valid player data found in replay results");
+    }
 }
 
 QString Replay::getSessionId() const { return m_sessionId; }
@@ -169,45 +241,45 @@ QList<QPair<Player, PlayerReplayData>> Replay::getPlayers() const { return m_pla
 
 void Replay::setSessionId(QString sessionId)
 {
-	this->m_sessionId = sessionId;
+    this->m_sessionId = sessionId;
 }
 
 void Replay::setAuthorUserId(QString authorUserId)
 {
-	this->m_authorUserId = authorUserId;
+    this->m_authorUserId = authorUserId;
 }
 
 void Replay::setStartTime(int startTime)
 {
-	this->m_startTime = startTime;
+    this->m_startTime = startTime;
 }
 
 void Replay::setLevel(QString level)
 {
-	this->m_level = level;
+    this->m_level = level;
 }
 
 void Replay::setBattleType(QString battleType)
 {
-	this->m_battleType = battleType;
+    this->m_battleType = battleType;
 }
 
 void Replay::setDifficulty(Constants::Difficulty difficulty)
 {
-	this->m_difficulty = difficulty;
+    this->m_difficulty = difficulty;
 }
 
 void Replay::setStatus(QString status)
 {
-	this->m_status = status;
+    this->m_status = status;
 }
 
 void Replay::setTimePlayed(double timePlayed)
 {
-	this->m_timePlayed = timePlayed;
+    this->m_timePlayed = timePlayed;
 }
 
 void Replay::setPlayers(QList<QPair<Player, PlayerReplayData>> players)
 {
-	this->m_players = players;
+    this->m_players = players;
 }

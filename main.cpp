@@ -94,9 +94,9 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 	app.setStyle("Fusion");
 
-    if (!Logger::instance().init("application.log")) {
-        qWarning("Could not initialize log file!");
-    }
+	if (!Logger::instance().init("application.log")) {
+		qWarning("Could not initialize log file!");
+	}
 
 	setupApplicationDirectories();
 

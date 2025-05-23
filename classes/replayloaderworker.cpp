@@ -1,5 +1,5 @@
 #include "replayloaderworker.h"
-
+#include "logger.h"
 ReplayLoaderWorker::ReplayLoaderWorker(const QString& folderPath,
 	const QString& dbFilePath,
 	QObject* parent)
@@ -18,7 +18,7 @@ void ReplayLoaderWorker::loadReplays() {
 	QDir dir(m_folderPath);
 	dir.setFilter(QDir::Files | QDir::NoSymLinks);
 	dir.setNameFilters({ "*.wrpl" });
-	QFileInfoList fileInfoList = dir.entryInfoList();
+    const QFileInfoList fileInfoList = dir.entryInfoList();
 
 	int total = fileInfoList.size();
 	int count = 0;
@@ -29,13 +29,12 @@ void ReplayLoaderWorker::loadReplays() {
 			emit progressUpdated(total > 0 ? static_cast<int>(100.0 * count / total) : 100);
 			continue;
 		}
-		QString filePath = fileInfo.absoluteFilePath();
-		try {
-			Replay rep = Replay::fromFile(filePath);
+        try {
+            Replay rep = Replay::fromFile(fileInfo.absoluteFilePath());
 			localDbManager.insertReplay(rep);
 		}
 		catch (const std::exception& e) {
-			qWarning() << "Error loading replay:" << e.what();
+            LOG_WARN(QString("Error loading replay: ").arg(e.what()));
 		}
 		++count;
 		emit progressUpdated(total > 0 ? static_cast<int>(100.0 * count / total) : 100);

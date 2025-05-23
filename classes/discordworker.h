@@ -25,5 +25,5 @@ signals:
 private:
     QTimer* updateTimer = nullptr;
     discord::Core* core{};
-	discord::Activity activity{};
+    discord::Activity activity{};
 };

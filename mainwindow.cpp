@@ -42,16 +42,16 @@ MainWindow::MainWindow(QWidget* parent)
 	m_worker_thread(nullptr),
 	m_worker(nullptr),
 	m_discord_thread(nullptr),
-	m_discord_worker(new DiscordWorker(this)),
-    m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
-    appTranslator(new QTranslator(this)),
+	m_discord_worker(nullptr),
+	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
+	appTranslator(new QTranslator(this)),
 	settings("sgambe33", "wtplotter")
 {
 	ui->setupUi(this);
 	int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
 	wtSymbols = QFont(QFontDatabase::applicationFontFamilies(id).at(0));
 
-    LOG_INFO("Application started");
+	LOG_INFO("Application started");
 
 	emit refreshReplays();
 
@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget* parent)
 		ui->plotterButton->setDisabled(false);
 		ui->replayButton->setDisabled(true);
 		stopPlotter();
-        setActivityFromMainWindow("", "Browsing replays", "logo_512");
+		setActivityFromMainWindow("", "Browsing replays", "logo_512");
 		});
 
 	connect(ui->plotterButton, &QPushButton::clicked, [=] {
@@ -97,13 +97,13 @@ MainWindow::MainWindow(QWidget* parent)
 
 	Utils::checkAppVersion();
 
-	startPlotter();
 	startDiscordPresence();
+	startPlotter();
 	connect(ui->replayTreeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
 	connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
 	connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
-	connect(this, &MainWindow::sendActivityToDiscord,m_discord_worker, &DiscordWorker::updateActivity,Qt::QueuedConnection);	
+	connect(this, &MainWindow::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity, Qt::QueuedConnection);
 	loadReplaysFromFolder();
 }
 
@@ -148,6 +148,9 @@ void MainWindow::openAboutDialog()
 }
 
 void MainWindow::startPlotter() {
+	if (m_worker_thread && m_worker_thread->isRunning()) {
+		return;
+	}
 	m_worker_thread = new QThread();
 	m_worker = new Worker(ui->mappa);
 
@@ -159,12 +162,16 @@ void MainWindow::startPlotter() {
 	connect(m_worker, &Worker::updateStatusLabel, this, &MainWindow::updateStatusLabel);
 	connect(m_worker, &Worker::updateProgressBar, this, &MainWindow::updateProgressBar);
 	connect(m_worker, &Worker::changeStackedWidget2, this, &MainWindow::changeStackedWidget2);
-	connect(m_worker, &Worker::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity, Qt::QueuedConnection);
+	connect(m_worker, &Worker::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity);
 	m_worker->moveToThread(m_worker_thread);
 	m_worker_thread->start();
 }
 
 void MainWindow::startDiscordPresence() {
+	if (m_discord_thread && m_discord_thread->isRunning()) {
+		qDebug() << "Discord aleardy running";
+		return;
+	}
 	m_discord_thread = new QThread();
 	m_discord_worker = new DiscordWorker(this);
 
@@ -187,14 +194,13 @@ void MainWindow::updatePixmap(const QPixmap& pixmap)
 
 void MainWindow::refreshReplays() {
 	if (!settings.value("replayFolderPath").isNull()) {
-        LOG_INFO("Refreshing replay list");
-        //qDebug() << "REFRESHING!";
+		LOG_INFO("Refreshing replay list");
 		loadReplaysFromFolder();
 	}
 }
 
 void MainWindow::loadReplaysFromFolder() {
-	QString folderPath = settings.value("replayFolderPath").toString();
+	const QString folderPath = settings.value("replayFolderPath").toString();
 	if (folderPath.isEmpty())
 		return;
 
@@ -203,14 +209,16 @@ void MainWindow::loadReplaysFromFolder() {
 	ui->replayLoadingProgressBar->setValue(0);
 	ui->replayLoadingProgressBar->setTextVisible(true);
 
-	QThread* thread = new QThread();
-	ReplayLoaderWorker* worker = new ReplayLoaderWorker(folderPath, QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"));
+	const QString dbPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3";
+	auto* worker = new ReplayLoaderWorker(folderPath, dbPath);
+	auto* thread = new QThread(this);
+
 	worker->moveToThread(thread);
 
 	connect(thread, &QThread::started, worker, &ReplayLoaderWorker::loadReplays);
 	connect(worker, &ReplayLoaderWorker::progressUpdated, ui->replayLoadingProgressBar, &QProgressBar::setValue);
 	connect(worker, &ReplayLoaderWorker::finished, this, &MainWindow::onReplayLoaderFinished);
-	connect(thread, &QThread::finished, worker, &QObject::deleteLater);
+	connect(worker, &ReplayLoaderWorker::finished, worker, &QObject::deleteLater);
 	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 
 	thread->start();
@@ -219,7 +227,7 @@ void MainWindow::loadReplaysFromFolder() {
 void MainWindow::onReplayLoaderFinished()
 {
 	ui->stackedWidget_1->setCurrentIndex(0);
-    populateReplayTreeView(ui->replayTreeView);
+	populateReplayTreeView(ui->replayTreeView);
 }
 
 void MainWindow::changeStackedWidget1(int index)
@@ -254,30 +262,36 @@ void MainWindow::stopPlotter() {
 
 void MainWindow::populateReplayTreeView(QTreeView* replayTreeView)
 {
-	QString languageCode = settings.value("language", "en").toString();
+	const QString languageCode = settings.value("language", "en").toString();
 	model->clear();
 	model->setHorizontalHeaderLabels({ tr("File Name") });
 
-	QMap<QDate, QList<Replay>> replaysByDate = m_dbmanager.fetchReplaysGroupedByDate();
-	for (auto it = replaysByDate.cbegin(); it != replaysByDate.cend(); ++it)
-	{
-		QStandardItem* dateItem = new QStandardItem(it.key().toString("yyyy-MM-dd"));
-		dateItem->setFlags(dateItem->flags() & ~Qt::ItemIsEditable);
-		for (const Replay& replay : it.value())
-		{
-			QJsonObject obj;
-			if (replay.getLevel().endsWith("_snow")) {
-				obj = Utils::getJsonFromResources(":/translations/locations.json", replay.getLevel().replace("_snow", ""));
-			}
-			else {
-				obj = Utils::getJsonFromResources(":/translations/locations.json", replay.getLevel());
-			}
+	const QMap<QDate, QList<Replay>> replaysByDate = m_dbmanager.fetchReplaysGroupedByDate();
 
-			QStandardItem* fileNameItem = new QStandardItem(Utils::epochSToFormattedTime(replay.getStartTime()) + " - " + obj.value(languageCode).toString(replay.getLevel()));
-			fileNameItem->setData(replay.getSessionId(), Qt::UserRole);
-			fileNameItem->setFlags(fileNameItem->flags() & ~Qt::ItemIsEditable);
-            dateItem->appendRow(fileNameItem);
+	for (auto dateIt = replaysByDate.cbegin(); dateIt != replaysByDate.cend(); ++dateIt)
+	{
+		auto* dateItem = new QStandardItem(dateIt.key().toString("yyyy-MM-dd"));
+		dateItem->setFlags(dateItem->flags() & ~Qt::ItemIsEditable);
+
+		for (const Replay& replay : dateIt.value())
+		{
+			const QString level = replay.getLevel();
+			const QString baseLevel = level.endsWith("_snow") ? level.left(level.length() - 5) : level;
+			const QJsonObject locationNames = Utils::getJsonFromResources(":/translations/locations.json", baseLevel);
+			const QString displayName = locationNames.value(languageCode).toString(baseLevel);
+
+			QString label = QString("%1 - %2").arg(Utils::epochSToFormattedTime(replay.getStartTime())).arg(displayName);
+
+#if DEBUG_BUILD
+			label += QString(" - %1").arg(replay.getSessionId());
+#endif
+
+			auto* fileItem = new QStandardItem(label);
+			fileItem->setData(replay.getSessionId(), Qt::UserRole);
+			fileItem->setFlags(fileItem->flags() & ~Qt::ItemIsEditable);
+			dateItem->appendRow(fileItem);
 		}
+
 		model->appendRow(dateItem);
 	}
 
@@ -338,32 +352,32 @@ void MainWindow::executeCommand(const QString& sessionId)
 	ui->resultLabel->setText(tr("Result: ") + tr(rep.getStatus().toStdString().c_str()));
 
 	QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();
-    this->alliesList->clear();
-    this->axisList->clear();
+	this->alliesList->clear();
+	this->axisList->clear();
 	for (const auto& playerPair : players) {
 		const PlayerReplayData& playerData = playerPair.second;
 
 		if (playerData.getTeam() == 1) {
-            this->alliesList->append(playerPair);
+			this->alliesList->append(playerPair);
 		}
 		else if (playerData.getTeam() == 2) {
-            this->axisList->append(playerPair);
+			this->axisList->append(playerPair);
 		}
 	}
 
-    std::sort(this->alliesList->begin(), this->alliesList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+	std::sort(this->alliesList->begin(), this->alliesList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
 		return p1.second.getScore() > p2.second.getScore();
 		});
 
-    std::sort(this->axisList->begin(), this->axisList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
+	std::sort(this->axisList->begin(), this->axisList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
 		return p1.second.getScore() > p2.second.getScore();
 		});
 
 	ui->alliesTable->clear();
 	ui->axisTable->clear();
 
-    populateTeamTable(ui->alliesTable, alliesList, true);
-    populateTeamTable(ui->axisTable, axisList, false);
+	populateTeamTable(ui->alliesTable, alliesList, true);
+	populateTeamTable(ui->axisTable, axisList, false);
 }
 
 void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies)
@@ -446,9 +460,9 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	if (!alliesTableIsConnected && allies) {
 		connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem* item) {
 			int row = item->row();
-            if (row >= 0 && row < this->alliesList->size()) {
+			if (row >= 0 && row < this->alliesList->size()) {
 				PlayerProfileDialog dialog(this);
-                dialog.setPlayerData(this->alliesList->at(row));
+				dialog.setPlayerData(this->alliesList->at(row));
 				dialog.exec();
 			}
 			});
@@ -458,9 +472,9 @@ void MainWindow::populateTeamTable(QTableWidget* table, const QList<QPair<Player
 	if (!axisTableIsConnected && !allies) {
 		connect(ui->axisTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem* item) {
 			int row = item->row();
-            if (row >= 0 && row < this->axisList->size()) {
+			if (row >= 0 && row < this->axisList->size()) {
 				PlayerProfileDialog dialog(this);
-                dialog.setPlayerData(this->axisList->at(row));
+				dialog.setPlayerData(this->axisList->at(row));
 				dialog.exec();
 			}
 			});

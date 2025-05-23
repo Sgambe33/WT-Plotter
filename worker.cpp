@@ -30,7 +30,7 @@ QString Worker::STATE = "http://localhost:8111/state";
 Worker::Worker(SceneImageViewer* imageViewer, QObject* parent)
 	: QObject(parent),
 	m_timer(new QTimer(this)),
-    m_matchStartTime(0),
+	m_matchStartTime(0),
 	networkManager(new QNetworkAccessManager(this))
 {
 	connect(m_timer, &QTimer::timeout, this, &Worker::onTimeout);
@@ -79,10 +79,10 @@ void Worker::onTimeout()
 			emit updateStatusLabel(QString("Map loaded..."));
 		}
 		else if (shouldUpdateMarkers())
-        {
-            if (m_matchStartTime == 0)
+		{
+			if (m_matchStartTime == 0)
 			{
-                m_matchStartTime = QDateTime::currentMSecsSinceEpoch();
+				m_matchStartTime = QDateTime::currentMSecsSinceEpoch();
 				matchStartEpoch = time(nullptr);
 				updatePOI();
 				emit updateStatusLabel(QString("Match started..."));
@@ -93,13 +93,14 @@ void Worker::onTimeout()
 			if (activityTimer.elapsed() >= 10000) {
 				showAltActivity = !showAltActivity;
 				if (showAltActivity) {
-                    QString lookedupMapName = Constants::lookupMapName(currentMap);
-                    QString mapName = Utils::getJsonFromResources(":/translations/locations.json", Constants::lookupMapName(currentMap)).value("en").toString();
-                    if(mapName.isEmpty()){
-                        mapName = "Unknown map";
-                        lookedupMapName = "unknownmap";
-                    }
-                    emit sendActivityToDiscord("In mission", mapName, lookedupMapName+"_tankmap", matchStartEpoch);
+					QString lookedupMapName = Utils::lookupMapName(currentMap).replace("_tankmap", "").replace("_map", "");
+					QString mapName = Utils::getJsonFromResources(":/translations/locations.json", lookedupMapName).value("en").toString();
+
+					if (mapName.isEmpty()) {
+						mapName = "Unknown map";
+						lookedupMapName = "unknownmap";
+					}
+					emit sendActivityToDiscord("In mission", mapName, lookedupMapName + "_tankmap", matchStartEpoch);
 				}
 				else {
 					QJsonObject vehicleIndicators = fetchJsonElement(Worker::INDICATORS);
@@ -112,7 +113,7 @@ void Worker::onTimeout()
 						int aliveCrew = vehicleIndicators.value("crew_current").toInt();
 						int currentSpeed = vehicleIndicators.value("speed").toInt();
 						QString formattedText = QString("Crew: %1/%2 | Speed: %3").arg(aliveCrew).arg(totalCrew).arg(currentSpeed);
-                        emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName), matchStartEpoch, formattedText);
+						emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName.toLower()), matchStartEpoch, formattedText);
 					}
 					else {
 						//The player is in a plane
@@ -121,7 +122,7 @@ void Worker::onTimeout()
 						int speed = vehicleState.value("TAS, km/h").toInt();
 						int altitude = vehicleState.value("H, m").toInt();
 						QString formattedText = QString("Speed: %1 | Altitude: %2").arg(speed).arg(altitude);
-                        emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName), matchStartEpoch, formattedText);
+						emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName.toLower()), matchStartEpoch, formattedText);
 					}
 				}
 				activityTimer.restart();
@@ -129,25 +130,25 @@ void Worker::onTimeout()
 		}
 		else if (shouldEndMatch())
 		{
-            m_matchStartTime = 0;
+			m_matchStartTime = 0;
 			matchStartEpoch = 0;
 
 			emit updateStatusLabel(QString("Match ended..."));
 
-            QPixmap originalMap = getOriginalMapImage();
-            drawSpecialMarkers(originalMap);
-            drawMarkers(originalMap);
-            this->m_drawedMapImage = originalMap;
+			QPixmap originalMap = getOriginalMapImage();
+			drawSpecialMarkers(originalMap);
+			drawMarkers(originalMap);
+			this->m_drawedMapImage = originalMap;
 
 			emit changeStackedWidget2(1);
-            emit updatePixmap(originalMap);
+			emit updatePixmap(originalMap);
 
 			endMatch();
 			restartScheduler();
 		}
-        else {
+		else {
 			emit updateStatusLabel(tr("Awaiting match start..."));
-			sendActivityToDiscord("", "In hangar", "logowt_stripe_flat");
+			emit sendActivityToDiscord("", "In hangar", "logowt_stripe_flat");
 		}
 	}
 	catch (const std::exception& e)
@@ -217,7 +218,7 @@ void Worker::endMatch()
 		int retries = 60;
 
 		if (autosave) {
-            Utils::saveImage(this->m_drawedMapImage);
+			Utils::saveImage(this->m_drawedMapImage);
 		}
 
 		do {
@@ -228,25 +229,25 @@ void Worker::endMatch()
 		} while (!latestReplay.exists() && retries-- > 0);
 
 		if (latestReplay.exists()) {
-            LOG_INFO(QString("Latest replay file: %1").arg(latestReplay.fileName()));
-            //qInfo() << "Latest replay file:" << latestReplay.fileName();
+			LOG_INFO(QString("Latest replay file: %1").arg(latestReplay.fileName()));
+			//qInfo() << "Latest replay file:" << latestReplay.fileName();
 			Replay replayData = Replay::fromFile(latestReplay.fileName());
 			QString uploader = replayData.getAuthorUserId();
 			if (!uploader.isEmpty()) {
-                Utils::uploadReplay(replayData, uploader, this->m_positionCache, this->m_poi);
+				Utils::uploadReplay(replayData, uploader, this->m_positionCache, this->m_poi);
 			}
 			else {
-                LOG_WARN("Failed to get user UID. Data will not be validated against replay.");
-                //qCritical() << "Failed to get user UID. Data will not be validated against replay.";
+				LOG_WARN("Failed to get user UID. Data will not be validated against replay.");
+				//qCritical() << "Failed to get user UID. Data will not be validated against replay.";
 			}
 			emit refreshReplays();
 		}
 		else {
-            LOG_WARN("No replay file found after match end. Data will not be validated against replay");
-            //qWarning() << "No replay file found after match end. Data will not be validated against replay.";
+			LOG_WARN("No replay file found after match end. Data will not be validated against replay");
+			//qWarning() << "No replay file found after match end. Data will not be validated against replay.";
 		}
-        LOG_INFO(QString("Position cache exported and plot saved to disk with timestamp: %1").arg(currEpoch));
-        //qInfo() << "Position cache exported and plot saved to disk with timestamp:" << currEpoch;
+		LOG_INFO(QString("Position cache exported and plot saved to disk with timestamp: %1").arg(currEpoch));
+		//qInfo() << "Position cache exported and plot saved to disk with timestamp:" << currEpoch;
 	}
 	catch (const std::exception& e) {
 		throw std::runtime_error(e.what());
@@ -254,9 +255,9 @@ void Worker::endMatch()
 
 	clearMarkers();
 	setOriginalMapImage(QPixmap());
-    this->m_drawedMapImage = QPixmap();
-    LOG_INFO("Match ended, markers cleared");
-    //qInfo() << "Match ended, markers cleared.";
+	this->m_drawedMapImage = QPixmap();
+	LOG_INFO("Match ended, markers cleared");
+	//qInfo() << "Match ended, markers cleared.";
 }
 
 void Worker::restartScheduler()
@@ -275,8 +276,8 @@ bool Worker::isMatchRunning()
 		return false;
 	}
 	catch (const std::exception& e) {
-        LOG_ERROR(QString("Exception while fetching map info: %1").arg(e.what()));
-        //qCritical() << "Exception while fetching map info:" << e.what();
+		LOG_ERROR(QString("Exception while fetching map info: %1").arg(e.what()));
+		//qCritical() << "Exception while fetching map info:" << e.what();
 		return false;
 	}
 }
@@ -293,8 +294,8 @@ bool Worker::isPlayerOnTank()
 		return false;
 	}
 	catch (const std::exception& e) {
-        LOG_ERROR(QString("Exception while fetching indicators: %1").arg(e.what()));
-        //qCritical() << "Exception while fetching indicators:" << e.what();
+		LOG_ERROR(QString("Exception while fetching indicators: %1").arg(e.what()));
+		//qCritical() << "Exception while fetching indicators:" << e.what();
 		return false;
 	}
 }
@@ -306,19 +307,11 @@ void Worker::fetchAndDisplayMap()
 
 	QImage mapImage = fetchMapImage();
 	if (!mapImage.isNull()) {
+		currentMap = Utils::dhashFromQImage(mapImage);
 		setOriginalMapImage(QPixmap::fromImage(mapImage));
-		QString md5 = QCryptographicHash::hash([mapImage] {
-			QByteArray ba;
-			QBuffer buf(&ba);
-			buf.open(QIODevice::WriteOnly);
-			mapImage.save(&buf, "PNG");
-			return ba;
-			}(), QCryptographicHash::Md5).toHex();
-        LOG_INFO(QString("Map MD5: %1").arg(md5));
-        //qDebug() << "Map MD5:" << md5;
-		currentMap = md5;
 	}
 }
+
 
 void Worker::fetchMapObjects()
 {
@@ -344,45 +337,44 @@ void Worker::fetchMapObjects()
 		}
 	}
 	catch (const std::exception& e) {
-        LOG_ERROR(QString("Exception while fetching map objects: %1").arg(e.what()));
-        //qCritical() << "Exception while fetching map objects:" << e.what();
+		LOG_ERROR(QString("Exception while fetching map objects: %1").arg(e.what()));
 		throw std::runtime_error(e.what());
 	}
 }
 
 QPixmap Worker::getOriginalMapImage() const
 {
-    return m_originalMapImage;
+	return m_originalMapImage;
 }
 
 void Worker::setOriginalMapImage(const QPixmap& originalMapImage)
 {
-    this->m_originalMapImage = originalMapImage;
+	this->m_originalMapImage = originalMapImage;
 }
 
 void Worker::clearMarkers()
 {
-    m_positionCache.clear();
-    m_poi.clear();
+	m_positionCache.clear();
+	m_poi.clear();
 	havePOIBeenDrawn = false;
 }
 
 void Worker::addPosition(const Position& position)
 {
-    m_positionCache.append(position);
+	m_positionCache.append(position);
 }
 
 void Worker::addPOI(const Position& position)
 {
 	if (!havePOIBeenDrawn) {
-        m_poi.append(position);
+		m_poi.append(position);
 	}
 }
 
 void Worker::drawMarkers(QPixmap& displayImage)
 {
 	if (displayImage.isNull()) {
-        LOG_WARN("Error: displayImage is null");
+		LOG_WARN("Error: displayImage is null");
 		qCritical() << "Error: displayImage is null.";
 		return;
 	}
@@ -392,7 +384,7 @@ void Worker::drawMarkers(QPixmap& displayImage)
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-    drawMarkers(displayImage, painter, m_positionCache);
+	drawMarkers(displayImage, painter, m_positionCache);
 }
 
 void Worker::drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<Position>& positionCache)
@@ -417,8 +409,7 @@ void Worker::drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<P
 void Worker::drawSpecialMarkers(QPixmap& displayImage)
 {
 	if (displayImage.isNull()) {
-        LOG_WARN("Error: displayImage is null");
-        //qCritical() << "Error: displayImage is null.";
+		LOG_WARN("Error: displayImage is null");
 		return;
 	}
 
@@ -428,7 +419,7 @@ void Worker::drawSpecialMarkers(QPixmap& displayImage)
 	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 	QMap<QString, QList<Position>> respawnBaseTankGroups;
 
-    for (const Position& pos : m_poi) {
+	for (const Position& pos : m_poi) {
 		if (pos.type() == "capture_zone") {
 			drawCaptureZoneMarker(displayImage, painter, pos);
 		}
@@ -437,7 +428,7 @@ void Worker::drawSpecialMarkers(QPixmap& displayImage)
 		}
 	}
 
-    if (!m_poi.isEmpty() && !respawnBaseTankGroups.isEmpty()) {
+	if (!m_poi.isEmpty() && !respawnBaseTankGroups.isEmpty()) {
 		havePOIBeenDrawn = true;
 	}
 
@@ -462,7 +453,7 @@ void Worker::drawCaptureZoneMarker(QPixmap& displayImage, QPainter& painter, con
 void Worker::drawRespawnBaseTank(QPixmap& displayImage, QPainter& painter, const QList<Position>& group)
 {
 	for (const Position& pos : group) {
-        QColor markerColor(255,0,255);
+		QColor markerColor(255, 0, 255);
 		painter.setPen(markerColor);
 		painter.setBrush(Qt::NoBrush);
 		int markerSize = 4;
@@ -485,8 +476,7 @@ QJsonObject Worker::fetchJsonElement(QString url)
 		jsonObject = doc.object();
 	}
 	else {
-        LOG_WARN(QString("Network error: %1").arg(reply->errorString()));
-        //qCritical() << "Network error:" << reply->errorString();
+		LOG_WARN(QString("Network error: %1").arg(reply->errorString()));
 	}
 	reply->deleteLater();
 	return jsonObject;
@@ -500,16 +490,14 @@ QJsonArray Worker::fetchJsonArray(QString url)
 	loop.exec();
 
 	if (reply->error() != QNetworkReply::NoError) {
-        LOG_WARN(QString("Network error: %1").arg(reply->errorString()));
-        //qCritical() << "Network error:" << reply->errorString();
+		LOG_WARN(QString("Network error: %1").arg(reply->errorString()));
 		throw std::runtime_error(reply->errorString().toStdString());
 	}
 
 	QByteArray responseData = reply->readAll();
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 	if (!jsonDoc.isArray()) {
-        LOG_WARN("Error: JSON response is not an array");
-        //qCritical() << "Error: JSON response is not an array.";
+		LOG_WARN("Error: JSON response is not an array");
 		throw std::runtime_error("JSON response is not an array.");
 	}
 
@@ -528,8 +516,7 @@ QImage Worker::fetchMapImage()
 		pixmap.loadFromData(reply->readAll());
 	}
 	else {
-        LOG_WARN(QString("Network error: %1").arg(reply->errorString()));
-        //qCritical() << "Network error:" << reply->errorString();
+		LOG_WARN(QString("Network error: %1").arg(reply->errorString()));
 	}
 	reply->deleteLater();
 	return pixmap;
@@ -542,11 +529,12 @@ Position Worker::getPositionFromJsonElement(QJsonObject element)
 	QString color = element["color"].toString();
 	QString type = element["type"].toString();
 	QString icon = element["icon"].toString();
-    qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->m_matchStartTime) / 1000;
+	qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->m_matchStartTime) / 1000;
 
 	return Position(x, y, color, type, icon, timeSinceBeginning);
 }
 
 void Worker::setActivityFromWorker(const QString& state, const QString& details, const QString& logo, time_t epochStartTime, const QString& largeText) {
+	LOG_INFO("Sending update to discord worker from worker");
 	emit sendActivityToDiscord(state, details, logo, epochStartTime, largeText);
 }

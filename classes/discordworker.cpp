@@ -1,4 +1,3 @@
-// discordworker.cpp
 #include "discordworker.h"
 #include <QMetaEnum>
 DiscordWorker::DiscordWorker(QObject* parent) : QObject(parent) {
@@ -55,7 +54,6 @@ void DiscordWorker::updateActivity(const QString& state, const QString& details,
 		if (static_cast<int>(result) != 0) {
 			qDebug() << "Discord activity updated, result:" << static_cast<int>(result);
 		}
-		qDebug() << "Activity updated";
 		});
 
 	discord::Result result = core->RunCallbacks();

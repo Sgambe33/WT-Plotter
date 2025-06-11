@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QSettings>
 #include "classes/replay.h"
+#include "classes/logger.h"
 #include <chrono>
 #include <iostream>
 #include <QMessageBox>
@@ -94,7 +95,6 @@ void Worker::onTimeout()
 			updateMarkers();
 
 			if (activityTimer.elapsed() >= 10000) {
-				qDebug() << "Triggered alternating timer";
 				showAltActivity = !showAltActivity;
 				if (showAltActivity) {
 					QString lookedupMapName = Utils::lookupMapName(currentMap);
@@ -162,7 +162,7 @@ void Worker::onTimeout()
 	}
 	catch (const std::exception& e)
 	{
-		qCritical() << "An error occurred during scheduled task execution:" << e.what();
+		LOG_ERROR(QString("An error occurred during scheduled task execution: %1").arg(e.what()));
 	}
 }
 
@@ -186,7 +186,7 @@ void Worker::updatePOI() {
 		}
 	}
 	catch (const std::exception& e) {
-		qCritical() << "Exception while fetching map objects:" << e.what();
+		LOG_ERROR(QString("Exception while fetching map objects: %1").arg(e.what()));
 		throw std::runtime_error(e.what());
 	}
 }
@@ -238,22 +238,22 @@ void Worker::endMatch()
 		} while (!latestReplay.exists() && retries-- > 0);
 
 		if (latestReplay.exists()) {
-			qInfo() << "Latest replay file:" << latestReplay.fileName();
+			LOG_INFO("Latest replay file:" + latestReplay.fileName());
 			Replay replayData = Replay::fromFile(latestReplay.fileName());
 			QString uploader = replayData.getAuthorUserId();
 			if (!uploader.isEmpty()) {
 				Utils::uploadReplay(replayData, uploader, this->m_positionCache, this->m_poi);
 			}
 			else {
-				qCritical() << "Failed to get user UID. Data will not be validated against replay.";
+				LOG_ERROR("Failed to get user UID. Data will not be validated against replay.");
 			}
 			emit refreshReplays();
 		}
 		else {
-			qWarning() << "No replay file found after match end. Data will not be validated against replay.";
+			LOG_WARN("No replay file found after match end. Data will not be validated against replay.");
 		}
 
-		qInfo() << "Position cache exported and plot saved to disk with timestamp:" << currEpoch;
+		LOG_INFO("Position cache exported and plot saved to disk with timestamp:" + currEpoch);
 	}
 	catch (const std::exception& e) {
 		throw std::runtime_error(e.what());
@@ -262,7 +262,7 @@ void Worker::endMatch()
 	clearMarkers();
 	setOriginalMapImage(QPixmap());
 	this->m_drawedMapImage = QPixmap();
-	qInfo() << "Match ended, markers cleared.";
+	LOG_INFO("Match ended, markers cleared.");
 }
 
 void Worker::restartScheduler()
@@ -278,7 +278,7 @@ bool Worker::isMatchRunning()
 		return !mapInfo.isEmpty() && mapInfo.contains("valid") && mapInfo["valid"].toBool();
 	}
 	catch (const std::exception& e) {
-		qCritical() << "Exception while fetching map info:" << e.what();
+		LOG_ERROR(QString("Exception while fetching map info: %1").arg(e.what()));
 		return false;
 	}
 }
@@ -295,7 +295,7 @@ bool Worker::isPlayerOnTank()
 		return false;
 	}
 	catch (const std::exception& e) {
-		qCritical() << "Exception while fetching indicators:" << e.what();
+		LOG_ERROR(QString("Exception while fetching indicators: %1").arg(e.what()));
 		return false;
 	}
 }
@@ -336,7 +336,7 @@ void Worker::fetchMapObjects()
 		}
 	}
 	catch (const std::exception& e) {
-		qCritical() << "Exception while fetching map objects:" << e.what();
+		LOG_ERROR(QString("Exception while fetching map objects: %1").arg(e.what()));
 		throw std::runtime_error(e.what());
 	}
 }
@@ -373,7 +373,7 @@ void Worker::addPOI(const Position& position)
 void Worker::drawMarkers(QPixmap& displayImage)
 {
 	if (displayImage.isNull()) {
-		qCritical() << "Error: displayImage is null.";
+		LOG_ERROR("Error: displayImage is null.");
 		return;
 	}
 
@@ -407,7 +407,7 @@ void Worker::drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<P
 void Worker::drawSpecialMarkers(QPixmap& displayImage)
 {
 	if (displayImage.isNull()) {
-		qCritical() << "Error: displayImage is null.";
+		LOG_ERROR("Error: displayImage is null.");
 		return;
 	}
 
@@ -474,7 +474,7 @@ QJsonObject Worker::fetchJsonElement(QString url)
 		jsonObject = doc.object();
 	}
 	else {
-		qCritical() << "Network error:" << reply->errorString();
+		LOG_ERROR(QString("Network error: %1").arg(reply->errorString()));
 	}
 	reply->deleteLater();
 	return jsonObject;
@@ -488,14 +488,14 @@ QJsonArray Worker::fetchJsonArray(QString url)
 	loop.exec();
 
 	if (reply->error() != QNetworkReply::NoError) {
-		qCritical() << "Network error:" << reply->errorString();
+		LOG_ERROR(QString("Network error: %1").arg(reply->errorString()));
 		throw std::runtime_error(reply->errorString().toStdString());
 	}
 
 	QByteArray responseData = reply->readAll();
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 	if (!jsonDoc.isArray()) {
-		qCritical() << "Error: JSON response is not an array.";
+		LOG_ERROR("Error: JSON response is not an array.");
 		throw std::runtime_error("JSON response is not an array.");
 	}
 
@@ -514,7 +514,7 @@ QImage Worker::fetchMapImage()
 		pixmap.loadFromData(reply->readAll());
 	}
 	else {
-		qDebug() << QString("Network error: %1").arg(reply->errorString());
+		LOG_ERROR(QString("Network error: %1").arg(reply->errorString()));
 	}
 	reply->deleteLater();
 	return pixmap;

@@ -1,5 +1,6 @@
 ﻿#include "mainwindow.h"
 #include "classes/utils.h"
+#include "classes/logger.h"
 #include "./ui_mainwindow.h"
 #include "classes/replay.h"
 #include "sceneimageviewer.h"
@@ -57,13 +58,13 @@ MainWindow::MainWindow(QWidget* parent)
 	img = img.scaled(125, 125, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	ui->mapImage->setPixmap(img);
 
-    connect(ui->replayButton, &QPushButton::clicked, [=] {
-        ui->stackedWidget_2->setCurrentIndex(0);
-        ui->replayTreeView->setDisabled(false);
-        ui->plotterButton->setDisabled(false);
-        ui->replayButton->setDisabled(true);
-        stopPlotter();
-    });
+	connect(ui->replayButton, &QPushButton::clicked, [=] {
+		ui->stackedWidget_2->setCurrentIndex(0);
+		ui->replayTreeView->setDisabled(false);
+		ui->plotterButton->setDisabled(false);
+		ui->replayButton->setDisabled(true);
+		stopPlotter();
+		});
 
 	connect(ui->plotterButton, &QPushButton::clicked, [=] {
 		ui->stackedWidget_2->setCurrentIndex(2);
@@ -91,7 +92,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 	Utils::checkAppVersion();
 
-    startDiscord();
+	startDiscord();
 	startPlotter();
 	connect(ui->replayTreeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
 	connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
@@ -153,7 +154,7 @@ void MainWindow::startPlotter() {
 	connect(m_worker, &Worker::updateStatusLabel, this, &MainWindow::updateStatusLabel);
 	connect(m_worker, &Worker::updateProgressBar, this, &MainWindow::updateProgressBar);
 	connect(m_worker, &Worker::changeStackedWidget2, this, &MainWindow::changeStackedWidget2);
-    connect(m_worker, &Worker::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity);
+	connect(m_worker, &Worker::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity);
 
 	m_worker->moveToThread(m_worker_thread);
 	m_worker_thread->start();
@@ -491,7 +492,7 @@ void MainWindow::onLanguageChanged(const QString& languageCode)
 		qApp->installTranslator(appTranslator);
 	}
 	else {
-		qWarning() << "Failed to load translation file:" << translationFile;
+		LOG_WARN(QString("Failed to load translation file: %1").arg(translationFile));
 	}
 	ui->retranslateUi(this);
 }

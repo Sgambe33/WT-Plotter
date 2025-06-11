@@ -1,6 +1,7 @@
 #include "preferencesdialog.h"
 #include "./ui_preferencesdialog.h"
 #include <QFileDialog>
+#include "classes/logger.h"
 
 PreferencesDialog::PreferencesDialog(QWidget* parent) :
 	QDialog(parent),
@@ -105,7 +106,7 @@ void PreferencesDialog::changeLanguage(const QString& languageCode)
 		qApp->installTranslator(&appTranslator);
 	}
 	else {
-		qWarning() << "Failed to load translation file:" << translationPath;
+		LOG_WARN(QString("Failed to load translation file: %1").arg(translationPath));
 	}
 
 	settings.setValue("language", languageCode);

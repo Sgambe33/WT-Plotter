@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "version.h"
+#include "logger.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -24,14 +25,14 @@ void Utils::checkAppVersion() {
 		.arg(APP_VERSION_MINOR)
 		.arg(APP_VERSION_PATCH);
 
-	qInfo() << "Running wtplotter version " << appVersion;
+	LOG_INFO_GLOBAL(QString("Running wtplotter version %1").arg(appVersion));
 
 	QEventLoop loop;
 	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	loop.exec();
 
 	if (reply->error() != QNetworkReply::NoError) {
-		qWarning() << "Failed to fetch version information:" << reply->errorString();
+		LOG_WARN_GLOBAL(QString("Failed to fetch version information:%1").arg(reply->errorString()));
 		reply->deleteLater();
 		return;
 	}
@@ -41,7 +42,7 @@ void Utils::checkAppVersion() {
 	reply->deleteLater();
 
 	if (!jsonDoc.isObject()) {
-		qWarning() << "Invalid JSON received.";
+		LOG_WARN_GLOBAL("Invalid JSON received.");
 		return;
 	}
 
@@ -51,7 +52,7 @@ void Utils::checkAppVersion() {
 	bool isCritical = jsonObj.value("critical").toBool();
 
 	if (latestVersion.isEmpty()) {
-		qWarning() << "Version key not found in JSON.";
+		LOG_WARN_GLOBAL("Version key not found in JSON.");
 		return;
 	}
 
@@ -127,12 +128,12 @@ void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Posi
 
 	if (reply->error() != QNetworkReply::NoError)
 	{
-		qWarning() << "Failed to upload replay:" << reply->errorString();
+		LOG_WARN_GLOBAL(QString("Failed to upload replay:%1").arg(reply->errorString()));
 	}
 	else
 	{
-		qInfo() << "Replay uploaded successfully.";
-		qInfo() << "Uploaded " << data["positions"].toArray().size() << " positions.";
+		LOG_INFO_GLOBAL("Replay uploaded successfully.");
+		LOG_INFO_GLOBAL(QString("Uploaded %1 positions.").arg(data["positions"].toArray().size()));
 	}
 	reply->deleteLater();
 }
@@ -167,12 +168,12 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 	QString savePath = QSettings("sgambe33", "wtplotter").value("plotSavePath", "").toString();
 
 	if (drawedMapImage.isNull()) {
-		qCritical() << "Error: drawedMapImage is null.";
+		LOG_ERROR_GLOBAL("Error: drawedMapImage is null.");
 		return;
 	}
 
 	if (savePath.trimmed().isEmpty()) {
-		qCritical() << "Error: savePath is not set.";
+		LOG_ERROR_GLOBAL("Error: savePath is not set.");
 		QMessageBox msgBox;
 		msgBox.critical(nullptr, "Error", "You have not set the save folder in the preferences!");
 		return;
@@ -180,7 +181,7 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 
 	QDir savePathDir(savePath);
 	if (!savePathDir.exists()) {
-		qCritical() << "Error: savePath directory does not exist:" << savePath;
+		LOG_ERROR_GLOBAL(QString("Error: savePath directory does not exist: %1").arg(savePath));
 		return;
 	}
 
@@ -191,10 +192,10 @@ void Utils::saveImage(QPixmap drawedMapImage) {
 	writer.setFileName(fileName);
 
 	if (!writer.write(drawedMapImage.toImage())) {
-		qCritical() << "Error saving image:" << writer.errorString();
+		LOG_ERROR_GLOBAL(QString("Error saving image: %1").arg(writer.errorString()));
 	}
 	else {
-		qInfo() << "Image saved successfully.";
+		LOG_INFO_GLOBAL("Image saved successfully.");
 	}
 }
 
@@ -238,7 +239,7 @@ QIcon Utils::invertIconColors(const QIcon& icon) {
 QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QString& identifier) {
 	QFile file(resourceName);
 	if (!file.open(QIODevice::ReadOnly)) {
-		qCritical() << "Failed to open file:" << resourceName;
+		LOG_ERROR_GLOBAL(QString("Failed to open file: %1").arg(resourceName));
 		return QJsonObject();
 	}
 
@@ -246,7 +247,7 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
 
 	if (jsonDoc.isNull() || !jsonDoc.isArray()) {
-		qCritical() << "Failed to parse JSON array from file:" << resourceName;
+		LOG_ERROR_GLOBAL(QString("Failed to parse JSON array from file: %1").arg(resourceName));
 		return QJsonObject();
 	}
 
@@ -261,61 +262,61 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 		}
 	}
 
-	qCritical() << "No object found with identifier:" << identifier;
+	LOG_ERROR_GLOBAL(QString("No object found with identifier: %1").arg(identifier));
 	return QJsonObject();
 }
 
 QString Utils::dhashFromQImage(const QImage& img, int size) {
-    QImage gray = img.convertToFormat(QImage::Format_Grayscale8);
-    QImage small = gray.scaled(size, size - 1, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+	QImage gray = img.convertToFormat(QImage::Format_Grayscale8);
+	QImage small = gray.scaled(size, size - 1, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-    QVector<int> bits;
-    bits.reserve(size * (size - 1));
-    for (int y = 0; y < small.height(); ++y) {
-        for (int x = 0; x + 1 < small.width(); ++x) {
-            int left = QColor(small.pixel(x, y)).value();
-            int right = QColor(small.pixel(x + 1, y)).value();
-            bits.append(left > right ? 1 : 0);
-        }
-    }
+	QVector<int> bits;
+	bits.reserve(size * (size - 1));
+	for (int y = 0; y < small.height(); ++y) {
+		for (int x = 0; x + 1 < small.width(); ++x) {
+			int left = QColor(small.pixel(x, y)).value();
+			int right = QColor(small.pixel(x + 1, y)).value();
+			bits.append(left > right ? 1 : 0);
+		}
+	}
 
-    QString hexStr;
-    for (int i = 0; i < bits.size(); i += 4) {
-        int nibble[4] = { 0, 0, 0, 0 };
-        for (int j = 0; j < 4 && (i + j) < bits.size(); ++j) {
-            nibble[j] = bits[i + j];
-        }
-        int value = (nibble[0] << 3) | (nibble[1] << 2) | (nibble[2] << 1) | nibble[3];
-        hexStr += QString::number(value, 16);
-    }
+	QString hexStr;
+	for (int i = 0; i < bits.size(); i += 4) {
+		int nibble[4] = { 0, 0, 0, 0 };
+		for (int j = 0; j < 4 && (i + j) < bits.size(); ++j) {
+			nibble[j] = bits[i + j];
+		}
+		int value = (nibble[0] << 3) | (nibble[1] << 2) | (nibble[2] << 1) | nibble[3];
+		hexStr += QString::number(value, 16);
+	}
 
-    return hexStr;
+	return hexStr;
 }
 
 int Utils::hammingDistanceHex(const QString& h1, const QString& h2) {
-    if (h1.length() != h2.length()) {
-        return -1;
-    }
+	if (h1.length() != h2.length()) {
+		return -1;
+	}
 
-    int dist = 0;
-    for (int i = 0; i < h1.length(); ++i) {
-        bool ok1 = false, ok2 = false;
-        int v1 = h1.mid(i, 1).toInt(&ok1, 16);
-        int v2 = h2.mid(i, 1).toInt(&ok2, 16);
-        if (!ok1 || !ok2) {
-            qWarning() << "Invalid hex digit at position" << i;
-            return -1;
-        }
-        dist += popcount32(v1 ^ v2);
-    }
+	int dist = 0;
+	for (int i = 0; i < h1.length(); ++i) {
+		bool ok1 = false, ok2 = false;
+		int v1 = h1.mid(i, 1).toInt(&ok1, 16);
+		int v2 = h2.mid(i, 1).toInt(&ok2, 16);
+		if (!ok1 || !ok2) {
+			LOG_WARN_GLOBAL(QString("Invalid hex digit at position %1").arg(i));
+			return -1;
+		}
+		dist += popcount32(v1 ^ v2);
+	}
 
-    return dist;
+	return dist;
 }
 
 QString Utils::lookupMapName(const QString& hash) {
-    for (QString val : Constants::mapHashes.keys()) {
-        if (Utils::hammingDistanceHex(hash, val) <= 10)
-            return Constants::mapHashes.value(val, {});
-    }
-    return "unknownmap";
+	for (QString val : Constants::mapHashes.keys()) {
+		if (Utils::hammingDistanceHex(hash, val) <= 10)
+			return Constants::mapHashes.value(val, {});
+	}
+	return "unknownmap";
 }

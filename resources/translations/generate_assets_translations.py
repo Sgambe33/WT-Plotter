@@ -54,5 +54,19 @@ for index, row in df.iterrows():
     }
 
     locations.append(obj)
+
+# These maps seem to be missing from the CSV file and have been removed from the game
+
+for triple in [("avn_mediterranean_port", "Mediterranean port", "Средиземноморский порт"),
+               ("avn_africa_gulf", "African gulf", "Африканский залив"),
+               ("avn_phang_nga_bay_islands", "Andaman sea", "Андаманское море"),
+               ("avn_ice_port", "Ice fields", "Ледяные поля")]:
+    obj = {
+        "identifier": triple[0],
+        "en": triple[1],
+        "ru": triple[2],
+    }
+    locations.append(obj)
+
 with open("locations.json", "w", encoding="UTF-8") as f:
     json.dump(locations, f, separators=(',', ':'), ensure_ascii=False, sort_keys=True)

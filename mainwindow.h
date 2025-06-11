@@ -19,6 +19,7 @@
 
 #include "classes/player.h"
 #include "classes/dbmanager.h"
+#include "classes/discordworker.h"
 #include "worker.h"
 #include "sceneimageviewer.h"
 
@@ -55,8 +56,13 @@ protected:
 private:
 	Ui::MainWindow* ui;
 	QStandardItemModel* model;
-	QThread* m_thread = nullptr;
+
+	QThread* m_worker_thread = nullptr;
 	Worker* m_worker;
+
+	QThread* m_discord_thread = nullptr;
+	DiscordWorker* m_discord_worker;
+
 	DbManager m_dbmanager;
 	QTranslator* appTranslator;
 	QFont wtSymbols;
@@ -66,6 +72,10 @@ private:
 
 	void startPlotter();
 	void stopPlotter();
+
+	void startDiscord();
+	void stopDiscord();
+
 	void populateReplayTreeView(QTreeView* replayTreeView, const QString& directoryPath);
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);

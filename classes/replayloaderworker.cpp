@@ -1,4 +1,5 @@
 #include "replayloaderworker.h"
+#include "logger.h"
 
 ReplayLoaderWorker::ReplayLoaderWorker(const QString& folderPath,
 	const QString& dbFilePath,
@@ -6,7 +7,8 @@ ReplayLoaderWorker::ReplayLoaderWorker(const QString& folderPath,
 	: QObject(parent),
 	m_folderPath(folderPath),
 	m_dbFilePath(dbFilePath)
-{}
+{
+}
 
 void ReplayLoaderWorker::loadReplays() {
 	DbManager localDbManager(m_dbFilePath, "replayloader");
@@ -35,7 +37,7 @@ void ReplayLoaderWorker::loadReplays() {
 			localDbManager.insertReplay(rep);
 		}
 		catch (const std::exception& e) {
-			qWarning() << "Error loading replay:" << e.what();
+			LOG_WARN(QString("Error loading replay: %1").arg(e.what()));
 		}
 		++count;
 		emit progressUpdated(total > 0 ? static_cast<int>(100.0 * count / total) : 100);

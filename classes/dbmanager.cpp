@@ -1,4 +1,5 @@
 #include "dbmanager.h"
+#include "logger.h"
 #include <QSqlError>
 #include <QDebug>
 #include <QJsonDocument>
@@ -9,10 +10,10 @@ DbManager::DbManager(const QString& path, const QString connName, QObject* paren
 	m_db.setDatabaseName(path);
 
 	if (!m_db.open()) {
-		qCritical() << "Database connection error:" << m_db.lastError().text();
+		LOG_ERROR(QString("Database connection error: %1").arg(m_db.lastError().text()));
 	}
 	else {
-		qInfo() << "Database connected successfully";
+		LOG_INFO("Database connected successfully");
 		prepareQueries();
 		createTables();
 	}
@@ -121,7 +122,7 @@ void DbManager::createTables()
 
 	for (const QString& tableSql : tableDefinitions) {
 		if (!query.exec(tableSql)) {
-			qCritical() << "Table creation failed:" << query.lastError().text();
+			LOG_ERROR(QString("Table creation failed: %1").arg(query.lastError().text()));
 		}
 	}
 }
@@ -129,7 +130,7 @@ void DbManager::createTables()
 bool DbManager::insertReplay(const Replay& replay)
 {
 	if (!m_db.transaction()) {
-		qCritical() << "Transaction start failed:" << m_db.lastError().text();
+		LOG_ERROR(QString("Transaction start failed: %1").arg(m_db.lastError().text()));
 		return false;
 	}
 
@@ -144,7 +145,7 @@ bool DbManager::insertReplay(const Replay& replay)
 		m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
 
 		if (!m_insertReplayQuery.exec()) {
-			qCritical() << "Replay insert failed:" << m_insertReplayQuery.lastError().text();
+			LOG_ERROR(QString("Replay insert failed: %1").arg(m_insertReplayQuery.lastError().text()));
 			throw std::runtime_error("Replay insert failed");
 		}
 
@@ -196,7 +197,7 @@ bool DbManager::insertReplay(const Replay& replay)
 	}
 	catch (const std::exception& e) {
 		m_db.rollback();
-		qCritical() << "Database error:" << e.what();
+		LOG_ERROR(QString("Database error: %1").arg(e.what()));
 		return false;
 	}
 }
@@ -214,7 +215,7 @@ QMap<QDate, QList<Replay>> DbManager::fetchReplaysGroupedByDate()
     )");
 
 	if (!query.exec()) {
-		qWarning() << "Failed to fetch replays:" << query.lastError().text();
+		LOG_WARN(QString("Failed to fetch replays :%1").arg(query.lastError().text()));
 		return replayMap;
 	}
 
@@ -261,7 +262,7 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 	query.bindValue(":session_id", sessionId);
 
 	if (!query.exec() || !query.next()) {
-		qWarning() << "Failed to fetch replay with session_id:" << sessionId << query.lastError().text();
+		LOG_WARN(QString("Failed to fetch replay with session_id: %1 %2").arg(sessionId, query.lastError().text()));
 		return Replay();
 	}
 
@@ -279,7 +280,7 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 	query.bindValue(":session_id", sessionId);
 
 	if (!query.exec() || !query.next()) {
-		qWarning() << "Failed to fetch playerReplay with session_id:" << sessionId << query.lastError().text();
+		LOG_WARN(QString("Failed to fetch playerReplay with session_id: %1 %2").arg(sessionId, query.lastError().text()));
 		return Replay();
 	}
 
@@ -322,12 +323,12 @@ Replay DbManager::getReplayBySessionId(QString sessionId)
 	return replay;
 }
 
-bool DbManager::deleteReplayBySessionId(QString sessionId){
+bool DbManager::deleteReplayBySessionId(QString sessionId) {
 	QSqlQuery query(m_db);
 	query.prepare(R"(DELETE FROM PlayerReplayData WHERE session_id = :session_id)");
 	query.bindValue(":session_id", sessionId);
 	if (!query.exec()) {
-		qWarning() << "Failed to delete replay with session_id:" << sessionId << query.lastError().text();
+		LOG_WARN(QString("Failed to delete replay with session_id: %1 %2").arg(sessionId, query.lastError().text()));
 		return false;
 	}
 	deleteDanglingRecords();
@@ -340,14 +341,14 @@ int DbManager::deleteDanglingRecords() {
 		DELETE FROM Player WHERE player_id NOT IN (SELECT DISTINCT player_id FROM PlayerReplayData)
 	)");
 	if (!query.exec()) {
-		qWarning() << "Failed to delete dangling records:" << query.lastError().text();
+		LOG_WARN(QString("Failed to delete dangling records:%1").arg(query.lastError().text()));
 		return 0;
 	}
 	query.prepare(R"(
 		DELETE FROM Replay WHERE session_id NOT IN (SELECT DISTINCT session_id FROM PlayerReplayData)
 	)");
 	if (!query.exec()) {
-		qWarning() << "Failed to delete dangling records:" << query.lastError().text();
+		LOG_WARN(QString("Failed to delete dangling records:%1").arg(query.lastError().text()));
 		return 0;
 	}
 	return query.numRowsAffected();

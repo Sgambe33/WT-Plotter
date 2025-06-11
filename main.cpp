@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "classes/logger.h"
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
@@ -92,6 +93,10 @@ int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
 	app.setStyle("Fusion");
+
+	if (!Logger::instance().init("application.log")) {
+		qWarning("Could not initialize log file!");
+	}
 
 	setupApplicationDirectories();
 

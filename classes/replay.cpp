@@ -1,4 +1,5 @@
 #include "replay.h"
+#include "logger.h"
 #include <QBuffer>
 #include <QByteArray>
 #include <QCoreApplication>
@@ -57,7 +58,7 @@ Replay::Replay(const QByteArray& buffer) {
 		parseResults(results);
 	}
 	catch (const std::exception& e) {
-		qWarning() << "Error unpacking results:" << e.what();
+		LOG_WARN_GLOBAL(QString("Error unpacking results: %1").arg(e.what()));
 	}
 }
 
@@ -99,7 +100,7 @@ QJsonObject Replay::unpackResults(int offset, const QByteArray& buffer) {
 
 	process.start(exe, args);
 	if (!process.waitForStarted(3000)) {
-		qCritical() << "Failed to start process:" << process.error() << process.errorString();
+		LOG_ERROR_GLOBAL(QString("Failed to start process: %1 %2").arg(process.errorString(), process.errorString()));
 		throw std::runtime_error("Failed to start wt_ext_cli");
 	}
 

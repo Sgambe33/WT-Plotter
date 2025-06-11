@@ -9,11 +9,10 @@ on:
         default: 'warning'
   pull_request:
     branches:
-      - 'main'
+    - 'main'
   push:
     tags:
-      - "v*.*.*"
-
+    - "v*.*.*"
 
 jobs:
   build:
@@ -40,26 +39,35 @@ jobs:
           libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev libxcb-icccm4-dev \
           libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev \
           libxcb-render-util0-dev libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev \
-          libxkbcommon-dev libxkbcommon-x11-dev libgl1-mesa-dev libc6
+          libxkbcommon-dev libxkbcommon-x11-dev libgl1-mesa-dev libc6 patchelf
         pip install conan==1.59.0
         conan install openssl/3.0.8@ -g deploy -o *:shared=True -s compiler.libcxx=libstdc++11
         echo "OPENSSL_ROOT_DIR=`pwd`/openssl" >> $GITHUB_ENV
-  
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-2019'
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.1'
+        version: '6.8.0'
+        cache: 'true'
+        install-deps: 'false'
+
+    - name: Install Qt (Linux)
+      if: matrix.os == 'ubuntu-22.04'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.0'
         cache: 'true'
         install-deps: 'false'
         # tools: 'tools_qtcreator'
 
-    #- name: Patch Qt for macOS
-    #  if: matrix.os == 'macos-11'
-    #  run: |
-    #    cp "$Qt6_DIR/../../Qt Creator.app/Contents/PlugIns/imageformats/libqicns.dylib" "$Qt6_DIR/plugins/imageformats"
-    #    cd "$Qt6_DIR/plugins/imageformats"
-    #    install_name_tool -change @loader_path/../../Frameworks/QtGui.framework/Versions/A/QtGui @rpath/QtGui.framework/Versions/A/QtGui libqicns.dylib
-    #    install_name_tool -change @loader_path/../../Frameworks/QtCore.framework/Versions/A/QtCore @rpath/QtCore.framework/Versions/A/QtCore libqicns.dylib
+        #- name: Patch Qt for macOS
+        #  if: matrix.os == 'macos-11'
+        #  run: |
+        #    cp "$Qt6_DIR/../../Qt Creator.app/Contents/PlugIns/imageformats/libqicns.dylib" "$Qt6_DIR/plugins/imageformats"
+        #    cd "$Qt6_DIR/plugins/imageformats"
+        #    install_name_tool -change @loader_path/../../Frameworks/QtGui.framework/Versions/A/QtGui @rpath/QtGui.framework/Versions/A/QtGui libqicns.dylib
+        #    install_name_tool -change @loader_path/../../Frameworks/QtCore.framework/Versions/A/QtCore @rpath/QtCore.framework/Versions/A/QtCore libqicns.dylib
 
     - name: Download source codes
       uses: actions/checkout@v3

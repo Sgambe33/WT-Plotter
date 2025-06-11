@@ -179,7 +179,6 @@ void MainWindow::updatePixmap(const QPixmap& pixmap)
 
 void MainWindow::refreshReplays() {
 	if (!settings.value("replayFolderPath").isNull()) {
-		qDebug() << "REFRESHING!";
 		loadReplaysFromFolder();
 	}
 }

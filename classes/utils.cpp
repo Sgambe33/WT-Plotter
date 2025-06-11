@@ -1,6 +1,12 @@
 #include "utils.h"
 #include "version.h"
 
+#ifdef _MSC_VER
+#include <intrin.h>
+static inline int popcount32(unsigned int x) { return __popcnt(x); }
+#else
+static inline int popcount32(unsigned int x) { return __builtin_popcount(x); }
+#endif
 
 void Utils::checkAppVersion() {
 	QUrl url("https://raw.githubusercontent.com/Sgambe33/WT-Plotter/refs/heads/main/version.json");
@@ -259,17 +265,57 @@ QJsonObject Utils::getJsonFromResources(const QString& resourceName, const QStri
 	return QJsonObject();
 }
 
-void Utils::setCustomFont(const QString& fontPath, QWidget* widget) {
-	int id = QFontDatabase::addApplicationFont(fontPath);
-	if (id != -1) {
-		QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-		QFont customFont(family);
-		widget->setFont(customFont);
-		for (auto child : widget->findChildren<QWidget*>()) {
-			child->setFont(customFont);
-		}
-	}
-	else {
-		qCritical() << "Failed to load font from" << fontPath;
-	}
+QString Utils::dhashFromQImage(const QImage& img, int size) {
+    QImage gray = img.convertToFormat(QImage::Format_Grayscale8);
+    QImage small = gray.scaled(size, size - 1, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+    QVector<int> bits;
+    bits.reserve(size * (size - 1));
+    for (int y = 0; y < small.height(); ++y) {
+        for (int x = 0; x + 1 < small.width(); ++x) {
+            int left = QColor(small.pixel(x, y)).value();
+            int right = QColor(small.pixel(x + 1, y)).value();
+            bits.append(left > right ? 1 : 0);
+        }
+    }
+
+    QString hexStr;
+    for (int i = 0; i < bits.size(); i += 4) {
+        int nibble[4] = { 0, 0, 0, 0 };
+        for (int j = 0; j < 4 && (i + j) < bits.size(); ++j) {
+            nibble[j] = bits[i + j];
+        }
+        int value = (nibble[0] << 3) | (nibble[1] << 2) | (nibble[2] << 1) | nibble[3];
+        hexStr += QString::number(value, 16);
+    }
+
+    return hexStr;
+}
+
+int Utils::hammingDistanceHex(const QString& h1, const QString& h2) {
+    if (h1.length() != h2.length()) {
+        return -1;
+    }
+
+    int dist = 0;
+    for (int i = 0; i < h1.length(); ++i) {
+        bool ok1 = false, ok2 = false;
+        int v1 = h1.mid(i, 1).toInt(&ok1, 16);
+        int v2 = h2.mid(i, 1).toInt(&ok2, 16);
+        if (!ok1 || !ok2) {
+            qWarning() << "Invalid hex digit at position" << i;
+            return -1;
+        }
+        dist += popcount32(v1 ^ v2);
+    }
+
+    return dist;
+}
+
+QString Utils::lookupMapName(const QString& hash) {
+    for (QString val : Constants::mapHashes.keys()) {
+        if (Utils::hammingDistanceHex(hash, val) <= 10)
+            return Constants::mapHashes.value(val, {});
+    }
+    return "unknownmap";
 }

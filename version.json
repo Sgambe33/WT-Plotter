@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
-  "critical": true,
-  "changelog": "<p>Changelog:</p><ul>Fixed application not opening when reduced to tray icon on Linux OS.<li></ul></p>"
+  "version": "1.2.0",
+  "critical": false,
+  "changelog": "<p>Changelog:</p><ul><li>Added Discord RPC integration: now it will display what tank/plane you are using and on what map you are.</li><li>Improved logging: now all shenanigans are written to a file in the same folder of the app. If you want to report bugs send this file!</li></ul>"
 }

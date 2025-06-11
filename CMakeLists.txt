@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(wtplotter
-    VERSION 1.1.1
+    VERSION 1.2.0
     HOMEPAGE_URL github.com/Sgambe33/WT-Plotter
     DESCRIPTION "GUI tool to read War Thunder replays and plot ground matches"
     LANGUAGES CXX

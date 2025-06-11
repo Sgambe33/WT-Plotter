@@ -7,7 +7,6 @@
 *.obj
 *.orig
 *.rej
-*.so
 *.so.*
 *_pch.h.cpp
 *_resource.rc
@@ -62,10 +61,6 @@ Thumbs.db
 
 # Python byte code
 *.pyc
-
-# Binaries
-# --------
-*.dll
 
 .vs
 out

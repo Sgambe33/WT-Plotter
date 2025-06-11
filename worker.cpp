@@ -13,6 +13,7 @@
 #include <QFile>
 #include <QFileInfoList>
 #include <QDir>
+#include <QDebug>
 #include <QSettings>
 #include "classes/replay.h"
 #include <chrono>
@@ -24,13 +25,15 @@ QString Worker::DATA_URL = "http://localhost:8111/map_obj.json";
 QString Worker::MAP_URL = "http://localhost:8111/map.img";
 QString Worker::MAP_INFO = "http://localhost:8111/map_info.json";
 QString Worker::INDICATORS = "http://localhost:8111/indicators";
+QString Worker::STATE = "http://localhost:8111/state";
 
 Worker::Worker(SceneImageViewer* imageViewer, QObject* parent)
 	: QObject(parent),
 	m_timer(new QTimer(this)),
-	matchStartTime(0),
+	m_matchStartTime(0),
 	networkManager(new QNetworkAccessManager(this))
 {
+	m_matchStartTime = QDateTime::currentMSecsSinceEpoch();
 	connect(m_timer, &QTimer::timeout, this, &Worker::onTimeout);
 }
 
@@ -47,6 +50,7 @@ void Worker::startTimer()
 	}
 
 	m_timer->start(1000);
+	activityTimer.start();
 }
 
 void Worker::stopTimer()
@@ -58,6 +62,7 @@ void Worker::stopTimer()
 	if (m_timer->isActive()) {
 		m_timer->stop();
 	}
+	emit plotterStopped();
 }
 
 void Worker::performTask()
@@ -72,39 +77,87 @@ void Worker::onTimeout()
 		if (shouldLoadMap())
 		{
 			fetchAndDisplayMap();
+			m_matchStartTime = 0;
 			emit changeStackedWidget2(2);
 			emit updateStatusLabel(QString("Map loaded..."));
 		}
 		else if (shouldUpdateMarkers())
 		{
-			if (matchStartTime == 0)
+			if (m_matchStartTime == 0)
 			{
-				matchStartTime = QDateTime::currentMSecsSinceEpoch();
+				m_matchStartTime = QDateTime::currentMSecsSinceEpoch();
+				//matchStartEpoch = time(nullptr);
 				updatePOI();
 				emit updateStatusLabel(QString("Match started..."));
+				emit sendActivityToDiscord("Match started", "Entering lobby", "logowt_stripe_flat");
 			}
 			updateMarkers();
+
+			if (activityTimer.elapsed() >= 10000) {
+				qDebug() << "Triggered alternating timer";
+				showAltActivity = !showAltActivity;
+				if (showAltActivity) {
+					QString lookedupMapName = Utils::lookupMapName(currentMap);
+					QString baseMapKey = lookedupMapName;
+					baseMapKey.replace("_tankmap", "").replace("_map", "");
+
+					QJsonObject locationJson = Utils::getJsonFromResources(":/translations/locations.json", baseMapKey);
+					QString mapName = locationJson.value("en").toString();
+
+					if (mapName.isEmpty()) {
+						mapName = "Unknown map";
+						lookedupMapName = "unknownmap";
+					}
+
+					emit sendActivityToDiscord("In mission", mapName, lookedupMapName, QDateTime().fromMSecsSinceEpoch(m_matchStartTime));
+				}
+				else {
+					QJsonObject vehicleIndicators = fetchJsonElement(Worker::INDICATORS);
+					QJsonObject vehicleState = fetchJsonElement(Worker::STATE);
+					if (vehicleIndicators.value("type").toString().contains("tankModels/")) {
+						//The player is in a tank
+						QString vehicleName = vehicleIndicators.value("type").toString().replace("tankModels/", "");
+						QString translatedVehicleName = Utils::getJsonFromResources(":/translations/vehicles.json", vehicleName).value("en").toString();
+						int totalCrew = vehicleIndicators.value("crew_total").toInt();
+						int aliveCrew = vehicleIndicators.value("crew_current").toInt();
+						int currentSpeed = vehicleIndicators.value("speed").toInt();
+						QString formattedText = QString("Crew: %1/%2 | Speed: %3").arg(aliveCrew).arg(totalCrew).arg(currentSpeed);
+						emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName.toLower()), QDateTime().fromMSecsSinceEpoch(m_matchStartTime), formattedText);
+					}
+					else {
+						//The player is in a plane
+						QString vehicleName = vehicleIndicators.value("type").toString();
+						QString translatedVehicleName = Utils::getJsonFromResources(":/translations/vehicles.json", vehicleName).value("en").toString();
+						int speed = vehicleState.value("TAS, km/h").toInt();
+						int altitude = vehicleState.value("H, m").toInt();
+						QString formattedText = QString("Speed: %1 | Altitude: %2").arg(speed).arg(altitude);
+						emit sendActivityToDiscord("In mission", translatedVehicleName, QString("https://static.encyclopedia.warthunder.com/images/%1.png").arg(vehicleName.toLower()), QDateTime().fromMSecsSinceEpoch(m_matchStartTime), formattedText);
+					}
+				}
+				activityTimer.restart();
+			}
 		}
 		else if (shouldEndMatch())
 		{
-			matchStartTime = 0;
+			m_matchStartTime = QDateTime::currentMSecsSinceEpoch();
+			matchStartEpoch = 0;
 
 			emit updateStatusLabel(QString("Match ended..."));
 
-			QPixmap drawedMapImage = getOriginalMapImage();
-			drawSpecialMarkers(drawedMapImage);
-			drawMarkers(drawedMapImage);
-			this->drawedMapImage = drawedMapImage;
+			QPixmap originalMap = getOriginalMapImage();
+			drawSpecialMarkers(originalMap);
+			drawMarkers(originalMap);
+			this->m_drawedMapImage = originalMap;
 
 			emit changeStackedWidget2(1);
-
-			emit updatePixmap(drawedMapImage);
+			emit updatePixmap(originalMap);
 
 			endMatch();
 			restartScheduler();
 		}
 		else {
 			emit updateStatusLabel(tr("Awaiting match start..."));
+			emit sendActivityToDiscord("", "In hangar", "logowt_stripe_flat", QDateTime().fromMSecsSinceEpoch(m_matchStartTime));
 		}
 	}
 	catch (const std::exception& e)
@@ -174,7 +227,7 @@ void Worker::endMatch()
 		int retries = 60;
 
 		if (autosave) {
-			Utils::saveImage(this->drawedMapImage);
+			Utils::saveImage(this->m_drawedMapImage);
 		}
 
 		do {
@@ -189,7 +242,7 @@ void Worker::endMatch()
 			Replay replayData = Replay::fromFile(latestReplay.fileName());
 			QString uploader = replayData.getAuthorUserId();
 			if (!uploader.isEmpty()) {
-				Utils::uploadReplay(replayData, uploader, this->positionCache, this->poi);
+				Utils::uploadReplay(replayData, uploader, this->m_positionCache, this->m_poi);
 			}
 			else {
 				qCritical() << "Failed to get user UID. Data will not be validated against replay.";
@@ -208,7 +261,7 @@ void Worker::endMatch()
 
 	clearMarkers();
 	setOriginalMapImage(QPixmap());
-	this->drawedMapImage = QPixmap();
+	this->m_drawedMapImage = QPixmap();
 	qInfo() << "Match ended, markers cleared.";
 }
 
@@ -218,19 +271,11 @@ void Worker::restartScheduler()
 	startTimer();
 }
 
-void Worker::setMatchStartTime(long matchStartTime)
-{
-	this->matchStartTime = matchStartTime;
-}
-
 bool Worker::isMatchRunning()
 {
 	try {
 		QJsonObject mapInfo = fetchJsonElement(MAP_INFO);
-		if (!mapInfo.isEmpty()) {
-			return mapInfo.contains("valid") && mapInfo["valid"].toBool();
-		}
-		return false;
+		return !mapInfo.isEmpty() && mapInfo.contains("valid") && mapInfo["valid"].toBool();
 	}
 	catch (const std::exception& e) {
 		qCritical() << "Exception while fetching map info:" << e.what();
@@ -260,9 +305,10 @@ void Worker::fetchAndDisplayMap()
 	if (!isMatchRunning())
 		return;
 
-	QPixmap mapImage = fetchMapImage();
+	QImage mapImage = fetchMapImage();
 	if (!mapImage.isNull()) {
-		setOriginalMapImage(mapImage);
+		currentMap = Utils::dhashFromQImage(mapImage);
+		setOriginalMapImage(QPixmap::fromImage(mapImage));
 	}
 }
 
@@ -295,43 +341,33 @@ void Worker::fetchMapObjects()
 	}
 }
 
-QPixmap Worker::getDrawedMapImage()
-{
-	return drawedMapImage;
-}
-
 QPixmap Worker::getOriginalMapImage() const
 {
-	return originalMapImage;
+	return m_originalMapImage;
 }
 
 void Worker::setOriginalMapImage(const QPixmap& originalMapImage)
 {
-	this->originalMapImage = originalMapImage;
+	this->m_originalMapImage = originalMapImage;
 }
 
 void Worker::clearMarkers()
 {
-	positionCache.clear();
-	poi.clear();
+	m_positionCache.clear();
+	m_poi.clear();
 	havePOIBeenDrawn = false;
 }
 
 void Worker::addPosition(const Position& position)
 {
-	positionCache.append(position);
+	m_positionCache.append(position);
 }
 
 void Worker::addPOI(const Position& position)
 {
 	if (!havePOIBeenDrawn) {
-		poi.append(position);
+		m_poi.append(position);
 	}
-}
-
-bool Worker::havePOIBeenDrawnFunc() const
-{
-	return havePOIBeenDrawn;
 }
 
 void Worker::drawMarkers(QPixmap& displayImage)
@@ -346,7 +382,7 @@ void Worker::drawMarkers(QPixmap& displayImage)
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-	drawMarkers(displayImage, painter, positionCache);
+	drawMarkers(displayImage, painter, m_positionCache);
 }
 
 void Worker::drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<Position>& positionCache)
@@ -381,7 +417,7 @@ void Worker::drawSpecialMarkers(QPixmap& displayImage)
 	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 	QMap<QString, QList<Position>> respawnBaseTankGroups;
 
-	for (const Position& pos : poi) {
+	for (const Position& pos : m_poi) {
 		if (pos.type() == "capture_zone") {
 			drawCaptureZoneMarker(displayImage, painter, pos);
 		}
@@ -390,7 +426,7 @@ void Worker::drawSpecialMarkers(QPixmap& displayImage)
 		}
 	}
 
-	if (!poi.isEmpty() && !respawnBaseTankGroups.isEmpty()) {
+	if (!m_poi.isEmpty() && !respawnBaseTankGroups.isEmpty()) {
 		havePOIBeenDrawn = true;
 	}
 
@@ -466,19 +502,19 @@ QJsonArray Worker::fetchJsonArray(QString url)
 	return jsonDoc.array();
 }
 
-QPixmap Worker::fetchMapImage()
+QImage Worker::fetchMapImage()
 {
 	QNetworkReply* reply = networkManager->get(QNetworkRequest(QUrl(MAP_URL)));
 	QEventLoop loop;
 	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	loop.exec();
 
-	QPixmap pixmap;
+	QImage pixmap;
 	if (reply->error() == QNetworkReply::NoError) {
 		pixmap.loadFromData(reply->readAll());
 	}
 	else {
-		qCritical() << "Network error:" << reply->errorString();
+		qDebug() << QString("Network error: %1").arg(reply->errorString());
 	}
 	reply->deleteLater();
 	return pixmap;
@@ -491,7 +527,7 @@ Position Worker::getPositionFromJsonElement(QJsonObject element)
 	QString color = element["color"].toString();
 	QString type = element["type"].toString();
 	QString icon = element["icon"].toString();
-	qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->matchStartTime) / 1000;
+	qint64 timeSinceBeginning = (QDateTime::currentMSecsSinceEpoch() - this->m_matchStartTime) / 1000;
 
 	return Position(x, y, color, type, icon, timeSinceBeginning);
 }

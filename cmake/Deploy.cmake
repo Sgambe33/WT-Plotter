@@ -222,6 +222,9 @@ function(deploy_linux TARGET DEPLOY_SOURCE_DIR)
         ${DEPLOY_PREFIX_PATH}/.DirIcon SYMBOLIC)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli
         DESTINATION ${DEPLOY_PREFIX_PATH}/usr/bin FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/discord-files/lib/x86_64/discord_game_sdk.so
+        DESTINATION ${DEPLOY_PREFIX_PATH}/usr/lib FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+
 
     foreach(BIN IN LISTS BINS)
         get_target_property(QM_FILES ${BIN} QM_FILES)
@@ -297,11 +300,17 @@ function(deploy_linux TARGET DEPLOY_SOURCE_DIR)
     endif()
 
     add_custom_command(TARGET deploy VERBATIM
+        COMMAND patchelf --set-rpath '$ORIGIN/../lib' ${DEPLOY_PREFIX_PATH}/usr/bin/$<TARGET_FILE_NAME:${TARGET}>
+        COMMENT "Setting rpath on wtplotter with patchelf"
+    )
+
+    add_custom_command(TARGET deploy VERBATIM
         COMMAND VERSION=${CMAKE_PROJECT_VERSION} ARCH=${APP_SYSTEM_PROCESSOR} ${LINUXDEPLOYQT_EXECUTABLE}
         ${DEPLOY_PREFIX_PATH}/usr/bin/$<TARGET_FILE_NAME:${TARGET}>
         -appimage
         -qmake=${QMAKE_EXECUTABLE}
         -extra-plugins=platformthemes,tls
+        -exclude-libs=libqsqlmimer,libqsqlmysql,libqsqlodbc,libqsqlpsql
         WORKING_DIRECTORY ${APP_DEPLOY_PREFIX}
     )
 endfunction()
@@ -366,6 +375,9 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
         WindowsArguments = fontengine=freetype")
 
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli.exe
+        DESTINATION ${DEPLOY_PREFIX_PATH})
+
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/discord-files/lib/x86_64/discord_game_sdk.dll
         DESTINATION ${DEPLOY_PREFIX_PATH})
 
     foreach(BIN IN LISTS BINS)

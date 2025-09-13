@@ -18,7 +18,7 @@ WT-Plotter is a lightweight application designed to parse and display informatio
 - **Player Information:** Check player platform, vehicle lineups and country used.
 - **Local Database:** Store replay data persistently for easy access and analysis.
 - **Multi-Language Support:** English and Russian translations (Russian translations may need refinement—contributions are appreciated!).
-- **Live Match Tracking:** Record player positions during an ongoing match for later visualization or contribution to the [WT-Heatmaps](https://warthunder-heatmaps.crabdance.com/) project.
+- **Live Match Tracking:** Record player positions during an ongoing match for later visualization ~~or contribution to the [WT-Heatmaps](https://warthunder-heatmaps.crabdance.com/) project.~~ _WT-Heatmaps project is no longer active_
 - **Discord RPC Integration:** Display your vehicle and the map you are playing as Discord activity.
 
 <div align="center">

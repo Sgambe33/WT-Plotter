@@ -74,8 +74,6 @@ WT-Plotter currently extracts basic information from replay files. Advanced data
 
 This project is not affiliated with or endorsed by Gaijin Entertainment. War Thunder is a registered trademark of Gaijin Entertainment. All rights reserved.
 
-By using WT-Plotter, you agree to share data (e.g., player positions, match maps, match start times, and your user ID) collected while both War Thunder and WT-Plotter are running with the [WT-Heatmaps](https://warthunder-heatmaps.crabdance.com/) project.
-
 ---
 
 Feel free to contribute, report issues, or suggest improvements! Your feedback helps make WT-Plotter better for the War Thunder community.

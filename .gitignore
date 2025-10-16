@@ -30,6 +30,7 @@ Thumbs.db
 *.res
 /.qmake.cache
 /.qmake.stash
+/.idea
 
 # qtcreator generated files
 *.txt.user*
@@ -71,5 +72,5 @@ Thumbs.db
 .vs
 out
 src/version.h
-libs/discord-files
+/discord-files
 build

@@ -70,6 +70,6 @@ Thumbs.db
 
 .vs
 out
-version.h
-discord-files
+src/version.h
+libs/discord-files
 build

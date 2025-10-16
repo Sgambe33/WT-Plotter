@@ -21,7 +21,7 @@
 #include "classes/dbmanager.h"
 #include "worker.h"
 #include "sceneimageviewer.h"
-#include <classes/discordworker.h>
+#include "classes/discordworker.h"
 
 
 QT_BEGIN_NAMESPACE

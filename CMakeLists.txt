@@ -17,7 +17,7 @@ include(Setup)
 include(Deploy)
 
 # Path to Discord Game SDK source directory
-set(DISCORD_GAME_SDK ${CMAKE_SOURCE_DIR}/discord-files)
+set(DISCORD_GAME_SDK ${CMAKE_SOURCE_DIR}/libs/discord-files)
 
 # Download SDK if missing
 if(NOT EXISTS ${DISCORD_GAME_SDK})
@@ -37,28 +37,28 @@ find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS LinguistTools)
 
 # Collect sources and UI
 file(GLOB_RECURSE SOURCES
-    classes/*.cpp classes/*.h
-    discord-files/cpp/*.cpp discord-files/cpp/*.h
+    src/classes/*.cpp src/classes/*.h
+        libs/discord-files/cpp/*.cpp libs/discord-files/cpp/*.h
 )
 
 set(UI_FILES
-    mainwindow.ui
-    preferencesdialog.ui
-    playerprofiledialog.ui
+        src/mainwindow.ui
+        src/preferencesdialog.ui
+        src/playerprofiledialog.ui
 )
 
 qt_add_executable(wtplotter
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    preferencesdialog.cpp
-    preferencesdialog.h
-    playerprofiledialog.cpp
-    playerprofiledialog.h
-    sceneimageviewer.cpp
-    sceneimageviewer.h
-    worker.cpp
-    worker.h
+        src/main.cpp
+        src/mainwindow.cpp
+        src/mainwindow.h
+        src/preferencesdialog.cpp
+        src/preferencesdialog.h
+        src/playerprofiledialog.cpp
+        src/playerprofiledialog.h
+        src/sceneimageviewer.cpp
+        src/sceneimageviewer.h
+        src/worker.cpp
+        src/worker.h
     ${SOURCES}
     ${UI_FILES}
 )
@@ -126,8 +126,8 @@ endif()
 
 # Version header
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/version.h
+        src/version.h.in
+        src/version.h
     @ONLY
 )
 

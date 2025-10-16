@@ -27,13 +27,12 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QMessageBox>
-#include <QSqlDatabase>
-#include <classes/replayloaderworker.h>
+#include "classes/replayloaderworker.h"
 #include <QStandardPaths>
 #include <QDesktopServices>
 #include <QPalette>
-#include <playerprofiledialog.h>
-#include <version.h>
+#include "playerprofiledialog.h"
+#include "version.h"
 #include "classes/logger.h"
 
 MainWindow::MainWindow(QWidget* parent)

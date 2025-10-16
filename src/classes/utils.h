@@ -21,10 +21,10 @@
 #include <QList>
 #include <QSettings>
 #include <QImageWriter>
-#include "classes/position.h"
-#include "sceneimageviewer.h"
-#include "classes/replay.h"
-#include "classes/constants.h"
+#include "position.h"
+#include "src/sceneimageviewer.h"
+#include "replay.h"
+#include "constants.h"
 #include <QMap>
 #include <QIcon>
 #include <QImage>

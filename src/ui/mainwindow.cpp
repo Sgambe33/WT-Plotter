@@ -1,9 +1,9 @@
 ﻿#include "mainwindow.h"
-#include "classes/utils.h"
+#include "../classes/utils.h"
 #include "./ui_mainwindow.h"
-#include "classes/replay.h"
+#include "../classes/replay.h"
 #include "sceneimageviewer.h"
-#include "worker.h"
+#include "../worker.h"
 #include "preferencesdialog.h"
 #include <QPainter>
 #include <QTreeView>
@@ -27,19 +27,17 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QMessageBox>
-#include "classes/replayloaderworker.h"
+#include "../classes/replayloaderworker.h"
 #include <QStandardPaths>
 #include <QDesktopServices>
 #include <QPalette>
 #include "playerprofiledialog.h"
-#include "version.h"
-#include "classes/logger.h"
+#include "../version.h"
+#include "../classes/logger.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	model(new QStandardItemModel(this)),
-	m_worker_thread(nullptr),
-	m_worker(nullptr),
 	m_discord_thread(nullptr),
 	m_discord_worker(new DiscordWorker(this)),
     m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
@@ -56,31 +54,12 @@ MainWindow::MainWindow(QWidget* parent)
 
     LOG_INFO("Application started");
 
-	emit refreshReplays();
-
 	ui->splitter->setStretchFactor(0, 2);
 	ui->splitter->setStretchFactor(1, 3);
 
 	QPixmap img(":/map_images/unknownmap.png");
 	img = img.scaled(125, 125, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	ui->mapImage->setPixmap(img);
-
-	connect(ui->replayButton, &QPushButton::clicked, [=] {
-		ui->stackedWidget_2->setCurrentIndex(0);
-		ui->replayTreeView->setDisabled(false);
-		ui->plotterButton->setDisabled(false);
-		ui->replayButton->setDisabled(true);
-		stopPlotter();
-        setActivityFromMainWindow("", "Browsing replays", "logo_512");
-		});
-
-	connect(ui->plotterButton, &QPushButton::clicked, [=] {
-		ui->stackedWidget_2->setCurrentIndex(2);
-		ui->replayTreeView->setDisabled(true);
-		ui->plotterButton->setDisabled(true);
-		ui->replayButton->setDisabled(false);
-		startPlotter();
-		});
 
 	connect(ui->refreshButton, &QPushButton::clicked, [=] {
 		emit refreshReplays();
@@ -94,13 +73,10 @@ MainWindow::MainWindow(QWidget* parent)
 		ui->replayTreeView->collapseAll();
 		});
 
-	ui->replayTreeView->setDisabled(true);
-	ui->plotterButton->setDisabled(true);
 	ui->openServerReplayButton->setDisabled(true);
 
 	Utils::checkAppVersion();
 
-	startPlotter();
 	startDiscordPresence();
 	connect(ui->replayTreeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
 	connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferencesDialog);
@@ -150,23 +126,6 @@ void MainWindow::openAboutDialog()
 	QMessageBox::about(this, tr("About WT Plotter"), aboutText);
 }
 
-void MainWindow::startPlotter() {
-	m_worker_thread = new QThread();
-	m_worker = new Worker(ui->mappa);
-
-	connect(m_worker_thread, &QThread::started, m_worker, &Worker::performTask);
-	connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::stopPlotter);
-	connect(m_worker_thread, &QThread::finished, m_worker, &QObject::deleteLater);
-	connect(m_worker_thread, &QThread::finished, m_worker_thread, &QObject::deleteLater);
-	connect(m_worker, &Worker::updatePixmap, ui->mappa, &SceneImageViewer::setPixmap);
-	connect(m_worker, &Worker::updateStatusLabel, this, &MainWindow::updateStatusLabel);
-	connect(m_worker, &Worker::updateProgressBar, this, &MainWindow::updateProgressBar);
-	connect(m_worker, &Worker::changeStackedWidget2, this, &MainWindow::changeStackedWidget2);
-	connect(m_worker, &Worker::sendActivityToDiscord, m_discord_worker, &DiscordWorker::updateActivity, Qt::QueuedConnection);
-	m_worker->moveToThread(m_worker_thread);
-	m_worker_thread->start();
-}
-
 void MainWindow::startDiscordPresence() {
 	m_discord_thread = new QThread();
 	m_discord_worker = new DiscordWorker(this);
@@ -191,7 +150,6 @@ void MainWindow::updatePixmap(const QPixmap& pixmap)
 void MainWindow::refreshReplays() {
 	if (!settings.value("replayFolderPath").isNull()) {
         LOG_INFO("Refreshing replay list");
-        //qDebug() << "REFRESHING!";
 		loadReplaysFromFolder();
 	}
 }
@@ -236,23 +194,9 @@ void MainWindow::changeStackedWidget2(int index)
 }
 
 void MainWindow::updateProgressBar(double progress) {
-	ui->progressBar->setValue(progress);
 }
 
 void MainWindow::updateStatusLabel(QString msg) {
-	ui->statusLabel->setText(msg);
-}
-
-void MainWindow::stopPlotter() {
-	if (m_worker_thread && m_worker) {
-		QMetaObject::invokeMethod(m_worker, "stopTimer", Qt::QueuedConnection);
-
-		m_worker_thread->quit();
-		m_worker_thread->wait();
-
-		m_worker_thread = nullptr;
-		m_worker = nullptr;
-	}
 }
 
 void MainWindow::populateReplayTreeView(QTreeView* replayTreeView)

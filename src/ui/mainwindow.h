@@ -17,11 +17,11 @@
 #include <QStackedWidget>
 #include <QFont>
 
-#include "classes/player.h"
-#include "classes/dbmanager.h"
-#include "worker.h"
+#include "../classes/player.h"
+#include "../classes/dbmanager.h"
+#include "../worker.h"
 #include "sceneimageviewer.h"
-#include "classes/discordworker.h"
+#include "../classes/discordworker.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -59,8 +59,6 @@ protected:
 private:
 	Ui::MainWindow* ui;
 	QStandardItemModel* model;
-	QThread* m_worker_thread = nullptr;
-	Worker* m_worker;
 	QThread* m_discord_thread = nullptr;
 	DiscordWorker* m_discord_worker;
 	DbManager m_dbmanager;
@@ -70,10 +68,8 @@ private:
     QList<QPair<Player, PlayerReplayData>>* alliesList = new QList<QPair<Player, PlayerReplayData>>();
     QList<QPair<Player, PlayerReplayData>>* axisList = new QList<QPair<Player, PlayerReplayData>>();
 
-	void startPlotter();
 	void startDiscordPresence();
 	void setActivityFromMainWindow(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
-	void stopPlotter();
     void populateReplayTreeView(QTreeView* replayTreeView);
 	void onTreeItemClicked(const QModelIndex& index);
 	void executeCommand(const QString& filePath);

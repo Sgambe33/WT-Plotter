@@ -10,7 +10,7 @@
 #include <QNetworkReply>
 #include <QList>
 #include "classes/position.h"
-#include "sceneimageviewer.h"
+#include "ui/sceneimageviewer.h"
 
 class Worker : public QObject
 {

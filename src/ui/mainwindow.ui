@@ -141,16 +141,10 @@
       </widget>
       <widget class="QStackedWidget" name="stackedWidget_2">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page">
         <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
-          <number>9</number>
-         </property>
          <item>
           <widget class="QFrame" name="frame">
            <property name="frameShape">
@@ -223,14 +217,38 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="openServerReplayButton">
-           <property name="text">
-            <string>Server replay</string>
-           </property>
-           <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::WindowNew"/>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QPushButton" name="openServerReplayButton">
+             <property name="text">
+              <string>Server replay</string>
+             </property>
+             <property name="icon">
+              <iconset theme="QIcon::ThemeIcon::WindowNew"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="playLocalReplayButton">
+             <property name="text">
+              <string>Play local</string>
+             </property>
+             <property name="icon">
+              <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="playServerReplayButton">
+             <property name="text">
+              <string>Play server</string>
+             </property>
+             <property name="icon">
+              <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QTabWidget" name="tabWidget">
@@ -263,70 +281,54 @@
        </widget>
        <widget class="QWidget" name="page_2">
         <layout class="QVBoxLayout" name="verticalLayout_5">
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
          <item>
-          <widget class="SceneImageViewer" name="mappa"/>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="page_3">
-        <layout class="QVBoxLayout" name="verticalLayout_7">
-         <item>
-          <spacer name="verticalSpacer_2">
+          <widget class="QSplitter" name="splitter_2">
            <property name="orientation">
             <enum>Qt::Orientation::Vertical</enum>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="statusLabel">
-           <property name="text">
-            <string>Awaiting match start...</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
-           </property>
+           <widget class="SceneImageViewer" name="mappa"/>
+           <widget class="QTabWidget" name="tabWidget_2">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tab_3">
+             <attribute name="title">
+              <string>Chat</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+            </widget>
+            <widget class="QWidget" name="tab_4">
+             <attribute name="title">
+              <string>Battle log</string>
+             </attribute>
+            </widget>
+           </widget>
           </widget>
          </item>
          <item>
-          <widget class="QProgressBar" name="progressBar">
-           <property name="maximum">
-            <number>0</number>
-           </property>
-           <property name="value">
-            <number>-1</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
-           </property>
-           <property name="textVisible">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QToolButton" name="toolButton">
+             <property name="text">
+              <string>...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="horizontalSlider">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>0:00/0:00</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -341,7 +343,7 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0,0">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
        <property name="spacing">
         <number>0</number>
        </property>
@@ -360,47 +362,6 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="replayButton">
-         <property name="text">
-          <string>Replays</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="plotterButton">
-         <property name="font">
-          <font>
-           <kerning>true</kerning>
-          </font>
-         </property>
-         <property name="text">
-          <string>Plotter</string>
-         </property>
-         <property name="default">
-          <bool>false</bool>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -456,7 +417,7 @@
   <customwidget>
    <class>SceneImageViewer</class>
    <extends>QGraphicsView</extends>
-   <header>./sceneimageviewer.h</header>
+   <header>sceneimageviewer.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

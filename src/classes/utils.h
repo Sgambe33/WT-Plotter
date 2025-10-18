@@ -22,7 +22,7 @@
 #include <QSettings>
 #include <QImageWriter>
 #include "position.h"
-#include "src/sceneimageviewer.h"
+#include "../ui/sceneimageviewer.h"
 #include "replay.h"
 #include "constants.h"
 #include <QMap>
@@ -30,21 +30,27 @@
 #include <QImage>
 #include <QFontDatabase>
 
-class Utils {
-public:
-    static void checkAppVersion();
-    static void uploadReplay(Replay& replayData, const QString& uploader, QList<Position> positionCache, QList<Position> poi);
-    static QFile getLatestReplay(const QDir& replayDirectory);
-    static void saveImage(QPixmap drawedMapImage);
-    static QString replayLengthToString(int length);
-    static QString difficultyToString(Constants::Difficulty difficulty);
-    static QString difficultyToStringLocaleAware(Constants::Difficulty difficulty);
-    static QString epochSToFormattedTime(int time);
-    static QIcon invertIconColors(const QIcon& icon);
-    static QJsonObject getJsonFromResources(const QString& resourceName, const QString& identifier);
+void checkAppVersion();
 
-private:    
-    static QJsonArray exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi);
-};
+void uploadReplay(Replay &replayData, const QString &uploader, QList<Position> positionCache, QList<Position> poi);
+
+QFile getLatestReplay(const QDir &replayDirectory);
+
+void saveImage(QPixmap drawedMapImage);
+
+QString replayLengthToString(int length);
+
+QString difficultyToString(Constants::Difficulty difficulty);
+
+QString difficultyToStringLocaleAware(Constants::Difficulty difficulty);
+
+QString epochSToFormattedTime(int time);
+
+QIcon invertIconColors(const QIcon &icon);
+
+QJsonObject getJsonFromResources(const QString &resourceName, const QString &identifier);
+
+QJsonArray exportPositionsToJson(Replay &replayData, QList<Position> positionCache, QList<Position> poi);
+
 
 #endif // UTILS_H

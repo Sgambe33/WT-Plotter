@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 project(wtplotter
     VERSION 1.1.1
@@ -30,6 +31,12 @@ if(NOT EXISTS ${DISCORD_GAME_SDK})
 else()
     message(STATUS "Discord Game SDK already exists at ${DISCORD_GAME_SDK}")
 endif()
+############ ZSTD SETUP ############
+add_library(zstd STATIC IMPORTED)
+set_target_properties(zstd PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/libs/zstd/lib/libzstd.lib"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/libs/zstd/include"
+)
 
 # Locate Qt
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Svg Network Sql)
@@ -38,29 +45,34 @@ find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS LinguistTools)
 # Collect sources and UI
 file(GLOB_RECURSE SOURCES
     src/classes/*.cpp src/classes/*.h
-        libs/discord-files/cpp/*.cpp libs/discord-files/cpp/*.h
+    libs/discord-files/cpp/*.cpp libs/discord-files/cpp/*.h
+    libs/zstd/include/*.h
 )
 
 set(UI_FILES
-        src/mainwindow.ui
-        src/preferencesdialog.ui
-        src/playerprofiledialog.ui
+        src/ui/mainwindow.ui
+        src/ui/preferencesdialog.ui
+        src/ui/playerprofiledialog.ui
 )
 
 qt_add_executable(wtplotter
         src/main.cpp
-        src/mainwindow.cpp
-        src/mainwindow.h
-        src/preferencesdialog.cpp
-        src/preferencesdialog.h
-        src/playerprofiledialog.cpp
-        src/playerprofiledialog.h
-        src/sceneimageviewer.cpp
-        src/sceneimageviewer.h
+        src/wrpl.cpp
+        src/wrpl.h
+        src/ui/mainwindow.cpp
+        src/ui/mainwindow.h
+        src/ui/preferencesdialog.cpp
+        src/ui/preferencesdialog.h
+        src/ui/playerprofiledialog.cpp
+        src/ui/playerprofiledialog.h
+        src/ui/sceneimageviewer.cpp
+        src/ui/sceneimageviewer.h
         src/worker.cpp
         src/worker.h
     ${SOURCES}
     ${UI_FILES}
+        src/classes/binaryops.cpp
+        src/classes/binaryops.h
 )
 
 # Resources
@@ -81,12 +93,15 @@ app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})
 
 target_include_directories(wtplotter PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src/ui
 )
 
 # Platform-specific linking and deployment
 if(WIN32)
+    # Link Discord SDK and zstd
     set(DISCORD_LIB ${DISCORD_GAME_SDK}/lib/x86_64/discord_game_sdk.dll.lib)
-    target_link_libraries(wtplotter PRIVATE ${DISCORD_LIB})
+    set(ZSTD_LIB ${CMAKE_SOURCE_DIR}/libs/zstd/lib/libzstd_static.lib) #TODO: Perhaps dynamic library instead?
+    target_link_libraries(wtplotter PRIVATE ${DISCORD_LIB} ${ZSTD_LIB})
 
     # Copy DLL to binary dir
     add_custom_command(TARGET wtplotter POST_BUILD

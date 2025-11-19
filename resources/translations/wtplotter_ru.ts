@@ -26,7 +26,7 @@
     <message>
         <location filename="../../mainwindow.cpp" line="311"/>
         <source>Difficulty: </source>
-        <translation>Сложность: </translation>
+        <translation>Режим: </translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="312"/>
@@ -50,7 +50,7 @@
     <message>
         <location filename="../../mainwindow.cpp" line="133"/>
         <source>&lt;p&gt;Current version: %1&lt;/p&gt;&lt;p&gt;WT Plotter is a tool for reading War Thunder replays and record match development. This project is developed by &lt;strong&gt;Sgambe33&lt;/strong&gt; and is fully open source.You can find the source code and contribute to the project on &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt; GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Thank you for using WT Plotter!&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Текущая версия: %1&lt;/p&gt;&lt;p&gt;WT Plotter — это инструмент для чтения реплеев War Thunder и записи хода матча. Этот проект разработан &lt;strong&gt;Sgambe33&lt;/strong&gt; и является полностью открытым. Вы можете найти исходный код и внести свой вклад в проект на &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Спасибо за использование WT Plotter!&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;Текущая версия: %1&lt;/p&gt;&lt;p&gt;WT Plotter — это инструмент для чтения повторов War Thunder и записи хода матча. Этот проект разработан &lt;strong&gt;Sgambe33&lt;/strong&gt; и является ПО с полностью открытым исходным кодом. Вы можете найти исходный код и внести свой вклад в проект на &lt;a href=&apos;https://github.com/sgambe33/wt-plotter&apos;&gt;GitHub&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Спасибо за использование WT Plotter!&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="376"/>
@@ -65,7 +65,7 @@
     <message>
         <location filename="../../mainwindow.cpp" line="410"/>
         <source>Air kills</source>
-        <translation>Воздух убивает</translation>
+        <translation>Уничтожено воздушных целей</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="411"/>
@@ -75,32 +75,32 @@
     <message>
         <location filename="../../mainwindow.cpp" line="412"/>
         <source>Naval kills</source>
-        <translation>Морские убийства</translation>
+        <translation>Уничтожено морских целей</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="413"/>
         <source>Assists</source>
-        <translation>Ассисты</translation>
+        <translation>Помощи</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="414"/>
         <source>Captured zones</source>
-        <translation>Захваченные зоны</translation>
+        <translation>Захваченные точки</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="415"/>
         <source>AI kills</source>
-        <translation>ИИ убивает</translation>
+        <translation>Уничтожено ИИ целей</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="416"/>
         <source>Awarded damage</source>
-        <translation>Присужденный ущерб</translation>
+        <translation>Присужденный урон</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="417"/>
         <source>Bombing damage</source>
-        <translation>Ущерб от бомбардировки</translation>
+        <translation>Урон от бомбардировки</translation>
     </message>
     <message>
         <location filename="../../mainwindow.cpp" line="418"/>
@@ -145,7 +145,7 @@
     <message>
         <location filename="../../mainwindow.ui" line="185"/>
         <source>Difficulty:</source>
-        <translation>Сложность:</translation>
+        <translation>Режим:</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="192"/>
@@ -165,7 +165,7 @@
     <message>
         <location filename="../../mainwindow.ui" line="228"/>
         <source>Server replay</source>
-        <translation>Воспроизведение сервера</translation>
+        <translation>Серверный повтор</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="242"/>
@@ -175,7 +175,7 @@
     <message>
         <location filename="../../mainwindow.ui" line="252"/>
         <source>Axis Team</source>
-        <translation>Команда Axis</translation>
+        <translation>Команда Оси (противников)</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="295"/>
@@ -190,7 +190,7 @@
     <message>
         <location filename="../../mainwindow.ui" line="394"/>
         <source>Plotter</source>
-        <translation>Построитель</translation>
+        <translation>График</translation>
     </message>
     <message>
         <location filename="../../mainwindow.ui" line="420"/>
@@ -224,15 +224,15 @@
     </message>
     <message>
         <source>success</source>
-        <translation>успех</translation>
+        <translation>победа</translation>
     </message>
     <message>
         <source>fail</source>
-        <translation>провалиться</translation>
+        <translation>поражение</translation>
     </message>
     <message>
         <source>left</source>
-        <translation>провалиться</translation>
+        <translation>покинул бой до его завершения</translation>
     </message>
 </context>
 <context>
@@ -250,17 +250,17 @@
     <message>
         <location filename="../../playerprofiledialog.cpp" line="15"/>
         <source>Vehicle</source>
-        <translation>Автомобиль</translation>
+        <translation>Техника</translation>
     </message>
     <message>
         <location filename="../../playerprofiledialog.cpp" line="15"/>
         <source>Rank</source>
-        <translation>звание</translation>
+        <translation>Ранк техники</translation>
     </message>
     <message>
         <location filename="../../playerprofiledialog.cpp" line="15"/>
         <source>Arcade BR</source>
-        <translation>Аркада БР</translation>
+        <translation>Аркадный БР</translation>
     </message>
     <message>
         <location filename="../../playerprofiledialog.cpp" line="15"/>
@@ -270,7 +270,7 @@
     <message>
         <location filename="../../playerprofiledialog.cpp" line="15"/>
         <source>Simulator BR</source>
-        <translation>Симулятор BR</translation>
+        <translation>Симуляторный BR</translation>
     </message>
     <message>
         <source>win64</source>
@@ -326,7 +326,7 @@
     <message>
         <location filename="../../preferencesdialog.ui" line="40"/>
         <source>Start minimized:</source>
-        <translation>Запуск сведен к минимуму:</translation>
+        <translation>Запускать свернутым:</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.ui" line="50"/>
@@ -336,22 +336,22 @@
     <message>
         <location filename="../../preferencesdialog.ui" line="60"/>
         <source>Replay folder:</source>
-        <translation>Папка для воспроизведения:</translation>
+        <translation>Папка с повторами:</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.ui" line="122"/>
         <source>Plot save path:</source>
-        <translation>Путь сохранения сюжета:</translation>
+        <translation>Путь сохранения графиков:</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.cpp" line="31"/>
         <source>Select Replay Folder</source>
-        <translation>Выберите папку для воспроизведения</translation>
+        <translation>Выберите папку с повторами</translation>
     </message>
     <message>
         <location filename="../../preferencesdialog.cpp" line="40"/>
         <source>Select Plot Save Path</source>
-        <translation>Выберите путь сохранения сюжета</translation>
+        <translation>Выберите путь для сохранения графиков</translation>
     </message>
 </context>
 <context>
@@ -386,15 +386,15 @@
     </message>
     <message>
         <source>success</source>
-        <translation>успех</translation>
+        <translation>победа</translation>
     </message>
     <message>
         <source>fail</source>
-        <translation>провалиться</translation>
+        <translation>поражение</translation>
     </message>
     <message>
         <source>left</source>
-        <translation>провалиться</translation>
+        <translation>покинул бой до его завершения</translation>
     </message>
     <message>
         <source>unknown</source>
@@ -411,7 +411,7 @@
     <message>
         <location filename="../../worker.cpp" line="107"/>
         <source>Awaiting match start...</source>
-        <translation>Ждем начала матча...</translation>
+        <translation>Ожидание начала матча...</translation>
     </message>
 </context>
 </TS>

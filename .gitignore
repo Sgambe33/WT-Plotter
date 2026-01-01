@@ -64,4 +64,6 @@ Thumbs.db
 
 .vs
 out
-version.h
+src/version.h
+/.idea
+/discord-files

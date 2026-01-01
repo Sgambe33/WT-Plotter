@@ -9,8 +9,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QList>
-#include "../classes/position.h"
-#include "ui/sceneimageviewer.h"
+#include "classes/position.h"
+#include "sceneimageviewer.h"
 
 class Worker : public QObject
 {

@@ -222,7 +222,7 @@ function(deploy_linux TARGET DEPLOY_SOURCE_DIR)
         ${DEPLOY_PREFIX_PATH}/.DirIcon SYMBOLIC)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli
         DESTINATION ${DEPLOY_PREFIX_PATH}/usr/bin FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/libs/discord-files/lib/x86_64/discord_game_sdk.so
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/discord-files/lib/x86_64/discord_game_sdk.so
         DESTINATION ${DEPLOY_PREFIX_PATH}/usr/lib FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
 
 
@@ -377,7 +377,7 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli.exe
         DESTINATION ${DEPLOY_PREFIX_PATH})
 
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/libs/discord-files/lib/x86_64/discord_game_sdk.dll
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/discord-files/lib/x86_64/discord_game_sdk.dll
         DESTINATION ${DEPLOY_PREFIX_PATH})
 
     foreach(BIN IN LISTS BINS)

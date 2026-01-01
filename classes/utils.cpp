@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "../version.h"
+#include "version.h"
 #include "logger.h"
 
 #ifdef _MSC_VER
@@ -90,6 +90,78 @@ QFile Utils::getLatestReplay(const QDir& replayDirectory)
 	}
 
 	return QFile();
+}
+
+void Utils::uploadReplay(Replay& replayData, const QString& uploader, QList<Position> positionCache, QList<Position> poi)
+{
+	QNetworkAccessManager networkManager;
+	QNetworkRequest request(QUrl("https://warthunder-heatmaps.crabdance.com/uploadPositions"));
+#ifdef DEBUG_BUILD
+	request.setUrl(QUrl("http://localhost:5000/uploadPositions"));
+#endif
+
+	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	QJsonObject headerMap;
+	headerMap["sessionId"] = replayData.getSessionId();
+	headerMap["uploader"] = uploader;
+	headerMap["startTime"] = replayData.getStartTime();
+	headerMap["map"] = replayData.getLevel();
+	headerMap["gameMode"] = replayData.getBattleType();
+	headerMap["difficulty"] = difficultyToString(replayData.getDifficulty());
+	headerMap["wtplotterVersion"] = QString("%1.%2.%3")
+		.arg(APP_VERSION_MAJOR)
+		.arg(APP_VERSION_MINOR)
+		.arg(APP_VERSION_PATCH);
+
+	QJsonObject data;
+	data["replayHeader"] = headerMap;
+	data["positions"] = exportPositionsToJson(replayData, positionCache, poi);
+
+	QJsonDocument doc(data);
+	QByteArray jsonData = doc.toJson();
+
+	QNetworkReply* reply = networkManager.post(request, jsonData);
+	QEventLoop loop;
+	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	loop.exec();
+
+	if (reply->error() != QNetworkReply::NoError)
+	{
+		LOG_WARN_GLOBAL(QString("Failed to upload replay:%1").arg(reply->errorString()));
+	}
+	else
+	{
+		LOG_INFO_GLOBAL("Replay uploaded successfully.");
+		LOG_INFO_GLOBAL(QString("Uploaded %1 positions.").arg(data["positions"].toArray().size()));
+	}
+	reply->deleteLater();
+}
+
+QJsonArray Utils::exportPositionsToJson(Replay& replayData, QList<Position> positionCache, QList<Position> poi) {
+	QJsonArray positions;
+	for (const Position& position : positionCache) {
+		QJsonObject obj;
+		obj["x"] = position.x();
+		obj["y"] = position.y();
+		obj["type"] = position.type();
+		obj["icon"] = position.icon();
+		obj["timestamp"] = position.timestamp();
+		obj["sessionId"] = replayData.getSessionId();
+		positions.append(obj);
+	}
+	for (const Position& position : poi) {
+		QJsonObject obj;
+		obj["x"] = position.x();
+		obj["y"] = position.y();
+		obj["type"] = position.type();
+		obj["icon"] = position.icon();
+		obj["timestamp"] = position.timestamp();
+		obj["sessionId"] = replayData.getSessionId();
+		positions.append(obj);
+	}
+
+	return positions;
 }
 
 void Utils::saveImage(QPixmap drawedMapImage) {

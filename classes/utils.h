@@ -21,10 +21,10 @@
 #include <QList>
 #include <QSettings>
 #include <QImageWriter>
-#include "../classes/position.h"
-#include "../ui/sceneimageviewer.h"
-#include "../classes/replay.h"
-#include "../classes/constants.h"
+#include "classes/position.h"
+#include "sceneimageviewer.h"
+#include "classes/replay.h"
+#include "classes/constants.h"
 #include <QMap>
 #include <QIcon>
 #include <QImage>
@@ -33,6 +33,7 @@
 class Utils {
 public:
     static void checkAppVersion();
+    static void uploadReplay(Replay& replayData, const QString& uploader, QList<Position> positionCache, QList<Position> poi);
     static QFile getLatestReplay(const QDir& replayDirectory);
     static void saveImage(QPixmap drawedMapImage);
     static QString replayLengthToString(int length);

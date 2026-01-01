@@ -6,7 +6,7 @@
 #include <QDebug>
 #include <QThread>
 #include <qdatetime.h>
-#include "libs/discord-files/cpp/discord.h"
+#include "discord-files/cpp/discord.h"
 
 class DiscordWorker : public QObject {
 	Q_OBJECT

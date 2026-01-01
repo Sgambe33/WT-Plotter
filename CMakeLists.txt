@@ -1,14 +1,11 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(wtplotter
-    VERSION 1.2.1
+    VERSION 1.2.0
     HOMEPAGE_URL github.com/Sgambe33/WT-Plotter
     DESCRIPTION "GUI tool to read War Thunder replays and plot ground matches"
     LANGUAGES CXX
 )
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -20,45 +17,7 @@ include(Setup)
 include(Deploy)
 
 # Path to Discord Game SDK source directory
-set(DISCORD_GAME_SDK ${CMAKE_SOURCE_DIR}/libs/discord-files)
-if(NOT EXISTS "${DISCORD_GAME_SDK}/cpp/discord.h")
-    message(STATUS "Downloading Discord Game SDK...")
-
-    # Create directory if missing
-    file(MAKE_DIRECTORY ${DISCORD_GAME_SDK})
-
-    set(DISCORD_GAME_SDK_ZIP ${DISCORD_GAME_SDK}/discord_game_sdk.zip)
-    set(DISCORD_GAME_SDK_URL "https://dl-game-sdk.discordapp.net/2.5.6/discord_game_sdk.zip")
-
-    file(DOWNLOAD ${DISCORD_GAME_SDK_URL} ${DISCORD_GAME_SDK_ZIP} SHOW_PROGRESS)
-    file(ARCHIVE_EXTRACT INPUT ${DISCORD_GAME_SDK_ZIP} DESTINATION ${DISCORD_GAME_SDK})
-
-    message(STATUS "Patching Discord SDK headers for Linux compatibility...")
-    file(GLOB DISCORD_CPP_HEADERS "${DISCORD_GAME_SDK}/cpp/*.h")
-    foreach(header_file ${DISCORD_CPP_HEADERS})
-        file(READ "${header_file}" FILE_CONTENT)
-        if(NOT "${FILE_CONTENT}" MATCHES "#include <cstdint>")
-            # Prepend the missing include
-            file(WRITE "${header_file}" "#include <cstdint>\n#include <memory>\n${FILE_CONTENT}")
-        endif()
-    endforeach()
-
-    if(UNIX AND NOT APPLE)
-        find_program(PATCHELF_EXE patchelf)
-        set(DISCORD_SO "${DISCORD_GAME_SDK}/lib/x86_64/discord_game_sdk.so")
-
-        if(PATCHELF_EXE AND EXISTS "${DISCORD_SO}")
-            message(STATUS "Patching SONAME for ${DISCORD_SO}...")
-            execute_process(COMMAND ${PATCHELF_EXE} --set-soname "discord_game_sdk.so" "${DISCORD_SO}")
-        else()
-            message(WARNING " 'patchelf' not found! The resulting AppImage might crash because Discord SDK lacks a SONAME.")
-        endif()
-    endif()
-
-    message(STATUS "Discord Game SDK downloaded and patched.")
-else()
-    message(STATUS "Discord Game SDK found at ${DISCORD_GAME_SDK}")
-endif()
+set(DISCORD_GAME_SDK ${CMAKE_SOURCE_DIR}/discord-files)
 
 # Locate Qt
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Svg Network Sql)
@@ -66,28 +25,28 @@ find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS LinguistTools)
 
 # Collect sources and UI
 file(GLOB_RECURSE SOURCES
-        src/classes/*.cpp src/classes/*.h
-        libs/discord-files/cpp/*.cpp libs/discord-files/cpp/*.h
+    classes/*.cpp classes/*.h
+    discord-files/cpp/*.cpp discord-files/cpp/*.h
 )
 
 set(UI_FILES
-        src/ui/mainwindow.ui
-        src/ui/preferencesdialog.ui
-        src/ui/playerprofiledialog.ui
+    mainwindow.ui
+    preferencesdialog.ui
+    playerprofiledialog.ui
 )
 
 qt_add_executable(wtplotter
-        src/main.cpp
-        src/ui/mainwindow.cpp
-        src/ui/mainwindow.h
-        src/ui/preferencesdialog.cpp
-        src/ui/preferencesdialog.h
-        src/ui/playerprofiledialog.cpp
-        src/ui/playerprofiledialog.h
-        src/ui/sceneimageviewer.cpp
-        src/ui/sceneimageviewer.h
-        src/worker.cpp
-        src/worker.h
+    main.cpp
+    mainwindow.cpp
+    mainwindow.h
+    preferencesdialog.cpp
+    preferencesdialog.h
+    playerprofiledialog.cpp
+    playerprofiledialog.h
+    sceneimageviewer.cpp
+    sceneimageviewer.h
+    worker.cpp
+    worker.h
     ${SOURCES}
     ${UI_FILES}
 )
@@ -109,7 +68,7 @@ qt_add_resources(wtplotter
 app_add_translations(wtplotter TS_FILES ${TRANSLATIONS})
 
 target_include_directories(wtplotter PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/ui ${DISCORD_GAME_SDK}/cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Platform-specific linking and deployment
@@ -135,7 +94,7 @@ elseif(APPLE)
     )
 elseif(UNIX)
     # Set the base dir for the SDK (relative to project root, adjust if necessary)
-    set(DISCORD_GAME_SDK_DIR "${DISCORD_GAME_SDK}/lib/x86_64")
+    set(DISCORD_GAME_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/discord-files/lib/x86_64")
     add_library(discord_game_sdk SHARED IMPORTED)
     set_target_properties(discord_game_sdk PROPERTIES
         IMPORTED_LOCATION "${DISCORD_GAME_SDK_DIR}/discord_game_sdk.so"
@@ -169,8 +128,8 @@ endif()
 
 # Version header
 configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/version.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.h
     @ONLY
 )
 

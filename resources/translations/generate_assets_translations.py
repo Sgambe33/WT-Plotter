@@ -23,13 +23,11 @@ for item in result:
     try:
         item_name_en = df.loc[df['<ID|readonly|noverify>'] == item+"_shop"]["<English>"].values
         item_name_ru = df.loc[df['<ID|readonly|noverify>'] == item+"_shop"]["<Russian>"].values
-        item_name_fr = df.loc[df['<ID|readonly|noverify>'] == item+"_shop"]["<French>"].values
 
         obj = {
             "identifier": item,
             "en": item_name_en[0] if len(item_name_en) > 0 and pd.notna(item_name_en[0]) else "N/A",
             "ru": item_name_ru[0] if len(item_name_ru) > 0 and pd.notna(item_name_ru[0]) else "N/A",
-            "fr": item_name_fr[0] if len(item_name_fr) > 0 and pd.notna(item_name_fr[0]) else "N/A",
             "country": result[item].get('country', "unknown").replace("country_", ""),
             "rank": result[item].get('rank', "unknown"),
             "ab_br": calcoloBR(result[item].get('economicRankArcade', 0)),
@@ -53,7 +51,6 @@ for index, row in df.iterrows():
         "identifier": row["<ID|readonly|noverify>"].replace("location/", ""),
         "en": row["<English>"] if pd.notna(row["<English>"]) else "N/A",
         "ru": row["<Russian>"] if pd.notna(row["<Russian>"]) else "N/A",
-        "fr": row["<French>"] if pd.notna(row["<French>"]) else "N/A"
     }
 
     locations.append(obj)

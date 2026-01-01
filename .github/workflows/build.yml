@@ -10,9 +10,6 @@ on:
   pull_request:
     branches:
     - 'main'
-  push:
-    tags:
-    - "v*.*.*"
 
 jobs:
   build:
@@ -21,6 +18,7 @@ jobs:
         include:
         - os: ubuntu-22.04
           conanops: "-s compiler.libcxx=libstdc++11"
+
         - os: windows-2019
           conanops: " "
         #- os: macos-11
@@ -48,7 +46,7 @@ jobs:
       if: matrix.os == 'windows-2019'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.8.0'
+        version: '6.8.3'
         cache: 'true'
         install-deps: 'false'
 
@@ -56,7 +54,7 @@ jobs:
       if: matrix.os == 'ubuntu-22.04'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.8.0'
+        version: '6.8.3'
         cache: 'true'
         install-deps: 'false'
         # tools: 'tools_qtcreator'

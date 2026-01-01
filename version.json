@@ -1,0 +1,5 @@
+{
+  "version": "1.2.1",
+  "critical": false,
+  "changelog": "<p>Changelog:</p><ul><li>Removed WT-Heatmaps integration totally.</li><li>Moved app directory to .wtplotter inside user folder. If you want to keep your data, MOVE THE OLD DATA into the new folder.</li><li>Fixed RU translations by @rRedLim.</li><li>Added FR translations by @Pixtolero.</li></ul>"
+}

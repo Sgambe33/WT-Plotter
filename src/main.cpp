@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "classes/logger.h"
+#include "ui/mainwindow.h"
+#include "../classes/logger.h"
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
@@ -13,16 +13,15 @@
 #include <QDebug>
 
 void setupApplicationDirectories() {
-	QDir docDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter");
-	if (!docDir.exists()) {
-		docDir.mkpath(".");
+	QString homePath = QDir::homePath();
+	QDir dataDir(homePath + "/.wtplotter");
+	if (!dataDir.exists()) {
+		dataDir.mkpath(".");
 	}
-
-	QDir plotDir(docDir.filePath("plots"));
+	QDir plotDir(dataDir.filePath("plots"));
 	if (!plotDir.exists()) {
 		plotDir.mkpath(".");
 	}
-
 	QSettings settings("sgambe33", "wtplotter");
 	if (settings.value("plotSavePath").toString().isEmpty()) {
 		settings.setValue("plotSavePath", plotDir.path());
@@ -40,42 +39,54 @@ bool isSqliteDriverAvailable() {
 void setupTranslations(QSettings& settings) {
 	static QTranslator translator;
 	QString languageCode = settings.value("language", "en").toString();
-	QString translationPath;
+	QString filename = QString("wtplotter_%1.qm").arg(languageCode);
+	QString appDir = QCoreApplication::applicationDirPath();
 
-	QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
-	if (translationsDir.exists()) {
-		translationPath = translationsDir.filePath(QString("wtplotter_%1.qm").arg(languageCode));
-	}
-	else {
-		translationPath = QCoreApplication::applicationDirPath() + QString("/wtplotter_%1.qm").arg(languageCode);
+	QStringList searchPaths = {
+		QDir(appDir).filePath("../translations"),
+		QDir(appDir).filePath("../share/wtplotter/translations"),
+		QDir(appDir).filePath("translations"),
+		QDir(appDir).filePath("/resources/translations"),
+		appDir
+	};
+
+	bool loaded = false;
+	for (const QString& path : searchPaths) {
+		QDir dir(path);
+		QString fullPath = dir.filePath(filename);
+		fullPath = QDir::cleanPath(fullPath);
+		if (QFile::exists(fullPath)) {
+			if (translator.load(fullPath)) {
+				QCoreApplication::installTranslator(&translator);
+				qDebug() << "Loaded translation from:" << fullPath;
+				loaded = true;
+				break;
+			}
+		}
 	}
 
-	if (translator.load(translationPath)) {
-		QCoreApplication::installTranslator(&translator);
-	}
-	else {
-		qWarning() << "Failed to load translation file:" << translationPath;
+	if (!loaded) {
+		qWarning() << "Failed to load translation file for code:" << languageCode;
+		qWarning() << "Searched in:" << searchPaths;
 	}
 }
 
 void setupSystemTray(QSystemTrayIcon& trayIcon, MainWindow& mainWindow, QApplication& app) {
 	trayIcon.setIcon(QIcon(":/icons/logo.png"));
-
-	QMenu* trayMenu = new QMenu();
+	QMenu* trayMenu = new QMenu(&mainWindow);
 	QAction* quitAction = new QAction(QObject::tr("Quit"), trayMenu);
 	trayMenu->addAction(quitAction);
 	QObject::connect(quitAction, &QAction::triggered, &app, &QApplication::quit);
-
 	trayIcon.setContextMenu(trayMenu);
 
 	QObject::connect(&trayIcon, &QSystemTrayIcon::activated, [&mainWindow](QSystemTrayIcon::ActivationReason reason) {
-		if (reason == QSystemTrayIcon::DoubleClick || reason == QSystemTrayIcon::Trigger) {
-			mainWindow.show();
-			mainWindow.setWindowState(Qt::WindowNoState);
-			mainWindow.raise();
-			mainWindow.activateWindow();
-		}
-		});
+	   if (reason == QSystemTrayIcon::DoubleClick || reason == QSystemTrayIcon::Trigger) {
+		  mainWindow.show();
+		  mainWindow.setWindowState(Qt::WindowNoState);
+		  mainWindow.raise();
+		  mainWindow.activateWindow();
+	   }
+	});
 
 	QSettings settings("sgambe33", "wtplotter");
 	if (settings.value("startMinimized", false).toBool()) {
@@ -91,6 +102,9 @@ void setupSystemTray(QSystemTrayIcon& trayIcon, MainWindow& mainWindow, QApplica
 
 int main(int argc, char* argv[])
 {
+#ifdef Q_OS_LINUX
+	qputenv("QT_QPA_PLATFORM", "xcb");
+#endif
 	QApplication app(argc, argv);
 	app.setStyle("Fusion");
 

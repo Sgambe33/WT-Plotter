@@ -1,7 +1,7 @@
 #include "preferencesdialog.h"
 #include "./ui_preferencesdialog.h"
 #include <QFileDialog>
-#include "classes/logger.h"
+#include "../classes/logger.h"
 
 PreferencesDialog::PreferencesDialog(QWidget* parent) :
 	QDialog(parent),
@@ -57,37 +57,52 @@ void PreferencesDialog::on_startMinimizedCheck_stateChanged(int state)
 
 void PreferencesDialog::loadLanguages()
 {
-	ui->languageComboBox->clear();
-	ui->languageComboBox->addItem("American English", "en");
+    ui->languageComboBox->clear();
+    // specific formatting to ensure "en" is always the default/first option
+    ui->languageComboBox->addItem("American English", "en");
 
-	QStringList translationFiles;
+    QStringList translationFiles;
+    QString appDir = QCoreApplication::applicationDirPath();
 
-	QDir translationsDir(QCoreApplication::applicationDirPath() + "/translations");
-	if (translationsDir.exists()) {
-		translationFiles = translationsDir.entryList(QStringList("wtplotter_*.qm"));
-	}
-	else {
-		translationFiles = QDir(QCoreApplication::applicationDirPath()).entryList(QStringList("wtplotter_*.qm"));
-	}
-	for (const QString& file : translationFiles) {
-		QString languageCode = file.mid(10, 2);
+	QStringList searchPaths = {
+		QDir(appDir).filePath("../translations"),
+		QDir(appDir).filePath("../share/wtplotter/translations"),
+		QDir(appDir).filePath("translations"),
+		QDir(appDir).filePath("/resources/translations"),
+		appDir
+	};
 
-		if (languageCode == "en") {
-			continue;
-		}
+    for (const QString& path : searchPaths) {
+        QDir dir(path);
+        QStringList files = dir.entryList(QStringList("wtplotter_*.qm"), QDir::Files);
+        if (!files.isEmpty()) {
+            qDebug() << "Found translation files in:" << path;
+            translationFiles = files;
+            break;
+        }
+    }
 
-		QString languageName = QLocale(languageCode).nativeLanguageName();
+    for (const QString& file : translationFiles) {
+        QString languageCode = file.section('_', 1).section('.', 0, 0);
+        if (languageCode == "en") {
+            continue;
+        }
+        QLocale locale(languageCode);
+        QString languageName = locale.nativeLanguageName();
+        if (languageName.isEmpty()) {
+            languageName = QLocale::languageToString(locale.language());
+        }
 
-		if (!languageName.isEmpty()) {
-			ui->languageComboBox->addItem(languageName, languageCode);
-		}
-	}
+        if (!languageName.isEmpty()) {
+            ui->languageComboBox->addItem(languageName, languageCode);
+        }
+    }
 
-	QString currentLanguage = settings.value("language", "en").toString();
-	int index = ui->languageComboBox->findData(currentLanguage);
-	if (index >= 0) {
-		ui->languageComboBox->setCurrentIndex(index);
-	}
+    QString currentLanguage = settings.value("language", "en").toString();
+    int index = ui->languageComboBox->findData(currentLanguage);
+    if (index >= 0) {
+       ui->languageComboBox->setCurrentIndex(index);
+    }
 }
 
 void PreferencesDialog::changeLanguage(const QString& languageCode)

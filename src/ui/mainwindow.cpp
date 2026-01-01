@@ -1,10 +1,10 @@
 ﻿#include "mainwindow.h"
-#include "classes/utils.h"
-#include "classes/logger.h"
-#include "./ui_mainwindow.h"
-#include "classes/replay.h"
+#include "../classes/utils.h"
+#include "../classes/logger.h"
+#include "ui_mainwindow.h"
+#include "../classes/replay.h"
 #include "sceneimageviewer.h"
-#include "worker.h"
+#include "../worker.h"
 #include "preferencesdialog.h"
 #include <QPainter>
 #include <QTreeView>
@@ -29,12 +29,12 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QSqlDatabase>
-#include <classes/replayloaderworker.h>
+#include <../classes/replayloaderworker.h>
 #include <QStandardPaths>
 #include <QDesktopServices>
 #include <QPalette>
-#include <playerprofiledialog.h>
-#include <version.h>
+#include "playerprofiledialog.h"
+#include "../version.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget* parent)
 	m_worker_thread(nullptr),
 	m_worker(nullptr),
 	appTranslator(new QTranslator(this)),
-	m_dbmanager(QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"), "mainwindow"),
+	m_dbmanager(QString(QDir::homePath() + "/.wtplotter/replays.sqlite3"), "mainwindow"),
 	settings("sgambe33", "wtplotter")
 {
 	ui->setupUi(this);
@@ -195,7 +195,7 @@ void MainWindow::loadReplaysFromFolder() {
 	ui->replayLoadingProgressBar->setTextVisible(true);
 
 	QThread* thread = new QThread();
-	ReplayLoaderWorker* worker = new ReplayLoaderWorker(folderPath, QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/wtplotter/replays.sqlite3"));
+	ReplayLoaderWorker* worker = new ReplayLoaderWorker(folderPath, QString(QString(QDir::homePath() + "/.wtplotter/replays.sqlite3")));
 	worker->moveToThread(thread);
 
 	connect(thread, &QThread::started, worker, &ReplayLoaderWorker::loadReplays);

@@ -1,5 +1,5 @@
 #include "worker.h"
-#include "classes/utils.h"
+#include "../classes/utils.h"
 #include <QDateTime>
 #include <QDebug>
 #include <QNetworkRequest>
@@ -15,8 +15,8 @@
 #include <QDir>
 #include <QDebug>
 #include <QSettings>
-#include "classes/replay.h"
-#include "classes/logger.h"
+#include "../classes/replay.h"
+#include "../classes/logger.h"
 #include <chrono>
 #include <iostream>
 #include <QMessageBox>
@@ -239,20 +239,11 @@ void Worker::endMatch()
 
 		if (latestReplay.exists()) {
 			LOG_INFO("Latest replay file:" + latestReplay.fileName());
-			Replay replayData = Replay::fromFile(latestReplay.fileName());
-			QString uploader = replayData.getAuthorUserId();
-			if (!uploader.isEmpty()) {
-				Utils::uploadReplay(replayData, uploader, this->m_positionCache, this->m_poi);
-			}
-			else {
-				LOG_ERROR("Failed to get user UID. Data will not be validated against replay.");
-			}
 			emit refreshReplays();
 		}
 		else {
-			LOG_WARN("No replay file found after match end. Data will not be validated against replay.");
+			LOG_WARN("No replay file found after match end.");
 		}
-
 		LOG_INFO("Position cache exported and plot saved to disk with timestamp:" + currEpoch);
 	}
 	catch (const std::exception& e) {

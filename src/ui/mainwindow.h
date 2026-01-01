@@ -17,10 +17,10 @@
 #include <QStackedWidget>
 #include <QFont>
 
-#include "classes/player.h"
-#include "classes/dbmanager.h"
-#include "classes/discordworker.h"
-#include "worker.h"
+#include "../classes/player.h"
+#include "../classes/dbmanager.h"
+#include "../classes/discordworker.h"
+#include "../worker.h"
 #include "sceneimageviewer.h"
 
 

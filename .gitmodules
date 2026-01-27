@@ -1,3 +1,0 @@
-[submodule "discord-gamesdk-cmake"]
-	path = discord-gamesdk-cmake
-	url = https://github.com/borfei/discord-gamesdk-cmake.git

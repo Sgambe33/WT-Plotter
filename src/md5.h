@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <cstring>
 
 // Minimal public-domain MD5 implementation (single-file).
 // Source adapted for brevity; suitable for small binary buffers.

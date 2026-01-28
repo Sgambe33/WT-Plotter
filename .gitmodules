@@ -1,0 +1,3 @@
+[submodule "lib/wrpl_parser"]
+	path = lib/wrpl_parser
+	url = https://github.com/Sgambe33/WRPL_parser

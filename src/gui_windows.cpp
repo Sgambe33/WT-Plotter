@@ -15,11 +15,6 @@ extern ImFont *g_WtSymbolsFont;
 // ==========================================
 
 void DrawReplayListPanel() {
-    // Load replays on first display
-    if (!g_AppState.replaysLoaded) {
-        LoadReplaysFromDisk();
-    }
-
     // The Tree View Area (leave space for bottom toolbar)
     if (ImGui::BeginChild("ReplayTree", ImVec2(0, -Constants::TOOLBAR_HEIGHT), true)) {
         if (!g_AppState.replaysLoaded) {
@@ -79,10 +74,12 @@ void DrawReplayListPanel() {
     }
     ImGui::SameLine();
     if (ImGui::Button("Refresh")) {
+        // Trigger an immediate reload of the replay list
         g_AppState.listMode = AppState::ListMode::Loading;
         g_AppState.loadingProgress = 0.0f;
-        g_AppState.replaysLoaded = false; // Mark for reload
         g_AppState.treeNodeOpen.clear(); // Clear tree state
+        LoadReplaysFromDisk();
+        g_AppState.listMode = AppState::ListMode::TreeView;
     }
 }
 
@@ -489,25 +486,28 @@ void Gui_PreferencesDialog() {
             g_AppState.prefs = tempPrefs;
             SavePreferences(g_AppState.prefs);
             g_AppState.showPreferencesDialog = false;
-            g_AppState.replaysLoaded = false;
-        }
+            // Reload replays immediately if replay path changed
+            g_AppState.treeNodeOpen.clear();
+            LoadReplaysFromDisk();
+         }
 
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(100, 0))) {
-            tempPrefs = g_AppState.prefs; // Reset to original
-            strncpy(replayPathBuffer, tempPrefs.replayPath.c_str(), sizeof(replayPathBuffer) - 1);
-            g_AppState.showPreferencesDialog = false;
-        }
+         ImGui::SameLine();
+         if (ImGui::Button("Cancel", ImVec2(100, 0))) {
+             tempPrefs = g_AppState.prefs; // Reset to original
+             strncpy(replayPathBuffer, tempPrefs.replayPath.c_str(), sizeof(replayPathBuffer) - 1);
+             g_AppState.showPreferencesDialog = false;
+         }
 
-        ImGui::SameLine();
-        if (ImGui::Button("Apply", ImVec2(100, 0))) {
+         ImGui::SameLine();
+         if (ImGui::Button("Apply", ImVec2(100, 0))) {
             g_AppState.prefs = tempPrefs;
             SavePreferences(g_AppState.prefs);
-            // Reload replays if path changed
-            g_AppState.replaysLoaded = false;
-        }
-    }
-    ImGui::End();
+            // Reload replays immediately
+            g_AppState.treeNodeOpen.clear();
+            LoadReplaysFromDisk();
+         }
+     }
+     ImGui::End();
 }
 
 void Gui_MenuBar() {

@@ -79,7 +79,12 @@ int main(int, char *[]) {
     // Load preferences
     LoadPreferences(g_AppState.prefs);
 
-    SDL_GL_SetSwapInterval(1); //VSYNC
+    // Load replays once at startup (populate AppState)
+    LoadReplaysFromDisk();
+
+    if (!SDL_SetRenderVSync(renderer, 1)) {
+        printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
+    }
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();

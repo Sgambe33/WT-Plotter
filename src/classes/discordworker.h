@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QDebug>
 #include <QThread>
-#include "libs/discord-files/cpp/discord.h"
+#include "discordpp.h"
 
 class DiscordWorker : public QObject {
     Q_OBJECT
@@ -24,6 +24,6 @@ signals:
 
 private:
     QTimer* updateTimer = nullptr;
-    discord::Core* core{};
-	discord::Activity activity{};
+    //discordpp::Client client;
+	//discordpp::Activity activity{};
 };

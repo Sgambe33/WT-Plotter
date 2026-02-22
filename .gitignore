@@ -72,5 +72,6 @@ Thumbs.db
 .vs
 out
 src/version.h
-*/discord-files
-build
+libs/*
+cmake-build-release
+cmake-build-debug

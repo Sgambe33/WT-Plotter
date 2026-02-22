@@ -1,354 +1,488 @@
 #include "dbmanager.h"
 #include <QSqlError>
 #include <QDebug>
-#include <QJsonDocument>
+#include <nlohmann/json.hpp>
 
-DbManager::DbManager(const QString& path, const QString connName, QObject* parent)
-	: QObject(parent), m_db(QSqlDatabase::addDatabase("QSQLITE", connName))
-{
-	m_db.setDatabaseName(path);
+#include "logger.h"
+#include "libs/WRPL_parser/include/ReplayStructs.h"
+#include "libs/WRPL_parser/include/BLK.h"
 
-	if (!m_db.open()) {
-		qCritical() << "Database connection error:" << m_db.lastError().text();
-	}
-	else {
-		qInfo() << "Database connected successfully";
-		prepareQueries();
-		createTables();
-	}
+using json = nlohmann::json;
+
+namespace {
+    template<typename T>
+    QByteArray serializePacketVector(const std::vector<T> &packets) {
+        QByteArray blob;
+        QDataStream stream(&blob, QIODevice::WriteOnly);
+        stream.setVersion(QDataStream::Qt_6_0);
+
+        stream << static_cast<quint32>(packets.size());
+
+        if constexpr (std::is_same_v<T, ChatPacket>) {
+            for (const auto &p: packets) {
+                stream << static_cast<quint32>(p.time);
+                stream << QString::fromStdString(p.sender);
+                stream << static_cast<quint32>(p.channel);
+                stream << p.isEnemy;
+                stream << QString::fromStdString(p.message);
+            }
+        } else if constexpr (std::is_same_v<T, KillPacket>) {
+            for (const auto &p: packets) {
+                stream << static_cast<quint32>(p.time);
+                stream << static_cast<quint32>(p.control);
+                stream << static_cast<quint32>(p.damageType);
+                stream << static_cast<quint32>(p.killerId);
+                stream << QString::fromStdString(p.killerVehicle);
+            }
+        } else if constexpr (std::is_same_v<T, AwardPacket>) {
+            for (const auto &p: packets) {
+                stream << static_cast<quint32>(p.time);
+                stream << static_cast<quint32>(p.awardType);
+                stream << static_cast<quint32>(p.playerId);
+                stream << QString::fromStdString(p.awardName);
+            }
+        } else if constexpr (std::is_same_v<T, MovementPacket>) {
+            for (const auto &p: packets) {
+                stream << static_cast<quint32>(p.time);
+                stream << static_cast<quint64>(p.entityId);
+                stream << p.x;
+                stream << p.y;
+                stream << p.z;
+            }
+        } else if constexpr (std::is_same_v<T, SlotPacket>) {
+            for (const auto &p: packets) {
+                stream << static_cast<quint32>(p.time);
+                stream << static_cast<quint32>(p.players.size());
+                for (const auto &[slot, player]: p.players) {
+                    stream << slot;
+                    stream << static_cast<quint32>(player.userId);
+                    stream << QString::fromStdString(player.name);
+                    stream << QString::fromStdString(player.clanTag);
+                    stream << QString::fromStdString(player.title);
+                }
+            }
+        }
+        return qCompress(blob, -1);
+    }
+
+    template<typename T>
+    std::vector<T> deserializePacketVector(const QByteArray &compressedBlob) {
+        std::vector<T> packets;
+
+        // 1. Handle empty blobs gracefully
+        if (compressedBlob.isEmpty()) {
+            return packets;
+        }
+
+        // 2. Decompress the Qt-compressed binary blob
+        QByteArray blob = qUncompress(compressedBlob);
+        if (blob.isEmpty()) {
+            qWarning() << "Failed to decompress packet vector!";
+            return packets;
+        }
+
+        // 3. Set up the data stream for reading
+        QDataStream stream(&blob, QIODevice::ReadOnly);
+        stream.setVersion(QDataStream::Qt_6_0);
+
+        // 4. Read the total number of packets
+        quint32 count;
+        stream >> count;
+        packets.reserve(count); // Pre-allocate memory for performance
+
+        // 5. Read the specific fields based on the struct type
+        if constexpr (std::is_same_v<T, ChatPacket>) {
+            for (quint32 i = 0; i < count; ++i) {
+                ChatPacket p;
+                quint32 time, channel;
+                QString sender, message;
+
+                stream >> time >> sender >> channel >> p.isEnemy >> message;
+
+                p.time = time;
+                p.sender = sender.toStdString();
+                p.channel = channel;
+                p.message = message.toStdString();
+                packets.push_back(std::move(p));
+            }
+        } else if constexpr (std::is_same_v<T, KillPacket>) {
+            for (quint32 i = 0; i < count; ++i) {
+                KillPacket p;
+                quint32 time, control, damageType, killerId;
+                QString killerVehicle;
+
+                stream >> time >> control >> damageType >> killerId >> killerVehicle;
+
+                p.time = time;
+                p.control = control;
+                p.damageType = damageType;
+                p.killerId = killerId;
+                p.killerVehicle = killerVehicle.toStdString();
+                packets.push_back(std::move(p));
+            }
+        } else if constexpr (std::is_same_v<T, AwardPacket>) {
+            for (quint32 i = 0; i < count; ++i) {
+                AwardPacket p;
+                quint32 time, awardType, playerId;
+                QString awardName;
+
+                stream >> time >> awardType >> playerId >> awardName;
+
+                p.time = time;
+                p.awardType = awardType;
+                p.playerId = playerId;
+                p.awardName = awardName.toStdString();
+                packets.push_back(std::move(p));
+            }
+        } else if constexpr (std::is_same_v<T, MovementPacket>) {
+            for (quint32 i = 0; i < count; ++i) {
+                MovementPacket p;
+                quint32 time;
+                quint64 entityId;
+
+                stream >> time >> entityId >> p.x >> p.y >> p.z;
+
+                p.time = time;
+                p.entityId = entityId;
+                packets.push_back(std::move(p));
+            }
+        } else if constexpr (std::is_same_v<T, SlotPacket>) {
+            for (quint32 i = 0; i < count; ++i) {
+                SlotPacket p;
+                quint32 time, playersSize;
+
+                stream >> time >> playersSize;
+                p.time = time;
+                p.players.reserve(playersSize);
+
+                for (quint32 j = 0; j < playersSize; ++j) {
+                    uint8_t slot;
+                    quint32 userId;
+                    QString name, clanTag, title;
+
+                    stream >> slot >> userId >> name >> clanTag >> title;
+
+                    Player player;
+                    player.userId = userId;
+                    player.name = name.toStdString();
+                    player.clanTag = clanTag.toStdString();
+                    player.title = title.toStdString();
+
+                    p.players.push_back({slot, std::move(player)});
+                }
+                packets.push_back(std::move(p));
+            }
+        }
+        return packets;
+    }
+
+    BlkMap deserializeJsonToBlkMap(const QString &jsonString) {
+        BlkMap map;
+
+        if (jsonString.isEmpty() || jsonString == "{}") {
+            return map;
+        }
+
+        try {
+            nlohmann::json j = nlohmann::json::parse(jsonString.toStdString());
+            map = j.get<BlkMap>(); //TODO: add from_json in BLK.h!
+        } catch (const nlohmann::json::exception &e) {
+            qWarning() << "Failed to parse BLK JSON from database:" << e.what();
+        }
+
+        return map;
+    }
 }
 
-DbManager::~DbManager()
-{
-	if (m_db.isOpen()) {
-		m_db.close();
-	}
+DbManager::DbManager(const QString &path, const QString &connName, QObject *parent)
+    : QObject(parent), m_db(QSqlDatabase::addDatabase("QSQLITE", connName)) {
+    m_db.setDatabaseName(path);
+
+    if (!m_db.open()) {
+        qCritical() << "Database connection error:" << m_db.lastError().text();
+    } else {
+        qInfo() << "Database connected successfully";
+        prepareQueries();
+        createTables();
+    }
 }
 
-void DbManager::prepareQueries()
-{
-	// Replay table insert
-	m_insertReplayQuery = QSqlQuery(m_db);
-	m_insertReplayQuery.prepare(R"(
-        INSERT OR IGNORE INTO Replay 
-        (session_id, author_id, start_time, map, game_mode, difficulty, status, time_played)
-        VALUES 
-        (:session_id, :author_id, :start_time, :map, :game_mode, :difficulty, :status, :time_played)
+DbManager::~DbManager() {
+    if (m_db.isOpen()) {
+        m_db.close();
+    }
+}
+
+void DbManager::prepareQueries() {
+    // ReplayMetadata table insert
+    m_insertReplayMetadataQuery = QSqlQuery(m_db);
+    m_insertReplayMetadataQuery.prepare(R"(
+        INSERT OR IGNORE INTO ReplayMetadata
+        (session_id, author_id, wrpl_version, raw_level, raw_level_settings, raw_battle_type,
+         raw_environment, raw_visibility, difficulty, session_type, is_server, raw_location_name,
+         start_time_epoch_ms, time_limit_in_minutes, score_limit, raw_battle_class, raw_battle_kill_streak)
+        VALUES
+        (:session_id, :author_id, :wrpl_version, :raw_level, :raw_level_settings, :raw_battle_type,
+         :raw_environment, :raw_visibility, :difficulty, :session_type, :is_server, :raw_location_name,
+         :start_time_epoch_ms, :time_limit_in_minutes, :score_limit, :raw_battle_class, :raw_battle_kill_streak)
     )");
 
-	// Player table insert
-	m_insertPlayerQuery = QSqlQuery(m_db);
-	m_insertPlayerQuery.prepare(R"(
-        INSERT OR REPLACE INTO Player 
-        (player_id, username, squadron_tag, squadron_id, platform)
-        VALUES 
-        (:player_id, :username, :squadron_tag, :squadron_id, :platform)
-    )");
-
-	// PlayerReplayData table insert
-	m_insertPlayerDataQuery = QSqlQuery(m_db);
-	m_insertPlayerDataQuery.prepare(R"(
-        INSERT OR IGNORE INTO PlayerReplayData 
-        (session_id, player_id, air_kills, ground_kills, naval_kills, team_kills,
-         ai_air_kills, ai_ground_kills, ai_naval_kills, assists, deaths, captured_zones,
-         damage_to_zones, score, award_damage, missile_evades, team, squad_id, auto_squad, wait_time, lineup)
-        VALUES 
-        (:session_id, :player_id, :air_kills, :ground_kills, :naval_kills, :team_kills,
-         :ai_air_kills, :ai_ground_kills, :ai_naval_kills, :assists, :deaths, :captured_zones,
-         :damage_to_zones, :score, :award_damage, :missile_evades, :team, :squad_id, :auto_squad, :wait_time, :lineup)
+    // ReplayData table insert
+    m_insertReplayDataQuery = QSqlQuery(m_db);
+    m_insertReplayDataQuery.prepare(R"(
+        INSERT OR REPLACE INTO ReplayData
+        (session_id, settings_blk, results_blk, chat_packets, kill_packets, award_packets, movement_packets, slot_packets)
+        VALUES
+        (:session_id, :settings_blk, :results_blk, :chat_packets, :kill_packets, :award_packets, :movement_packets, :slot_packets)
     )");
 }
 
-void DbManager::createTables()
-{
-	QSqlQuery query(m_db);
-	query.exec("PRAGMA journal_mode = WAL");
-	query.exec("PRAGMA synchronous = NORMAL");
+void DbManager::createTables() const {
+    QSqlQuery query(m_db);
+    query.exec("PRAGMA journal_mode = WAL");
+    query.exec("PRAGMA synchronous = NORMAL");
 
-	const QStringList tableDefinitions = {
-		R"(
-            CREATE TABLE IF NOT EXISTS Player (
-                player_id INTEGER PRIMARY KEY,
-                username TEXT NOT NULL,
-                squadron_tag TEXT,
-                squadron_id INTEGER,
-                platform TEXT NOT NULL
-            )
-        )",
-		R"(
-            CREATE TABLE IF NOT EXISTS Replay (
+    const QStringList tableDefinitions = {
+        R"(
+            CREATE TABLE IF NOT EXISTS ReplayMetadata (
                 session_id TEXT PRIMARY KEY,
                 author_id INTEGER,
-                start_time INTEGER,
-                map TEXT,
-                game_mode TEXT ,
-                difficulty INTEGER,
-                status TEXT,
-                time_played REAL,
-                FOREIGN KEY (author_id) REFERENCES Player(player_id) ON DELETE CASCADE
+                wrpl_version INTEGER,                 -- ReplayHeader.wrplVersion
+                raw_level TEXT,                       -- ReplayHeader.rawLevel
+                raw_level_settings TEXT,              -- ReplayHeader.rawLevelSettings
+                raw_battle_type TEXT,                 -- ReplayHeader.rawBattleType
+                raw_environment TEXT,                 -- ReplayHeader.rawEnvironment
+                raw_visibility TEXT,                  -- ReplayHeader.rawVisibility
+                difficulty INTEGER,                   -- ReplayHeader.difficulty
+                session_type INTEGER,                 -- ReplayHeader.sessionType
+                is_server INTEGER,                    -- ReplayHeader.isServer (SQLite uses INTEGER 0/1 for booleans)
+                raw_location_name TEXT,               -- ReplayHeader.rawLocationName
+                start_time_epoch_ms INTEGER,          -- ReplayHeader.startTimeEpochS
+                time_limit_in_minutes INTEGER,        -- ReplayHeader.timeLimitInMinutes
+                score_limit INTEGER,                  -- ReplayHeader.scoreLimit
+                raw_battle_class TEXT,                -- ReplayHeader.rawBattleClass
+                raw_battle_kill_streak TEXT           -- ReplayHeader.rawBattleKillStreak
             )
         )",
-		R"(
-            CREATE TABLE IF NOT EXISTS PlayerReplayData (
-                session_id TEXT NOT NULL,
-                player_id INTEGER NOT NULL,
-                air_kills INTEGER DEFAULT 0,
-                ground_kills INTEGER DEFAULT 0,
-                naval_kills INTEGER DEFAULT 0,
-                team_kills INTEGER DEFAULT 0,
-                ai_air_kills INTEGER DEFAULT 0,
-                ai_ground_kills INTEGER DEFAULT 0,
-                ai_naval_kills INTEGER DEFAULT 0,
-                assists INTEGER DEFAULT 0,
-                deaths INTEGER DEFAULT 0,
-                captured_zones INTEGER DEFAULT 0,
-                damage_to_zones INTEGER DEFAULT 0,
-                score INTEGER DEFAULT 0,
-                award_damage INTEGER DEFAULT 0,
-                missile_evades INTEGER DEFAULT 0,
-                team INTEGER DEFAULT 0,
-                squad_id INTEGER DEFAULT 0,
-				wait_time REAL NOT NULL DEFAULT 0,
-                auto_squad INTEGER DEFAULT 0,
-				lineup TEXT NOT NULL,
-                PRIMARY KEY (session_id, player_id),
-                FOREIGN KEY (player_id) REFERENCES Player(player_id) ON DELETE CASCADE,
-                FOREIGN KEY (session_id) REFERENCES Replay(session_id) ON DELETE CASCADE
+        R"(
+            CREATE TABLE IF NOT EXISTS ReplayData (
+                session_id TEXT PRIMARY KEY,        -- Foreign key to replays.id
+                settings_blk JSON,
+                results_blk JSON,
+                chat_packets BLOB,                    -- Compressed serialized vector<ChatPacket>
+                kill_packets BLOB,                    -- Compressed serialized vector<KillPacket>
+                award_packets BLOB,                   -- Compressed serialized vector<AwardPacket>
+                movement_packets BLOB,                -- Compressed serialized vector<MovementPacket>
+                slot_packets BLOB,                    -- Compressed serialized vector<SlotPacket>
+                FOREIGN KEY (session_id) REFERENCES ReplayMetadata(session_id) ON DELETE CASCADE
             )
         )"
 
-	};
+    };
 
-	for (const QString& tableSql : tableDefinitions) {
-		if (!query.exec(tableSql)) {
-			qCritical() << "Table creation failed:" << query.lastError().text();
-		}
-	}
+    for (const QString &tableSql: tableDefinitions) {
+        if (!query.exec(tableSql)) {
+            qCritical() << "Table creation failed:" << query.lastError().text();
+        }
+    }
 }
 
-bool DbManager::insertReplay(const Replay& replay)
-{
-	if (!m_db.transaction()) {
-		qCritical() << "Transaction start failed:" << m_db.lastError().text();
-		return false;
-	}
+bool DbManager::insertReplay(const wrpl::Replay &replay) {
+    if (!m_db.transaction()) {
+        qCritical() << "Transaction start failed:" << m_db.lastError().text();
+        return false;
+    }
 
-	try {
-		m_insertReplayQuery.bindValue(":session_id", replay.getSessionId());
-		m_insertReplayQuery.bindValue(":author_id", replay.getAuthorUserId().toULongLong());
-		m_insertReplayQuery.bindValue(":start_time", replay.getStartTime());
-		m_insertReplayQuery.bindValue(":map", replay.getLevel());
-		m_insertReplayQuery.bindValue(":game_mode", replay.getBattleType());
-		m_insertReplayQuery.bindValue(":difficulty", static_cast<int>(replay.getDifficulty()));
-		m_insertReplayQuery.bindValue(":status", replay.getStatus());
-		m_insertReplayQuery.bindValue(":time_played", replay.getTimePlayed());
+    try {
+        // Insert ReplayMetadata
+        m_insertReplayMetadataQuery.bindValue(":session_id", QString::fromStdString(replay.header.sessionId));
+        m_insertReplayMetadataQuery.bindValue(":author_id", 0); // TODO: extract from results if available
+        m_insertReplayMetadataQuery.bindValue(":wrpl_version", replay.header.wrplVersion);
+        m_insertReplayMetadataQuery.bindValue(":raw_level", QString::fromStdString(replay.header.rawLevel));
+        m_insertReplayMetadataQuery.bindValue(":raw_level_settings", QString::fromStdString(replay.header.rawLevelSettings));
+        m_insertReplayMetadataQuery.bindValue(":raw_battle_type", QString::fromStdString(replay.header.rawBattleType));
+        m_insertReplayMetadataQuery.bindValue(":raw_environment", QString::fromStdString(replay.header.rawEnvironment));
+        m_insertReplayMetadataQuery.bindValue(":raw_visibility", QString::fromStdString(replay.header.rawVisibility));
+        m_insertReplayMetadataQuery.bindValue(":difficulty", replay.header.difficulty);
+        m_insertReplayMetadataQuery.bindValue(":session_type", replay.header.sessionType);
+        m_insertReplayMetadataQuery.bindValue(":is_server", replay.header.isServer ? 1 : 0);
+        m_insertReplayMetadataQuery.bindValue(":raw_location_name", QString::fromStdString(replay.header.rawLocationName));
+        m_insertReplayMetadataQuery.bindValue(":start_time_epoch_ms", replay.header.startTimeEpochS);
+        m_insertReplayMetadataQuery.bindValue(":time_limit_in_minutes", replay.header.timeLimitInMinutes);
+        m_insertReplayMetadataQuery.bindValue(":score_limit", replay.header.scoreLimit);
+        m_insertReplayMetadataQuery.bindValue(":raw_battle_class", QString::fromStdString(replay.header.rawBattleClass));
+        m_insertReplayMetadataQuery.bindValue(":raw_battle_kill_streak", QString::fromStdString(replay.header.rawBattleKillStreak));
 
-		if (!m_insertReplayQuery.exec()) {
-			qCritical() << "Replay insert failed:" << m_insertReplayQuery.lastError().text();
-			throw std::runtime_error("Replay insert failed");
-		}
+        if (!m_insertReplayMetadataQuery.exec()) {
+            qCritical() << "Replay insert failed:" << m_insertReplayMetadataQuery.lastError().text();
+            throw std::runtime_error("Replay insert failed");
+        }
 
-		const QList<QPair<Player, PlayerReplayData>> players = replay.getPlayers();
-		for (const QPair<Player, PlayerReplayData>& player : players) {
-			m_insertPlayerQuery.bindValue(":player_id", player.first.getUserId().toULongLong());
-			m_insertPlayerQuery.bindValue(":username", player.first.getUsername());
-			m_insertPlayerQuery.bindValue(":squadron_tag", player.first.getSquadronTag());
-			m_insertPlayerQuery.bindValue(":squadron_id", player.first.getSquadronId());
-			m_insertPlayerQuery.bindValue(":platform", player.first.getPlatform());
+        nlohmann::json settingsJson = replay.settings;
+        nlohmann::json resultsJson = replay.results;
 
-			if (!m_insertPlayerQuery.exec()) {
-				throw std::runtime_error("Player insert failed");
-			}
+        // Insert ReplayData (packets)
+        m_insertReplayDataQuery.bindValue(":session_id", QString::fromStdString(replay.header.sessionId));
+        m_insertReplayDataQuery.bindValue(":settings_blk", QString::fromStdString(settingsJson.dump()));
+        m_insertReplayDataQuery.bindValue(":results_blk", QString::fromStdString(resultsJson.dump()));
 
-			m_insertPlayerDataQuery.bindValue(":session_id", replay.getSessionId());
-			m_insertPlayerDataQuery.bindValue(":player_id", player.second.getUserId().toULongLong());
-			m_insertPlayerDataQuery.bindValue(":air_kills", player.second.getKills());
-			m_insertPlayerDataQuery.bindValue(":ground_kills", player.second.getGroundKills());
-			m_insertPlayerDataQuery.bindValue(":naval_kills", player.second.getNavalKills());
-			m_insertPlayerDataQuery.bindValue(":team_kills", player.second.getTeamKills());
-			m_insertPlayerDataQuery.bindValue(":ai_air_kills", player.second.getAiKills());
-			m_insertPlayerDataQuery.bindValue(":ai_ground_kills", player.second.getAiGroundKills());
-			m_insertPlayerDataQuery.bindValue(":ai_naval_kills", player.second.getAiNavalKills());
-			m_insertPlayerDataQuery.bindValue(":assists", player.second.getAssists());
-			m_insertPlayerDataQuery.bindValue(":deaths", player.second.getDeaths());
-			m_insertPlayerDataQuery.bindValue(":captured_zones", player.second.getCaptureZone());
-			m_insertPlayerDataQuery.bindValue(":damage_to_zones", player.second.getDamageZone());
-			m_insertPlayerDataQuery.bindValue(":score", player.second.getScore());
-			m_insertPlayerDataQuery.bindValue(":award_damage", player.second.getAwardDamage());
-			m_insertPlayerDataQuery.bindValue(":missile_evades", player.second.getMissileEvades());
-			m_insertPlayerDataQuery.bindValue(":team", player.second.getTeam());
-			m_insertPlayerDataQuery.bindValue(":squad_id", player.second.getSquad());
-			m_insertPlayerDataQuery.bindValue(":auto_squad", player.second.getAutoSquad());
-			m_insertPlayerDataQuery.bindValue(":wait_time", player.second.getWaitTime());
-			QString lineup = player.second.getLineup().join(",");
-			m_insertPlayerDataQuery.bindValue(":lineup", lineup);
+        // Serialize packets to binary BLOB
+        m_insertReplayDataQuery.bindValue(":chat_packets", serializePacketVector(replay.chatPackets));
+        m_insertReplayDataQuery.bindValue(":kill_packets", serializePacketVector(replay.killPackets));
+        m_insertReplayDataQuery.bindValue(":award_packets", serializePacketVector(replay.awardPackets));
+        m_insertReplayDataQuery.bindValue(":movement_packets", serializePacketVector(replay.movementPackets));
+        m_insertReplayDataQuery.bindValue(":slot_packets", serializePacketVector(replay.slotPackets));
 
-			if (!m_insertPlayerDataQuery.exec()) {
-				throw std::runtime_error("Player data insert failed");
-			}
-		}
+        if (!m_insertReplayDataQuery.exec()) {
+            qCritical() << "ReplayData insert failed:" << m_insertReplayDataQuery.lastError().text();
+            throw std::runtime_error("ReplayData insert failed");
+        }
 
-		if (!m_db.commit()) {
-			throw std::runtime_error("Commit failed");
-		}
-		return true;
-
-	}
-	catch (const std::exception& e) {
-		m_db.rollback();
-		qCritical() << "Database error:" << e.what();
-		return false;
-	}
+        if (!m_db.commit()) {
+            throw std::runtime_error("Commit failed");
+        }
+        return true;
+    } catch (const std::exception &e) {
+        m_db.rollback();
+        qCritical() << "Database error:" << e.what();
+        return false;
+    }
 }
 
-QMap<QDate, QList<Replay>> DbManager::fetchReplaysGroupedByDate()
-{
-	QMap<QDate, QList<Replay>> replayMap;
-	QSqlQuery query(m_db);
+QMap<QDate, QList<wrpl::Replay> > DbManager::fetchReplaysGroupedByDate() const {
+    QMap<QDate, QList<wrpl::Replay> > replayMap;
+    QSqlQuery query(m_db);
 
-	query.prepare(R"(
-        SELECT session_id, author_id, start_time, map, game_mode, 
-               difficulty, status, time_played
-        FROM Replay
-        ORDER BY start_time DESC
+    query.prepare(R"(
+        SELECT session_id, author_id, wrpl_version, raw_level, raw_level_settings, raw_battle_type,
+               raw_environment, raw_visibility, difficulty, session_type, is_server, raw_location_name,
+               start_time_epoch_ms, time_limit_in_minutes, score_limit, raw_battle_class, raw_battle_kill_streak
+        FROM ReplayMetadata
+        ORDER BY start_time_epoch_ms DESC
     )");
 
-	if (!query.exec()) {
-		qWarning() << "Failed to fetch replays:" << query.lastError().text();
-		return replayMap;
-	}
+    if (!query.exec()) {
+        qWarning() << "Failed to fetch replays:" << query.lastError().text();
+        return replayMap;
+    }
 
-	while (query.next()) {
-		Replay replay;
+    while (query.next()) {
+        wrpl::Replay replay;
 
-		replay.setSessionId(query.value("session_id").toString());
-		replay.setAuthorUserId(QString::number(query.value("author_id").toULongLong()));
-		replay.setStartTime(query.value("start_time").toLongLong());
-		replay.setLevel(query.value("map").toString());
-		replay.setBattleType(query.value("game_mode").toString());
-		replay.setDifficulty(static_cast<Constants::Difficulty>(query.value("difficulty").toInt()));
-		replay.setStatus(query.value("status").toString());
-		replay.setTimePlayed(query.value("time_played").toFloat());
+        replay.header.sessionId = query.value("session_id").toString().toStdString();
+        replay.header.wrplVersion = query.value("wrpl_version").toUInt();
+        replay.header.rawLevel = query.value("raw_level").toString().toStdString();
+        replay.header.rawLevelSettings = query.value("raw_level_settings").toString().toStdString();
+        replay.header.rawBattleType = query.value("raw_battle_type").toString().toStdString();
+        replay.header.rawEnvironment = query.value("raw_environment").toString().toStdString();
+        replay.header.rawVisibility = query.value("raw_visibility").toString().toStdString();
+        replay.header.difficulty = query.value("difficulty").toInt();
+        replay.header.sessionType = query.value("session_type").toUInt();
+        replay.header.isServer = query.value("is_server").toInt() != 0;
+        replay.header.rawLocationName = query.value("raw_location_name").toString().toStdString();
+        replay.header.startTimeEpochS = query.value("start_time_epoch_ms").toULongLong();
+        replay.header.timeLimitInMinutes = query.value("time_limit_in_minutes").toUInt();
+        replay.header.scoreLimit = query.value("score_limit").toUInt();
+        replay.header.rawBattleClass = query.value("raw_battle_class").toString().toStdString();
+        replay.header.rawBattleKillStreak = query.value("raw_battle_kill_streak").toString().toStdString();
 
-		QDate dateKey = QDateTime::fromSecsSinceEpoch(replay.getStartTime()).date();
+        QDate dateKey = QDateTime::fromSecsSinceEpoch(replay.header.startTimeEpochS).date();
+        replayMap[dateKey].append(replay);
+    }
 
-		replayMap[dateKey].append(replay);
-	}
+    for (auto &replays: replayMap) {
+        std::sort(replays.begin(), replays.end(), [](const wrpl::Replay &a, const wrpl::Replay &b) {
+            return a.header.startTimeEpochS < b.header.startTimeEpochS;
+        });
+    }
 
-	for (auto& replays : replayMap) {
-		std::sort(replays.begin(), replays.end(), [](const Replay& a, const Replay& b) {
-			return a.getStartTime() < b.getStartTime();
-			});
-	}
-
-	return replayMap;
+    return replayMap;
 }
 
-qint64 DbManager::getLatestReplay()
-{
-	QSqlQuery query("SELECT start_time FROM Replay ORDER BY start_time DESC LIMIT 1", m_db);
-	if (query.exec() && query.next()) {
-		return query.value(0).toLongLong();
-	}
-	return 0;
+quint32 DbManager::getLatestReplay() {
+    QSqlQuery query(m_db);
+    if (query.exec("SELECT start_time_epoch_ms FROM ReplayMetadata ORDER BY start_time_epoch_ms DESC LIMIT 1")) {
+        if (query.next()) {
+            return query.value(0).toInt();
+        }
+    } else {
+        LOG_WARN("Failed to fetch latest replay:" + query.lastError().text());
+    }
+    return 0;
 }
 
+wrpl::Replay DbManager::getReplayBySessionId(const QString &sessionId) const {
+    QSqlQuery query(m_db);
+    query.prepare(R"(
+        SELECT session_id, author_id, wrpl_version, raw_level, raw_level_settings, raw_battle_type,
+               raw_environment, raw_visibility, difficulty, session_type, is_server, raw_location_name,
+               start_time_epoch_ms, time_limit_in_minutes, score_limit, raw_battle_class, raw_battle_kill_streak
+        FROM ReplayMetadata
+        WHERE session_id = :session_id
+    )");
+    query.bindValue(":session_id", sessionId);
 
-Replay DbManager::getReplayBySessionId(QString sessionId)
-{
-	QSqlQuery query(m_db);
-	query.prepare(R"(SELECT * FROM Replay WHERE session_id = :session_id)");
-	query.bindValue(":session_id", sessionId);
+    if (!query.exec() || !query.next()) {
+        qWarning() << "Failed to fetch replay with session_id:" << sessionId << query.lastError().text();
+        return wrpl::Replay();
+    }
 
-	if (!query.exec() || !query.next()) {
-		qWarning() << "Failed to fetch replay with session_id:" << sessionId << query.lastError().text();
-		return Replay();
-	}
+    wrpl::Replay replay;
 
-	Replay replay;
-	replay.setSessionId(query.value("session_id").toString());
-	replay.setAuthorUserId(QString::number(query.value("author_id").toULongLong()));
-	replay.setStartTime(query.value("start_time").toLongLong());
-	replay.setLevel(query.value("map").toString());
-	replay.setBattleType(query.value("game_mode").toString());
-	replay.setDifficulty(static_cast<Constants::Difficulty>(query.value("difficulty").toInt()));
-	replay.setStatus(query.value("status").toString());
-	replay.setTimePlayed(query.value("time_played").toFloat());
+    // Populate header fields
+    replay.header.sessionId = query.value("session_id").toString().toStdString();
+    replay.header.wrplVersion = query.value("wrpl_version").toUInt();
+    replay.header.rawLevel = query.value("raw_level").toString().toStdString();
+    replay.header.rawLevelSettings = query.value("raw_level_settings").toString().toStdString();
+    replay.header.rawBattleType = query.value("raw_battle_type").toString().toStdString();
+    replay.header.rawEnvironment = query.value("raw_environment").toString().toStdString();
+    replay.header.rawVisibility = query.value("raw_visibility").toString().toStdString();
+    replay.header.difficulty = query.value("difficulty").toInt();
+    replay.header.sessionType = query.value("session_type").toUInt();
+    replay.header.isServer = query.value("is_server").toInt() != 0;
+    replay.header.rawLocationName = query.value("raw_location_name").toString().toStdString();
+    replay.header.startTimeEpochS = query.value("start_time_epoch_ms").toULongLong();
+    replay.header.timeLimitInMinutes = query.value("time_limit_in_minutes").toUInt();
+    replay.header.scoreLimit = query.value("score_limit").toUInt();
+    replay.header.rawBattleClass = query.value("raw_battle_class").toString().toStdString();
+    replay.header.rawBattleKillStreak = query.value("raw_battle_kill_streak").toString().toStdString();
 
-	query.prepare(R"(SELECT * FROM PlayerReplayData JOIN Player ON PlayerReplayData.player_id=Player.player_id WHERE session_id = :session_id)");
-	query.bindValue(":session_id", sessionId);
+    query.prepare(R"(
+        SELECT settings_blk, results_blk, chat_packets, award_packets, movement_packets
+        FROM ReplayData
+        WHERE session_id = :session_id
+    )");
+    query.bindValue(":session_id", sessionId);
 
-	if (!query.exec() || !query.next()) {
-		qWarning() << "Failed to fetch playerReplay with session_id:" << sessionId << query.lastError().text();
-		return Replay();
-	}
+    if (!query.exec() || !query.next()) {
+        qWarning() << "Failed to fetch replaydata with session_id:" << sessionId << query.lastError().text();
+        return replay;
+    }
 
-	QList<QPair<Player, PlayerReplayData>> players;
-	while (query.next()) {
-		Player player;
-		PlayerReplayData playerData;
+    replay.results = deserializeJsonToBlkMap(query.value("results_blk").toString());
+    replay.settings = deserializeJsonToBlkMap(query.value("settings_blk").toString());
+    replay.chatPackets = deserializePacketVector<ChatPacket>(query.value("chat_packets").toByteArray());
+    replay.awardPackets = deserializePacketVector<AwardPacket>(query.value("award_packets").toByteArray());
+    replay.movementPackets = deserializePacketVector<MovementPacket>(query.value("movement_packets").toByteArray());
 
-		player.setUserId(query.value("player_id").toString());
-		player.setUsername(query.value("username").toString());
-		player.setSquadronTag(query.value("squadron_tag").toString());
-		player.setSquadronId(query.value("squadron_id").toString());
-		player.setPlatform(query.value("platform").toString());
+    qDebug() << "Deserialized" << replay.chatPackets.size() << "chat packets, "
+             << replay.awardPackets.size() << "award packets, "
+             << replay.movementPackets.size() << "movement packets for session_id:" << sessionId;
 
-		playerData.setUserId(query.value("player_id").toString());
-		playerData.setKills(query.value("air_kills").toInt());
-		playerData.setGroundKills(query.value("ground_kills").toInt());
-		playerData.setNavalKills(query.value("naval_kills").toInt());
-		playerData.setTeamKills(query.value("team_kills").toInt());
-		playerData.setAiKills(query.value("ai_air_kills").toInt());
-		playerData.setAiGroundKills(query.value("ai_ground_kills").toInt());
-		playerData.setAiNavalKills(query.value("ai_naval_kills").toInt());
-		playerData.setAssists(query.value("assists").toInt());
-		playerData.setDeaths(query.value("deaths").toInt());
-		playerData.setCaptureZone(query.value("captured_zones").toInt());
-		playerData.setDamageZone(query.value("damage_to_zones").toInt());
-		playerData.setScore(query.value("score").toInt());
-		playerData.setAwardDamage(query.value("award_damage").toInt());
-		playerData.setMissileEvades(query.value("missile_evades").toInt());
-		playerData.setTeam(query.value("team").toInt());
-		playerData.setSquad(query.value("squad_id").toInt());
-		playerData.setAutoSquad(query.value("auto_squad").toBool());
-		playerData.setLineup(query.value("lineup").toString().split(","));
-		playerData.setWaitTime(query.value("wait_time").toDouble());
-
-		players.append(QPair<Player, PlayerReplayData>(player, playerData));
-	}
-	replay.setPlayers(players);
-
-	return replay;
+    return replay;
 }
 
-bool DbManager::deleteReplayBySessionId(QString sessionId){
-	QSqlQuery query(m_db);
-	query.prepare(R"(DELETE FROM PlayerReplayData WHERE session_id = :session_id)");
-	query.bindValue(":session_id", sessionId);
-	if (!query.exec()) {
-		qWarning() << "Failed to delete replay with session_id:" << sessionId << query.lastError().text();
-		return false;
-	}
-	deleteDanglingRecords();
-	return true;
-}
+bool DbManager::deleteReplayBySessionId(const QString &sessionId) const {
+    QSqlQuery query(m_db);
+    query.prepare(R"(DELETE FROM ReplayMetadata WHERE session_id = :session_id)");
+    query.bindValue(":session_id", sessionId);
+    if (!query.exec()) {
+        qWarning() << "Failed to delete replay with session_id:" << sessionId << query.lastError().text();
+        return false;
+    }
 
-int DbManager::deleteDanglingRecords() {
-	QSqlQuery query(m_db);
-	query.prepare(R"(
-		DELETE FROM Player WHERE player_id NOT IN (SELECT DISTINCT player_id FROM PlayerReplayData)
-	)");
-	if (!query.exec()) {
-		qWarning() << "Failed to delete dangling records:" << query.lastError().text();
-		return 0;
-	}
-	query.prepare(R"(
-		DELETE FROM Replay WHERE session_id NOT IN (SELECT DISTINCT session_id FROM PlayerReplayData)
-	)");
-	if (!query.exec()) {
-		qWarning() << "Failed to delete dangling records:" << query.lastError().text();
-		return 0;
-	}
-	return query.numRowsAffected();
+    query.prepare(R"(DELETE FROM ReplayData WHERE session_id = :session_id)");
+    query.bindValue(":session_id", sessionId);
+    query.exec();
+    return true;
 }

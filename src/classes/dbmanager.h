@@ -1,40 +1,38 @@
 #ifndef DBMANAGER_H
 #define DBMANAGER_H
 
-#include <QObject>
-#include <QSqlDatabase>
 #include <QSqlQuery>
-#include <QDateTime>
-#include "replay.h"
-#include "player.h"
+#include <QMap>
+#include <QList>
 #include "utils.h"
+#include "libs/WRPL_parser/include/ReplayStructs.h"
 
-class DbManager : public QObject
-{
+class DbManager : public QObject {
     Q_OBJECT
+
 public:
-    explicit DbManager(const QString& path, const QString connName, QObject* parent = nullptr);
-    ~DbManager();
+    explicit DbManager(const QString &path, const QString &connName, QObject *parent = nullptr);
 
-    void createTables();
-    bool insertReplay(const Replay& replay);
-    qint64 getLatestReplay();
-    Replay getReplayBySessionId(QString sessionId);
-    bool deleteReplayBySessionId(QString sessionId);
-    int deleteDanglingRecords();
-    QMap<QDate, QList<Replay>> fetchReplaysGroupedByDate();
+    ~DbManager() override;
 
+    void createTables() const;
+
+    bool insertReplay(const wrpl::Replay &replay);
+
+    quint32 getLatestReplay();
+
+    wrpl::Replay getReplayBySessionId(const QString &sessionId) const;
+
+    bool deleteReplayBySessionId(const QString &sessionId) const;
+
+    QMap<QDate, QList<wrpl::Replay> > fetchReplaysGroupedByDate() const;
 
 private:
     void prepareQueries();
-    void createIndexes();
-
 
     QSqlDatabase m_db;
-    QSqlQuery m_insertReplayQuery;
-    QSqlQuery m_insertPlayerQuery;
-    QSqlQuery m_insertPlayerCraftQuery;
-    QSqlQuery m_insertPlayerDataQuery;
+    QSqlQuery m_insertReplayMetadataQuery;
+    QSqlQuery m_insertReplayDataQuery;
 };
 
 #endif // DBMANAGER_H

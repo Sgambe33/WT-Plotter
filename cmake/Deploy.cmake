@@ -326,7 +326,7 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
     get_sub_targets(LIBS ${CMAKE_CURRENT_SOURCE_DIR} TYPES SHARED_LIBRARY)
     get_sub_targets(PLUGINS ${CMAKE_CURRENT_SOURCE_DIR} TYPES MODULE_LIBRARY)
 
-    add_custom_command(TARGET deploy VERBATIM
+    add_custom_command(TARGET deploy POST_BUILD VERBATIM
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${DEPLOY_PREFIX_PATH}/translations
     )
@@ -365,22 +365,19 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/qt.conf "[Platforms]
         WindowsArguments = fontengine=freetype")
 
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/wt_ext_cli/wt_ext_cli.exe
-        DESTINATION ${DEPLOY_PREFIX_PATH})
-
     foreach(BIN IN LISTS BINS)
         get_target_property(QM_FILES ${BIN} QM_FILES)
         if(QM_FILES)
-            add_custom_command(TARGET deploy VERBATIM
+            add_custom_command(TARGET deploy POST_BUILD VERBATIM
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${QM_FILES} ${DEPLOY_PREFIX_PATH}/translations
             )
         endif()
-        add_custom_command(TARGET deploy VERBATIM
+        add_custom_command(TARGET deploy POST_BUILD VERBATIM
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:${BIN}> ${DEPLOY_PREFIX_PATH}
         )
-        add_custom_command(TARGET deploy_base VERBATIM
+        add_custom_command(TARGET deploy_base POST_BUILD VERBATIM
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:${BIN}> ${CMAKE_CURRENT_BINARY_DIR}
         )
@@ -449,7 +446,7 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
     if(MSVC)
         message(STATUS "BUILDING WINDOWS...")
 
-        add_custom_command(TARGET deploy VERBATIM
+        add_custom_command(TARGET deploy POST_BUILD VERBATIM
             COMMAND ${WINDEPLOYQT_EXECUTABLE}
             --no-compiler-runtime
             --no-opengl-sw
@@ -457,13 +454,13 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
             ${DEPLOY_PREFIX_PATH}/$<TARGET_FILE_NAME:${TARGET}>
             WORKING_DIRECTORY ${DEPLOY_PREFIX_PATH}
         )
-        add_custom_command(TARGET deploy VERBATIM
+        add_custom_command(TARGET deploy POST_BUILD VERBATIM
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} ${DEPLOY_PREFIX_PATH}
             COMMAND_EXPAND_LISTS
         )
     else()
-        add_custom_command(TARGET deploy VERBATIM
+        add_custom_command(TARGET deploy POST_BUILD VERBATIM
             COMMAND ${WINDEPLOYQT_EXECUTABLE}
             --compiler-runtime
             --no-opengl-sw
@@ -474,13 +471,13 @@ function(deploy_windows TARGET DEPLOY_SOURCE_DIR)
     endif()
 
     cmake_language(DEFER CALL include CPack)
-    cmake_language(DEFER CALL add_custom_command TARGET deploy VERBATIM
+    cmake_language(DEFER CALL add_custom_command TARGET deploy POST_BUILD VERBATIM
         COMMAND ${CMAKE_CPACK_COMMAND} -C $<CONFIGURATION>
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-    cmake_language(DEFER CALL add_custom_command TARGET deploy VERBATIM
-        COMMAND ${CMAKE_COMMAND} -E rm -rf _CPack_Packages
-        WORKING_DIRECTORY ${APP_DEPLOY_PREFIX}
+    cmake_language(DEFER CALL add_custom_command TARGET deploy POST_BUILD VERBATIM
+            COMMAND ${CMAKE_COMMAND} -E rm -rf _CPack_Packages
+            WORKING_DIRECTORY ${APP_DEPLOY_PREFIX}
     )
 endfunction()
 

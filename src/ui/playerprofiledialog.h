@@ -10,8 +10,6 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include "../classes/utils.h"
-#include "../classes/player.h"
-#include "../classes/playerreplaydata.h"
 
 namespace Ui {
 	class PlayerProfileDialog;

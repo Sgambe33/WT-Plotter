@@ -21,9 +21,7 @@
 #include <QList>
 #include <QSettings>
 #include <QImageWriter>
-#include "position.h"
 #include "../ui/sceneimageviewer.h"
-#include "replay.h"
 #include "constants.h"
 #include <QMap>
 #include <QIcon>
@@ -31,8 +29,6 @@
 #include <QFontDatabase>
 
 void checkAppVersion();
-
-void uploadReplay(Replay &replayData, const QString &uploader, QList<Position> positionCache, QList<Position> poi);
 
 QFile getLatestReplay(const QDir &replayDirectory);
 
@@ -46,11 +42,10 @@ QString difficultyToStringLocaleAware(Constants::Difficulty difficulty);
 
 QString epochSToFormattedTime(int time);
 
+QString epochMSToFormattedTime(int time);
+
 QIcon invertIconColors(const QIcon &icon);
 
 QJsonObject getJsonFromResources(const QString &resourceName, const QString &identifier);
-
-QJsonArray exportPositionsToJson(Replay &replayData, QList<Position> positionCache, QList<Position> poi);
-
 
 #endif // UTILS_H

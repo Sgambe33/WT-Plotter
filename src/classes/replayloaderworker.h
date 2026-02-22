@@ -9,7 +9,7 @@
 class ReplayLoaderWorker : public QObject {
 	Q_OBJECT
 public:
-	explicit ReplayLoaderWorker(const QString& folderPath, const QString& dbFilePath, QObject* parent = nullptr);
+	explicit ReplayLoaderWorker(QString  folderPath, QString  dbFilePath, QObject* parent = nullptr);
 
 public slots:
 	void loadReplays();

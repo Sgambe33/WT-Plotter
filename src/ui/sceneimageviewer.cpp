@@ -16,7 +16,7 @@ SceneImageViewer::SceneImageViewer(QWidget* parent)
 
 void SceneImageViewer::setPixmap(const QPixmap& pixmap) {
 	m_item.setPixmap(pixmap);
-	auto offset = -QRectF(pixmap.rect()).center();
+	const auto offset = -QRectF(pixmap.rect()).center();
 	m_item.setOffset(offset);
 	setSceneRect(offset.x() * 4, offset.y() * 4, -offset.x() * 8, -offset.y() * 8);
 	translate(1, 1);
@@ -28,7 +28,7 @@ QSize SceneImageViewer::sizeHint() const {
 }
 
 void SceneImageViewer::wheelEvent(QWheelEvent* event) {
-	QPointF scenePos = mapToScene(event->position().toPoint());
+	const QPointF scenePos = mapToScene(event->position().toPoint());
 
 	if (event->angleDelta().y() > 0) {
 		if (m_scaleFactor < m_maxScale) {
@@ -43,8 +43,8 @@ void SceneImageViewer::wheelEvent(QWheelEvent* event) {
 		}
 	}
 
-	QPointF newScenePos = mapToScene(event->position().toPoint());
-	QPointF delta = newScenePos - scenePos;
+	const QPointF newScenePos = mapToScene(event->position().toPoint());
+	const QPointF delta = newScenePos - scenePos;
 	translate(delta.x(), delta.y());
 
 	event->accept();

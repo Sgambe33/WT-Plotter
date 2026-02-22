@@ -17,9 +17,8 @@
 #include <QStackedWidget>
 #include <QFont>
 
-#include "../classes/player.h"
 #include "../classes/dbmanager.h"
-#include "../worker.h"
+#include "../GameTelemetryWorker.h"
 #include "sceneimageviewer.h"
 #include "../classes/discordworker.h"
 
@@ -65,15 +64,13 @@ private:
 	QTranslator* appTranslator;
 	QFont wtSymbols;
 	QSettings settings;
-    QList<QPair<Player, PlayerReplayData>>* alliesList = new QList<QPair<Player, PlayerReplayData>>();
-    QList<QPair<Player, PlayerReplayData>>* axisList = new QList<QPair<Player, PlayerReplayData>>();
 
 	void startDiscordPresence();
 	void setActivityFromMainWindow(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
-    void populateReplayTreeView(QTreeView* replayTreeView);
+    void populateReplayTreeView(QTreeView* replayTreeView) const;
 	void onTreeItemClicked(const QModelIndex& index);
-	void executeCommand(const QString& filePath);
-	void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);
+	void executeCommand(const QString& sessionId);
+	//void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);
 	void changeLanguage(const QString& languageCode);
 	void setCustomFont(const QString& fontPath, QWidget* widget);
 };

@@ -9,26 +9,21 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QList>
-#include "classes/position.h"
 #include "ui/sceneimageviewer.h"
 
-class Worker : public QObject
+class GameTelemetryWorker : public QObject
 {
 	Q_OBJECT
 
 public:
-	explicit Worker(SceneImageViewer* imageViewer, QObject* parent = nullptr);
-	~Worker();
+	explicit GameTelemetryWorker(SceneImageViewer* imageViewer, QObject* parent = nullptr);
+	~GameTelemetryWorker();
 
 	bool isMatchRunning();
 	bool isPlayerOnTank();
 	void fetchAndDisplayMap();
-	void fetchMapObjects();
 	QPixmap getOriginalMapImage() const;
 	void setOriginalMapImage(const QPixmap& originalMapImage);
-	void clearMarkers();
-	void addPosition(const Position& position);
-	void addPOI(const Position& position);
 
 public slots:
 	void startTimer();
@@ -45,29 +40,16 @@ signals:
 
 private:
 	void onTimeout();
-	void updatePOI();
-	bool shouldUpdateMarkers();
-	void updateMarkers();
-	bool shouldEndMatch();
-	void endMatch();
 	void restartScheduler();
-	void drawMarkers(QPixmap& displayImage);
-	void drawMarkers(QPixmap& displayImage, QPainter& painter, const QList<Position>& positionCache);
-	void drawSpecialMarkers(QPixmap& displayImage);
-	void drawCaptureZoneMarker(QPixmap& displayImage, QPainter& painter, const Position& pos);
-	static void drawRespawnBaseTank(QPixmap& displayImage, QPainter& painter, const QList<Position>& group);
 	QJsonObject fetchJsonElement(QString url);
 	QJsonArray fetchJsonArray(QString url);
 	QImage fetchMapImage();
-	Position getPositionFromJsonElement(QJsonObject element);
 	bool shouldLoadMap();
 	void setActivityFromWorker(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
 
 
     QPixmap m_originalMapImage;
     QPixmap m_drawedMapImage;
-    QList<Position> m_positionCache;
-    QList<Position> m_poi;
 	static bool havePOIBeenDrawn;
 	SceneImageViewer* imageViewer;
 	QTimer* m_timer;

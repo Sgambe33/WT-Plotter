@@ -4,19 +4,22 @@
 #include <QDialog>
 #include <QFont>
 #include <QSettings>
-#include <QPair>
 #include <QTableWidgetItem>
 #include <QJsonObject>
-#include <QFileDialog>
+#include <QHash>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include <QDesktopServices>
+#include <QUrl>
 #include "../classes/utils.h"
+#include "Structs.h"
+
+struct UiPlayerData;
 
 namespace Ui {
 	class PlayerProfileDialog;
 }
-
-class Player;
-class PlayerReplayData;
 
 class PlayerProfileDialog : public QDialog
 {
@@ -26,13 +29,16 @@ public:
 	explicit PlayerProfileDialog(QWidget* parent = nullptr);
 	~PlayerProfileDialog();
 
-	void setPlayerData(const QPair<Player, PlayerReplayData>& playerData);
+	void setPlayerData(const UiPlayerData& playerData);
 
 private:
 	Ui::PlayerProfileDialog* ui;
 	QFont wtSymbols;
 	QSettings* settings;
-    QString playerId;
+	QString playerId;
+
+	QHash<QString, QJsonObject> m_vehicleDatabase;
+	void loadVehicleDatabase();
 };
 
 #endif // PLAYERPROFILEDIALOG_H

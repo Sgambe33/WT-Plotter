@@ -41,6 +41,7 @@ set(UI_FILES
         src/ui/mainwindow.ui
         src/ui/preferencesdialog.ui
         src/ui/playerprofiledialog.ui
+        src/ui/Structs.h
 )
 
 add_subdirectory(libs/WRPL_parser)

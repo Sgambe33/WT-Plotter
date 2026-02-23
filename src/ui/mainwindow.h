@@ -17,62 +17,91 @@
 #include <QStackedWidget>
 #include <QFont>
 
+#include "playerprofiledialog.h"
 #include "../classes/dbmanager.h"
 #include "../GameTelemetryWorker.h"
 #include "sceneimageviewer.h"
 #include "../classes/discordworker.h"
+#include "Structs.h"
 
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+
+namespace Ui {
+    class MainWindow;
+}
+
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
-	Q_OBJECT
+class MainWindow : public QMainWindow {
+    Q_OBJECT
 
 public:
-	MainWindow(QWidget* parent = nullptr);
-	void openPreferencesDialog();
-	void openAboutDialog();
-	~MainWindow();
+    MainWindow(QWidget *parent = nullptr);
+
+    void openPreferencesDialog();
+
+    void openAboutDialog();
+
+    ~MainWindow();
 
 public slots:
-	void updatePixmap(const QPixmap& pixmap);
-	void refreshReplays();
-	void loadReplaysFromFolder();
-	void onReplayLoaderFinished();
-	void updateProgressBar(double progress);
-	void updateStatusLabel(QString msg);
-	void changeStackedWidget1(int index);
-	void changeStackedWidget2(int index);
-	void onLanguageChanged(const QString& languageCode);
+    void updatePixmap(const QPixmap &pixmap);
+
+    void refreshReplays();
+
+    void loadReplaysFromFolder();
+
+    void onReplayLoaderFinished();
+
+    void updateProgressBar(double progress);
+
+    void updateStatusLabel(QString msg);
+
+    void changeStackedWidget1(int index);
+
+    void changeStackedWidget2(int index);
+
+    void onLanguageChanged(const QString &languageCode);
 
 signals:
-	void sendActivityToDiscord(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
+    void sendActivityToDiscord(const QString &state, const QString &details, const QString &logo, time_t epochStartTime = -1, const QString &largeText = QString());
 
 protected:
-	void closeEvent(QCloseEvent* event) override;
-	void changeEvent(QEvent* event) override;
+    void closeEvent(QCloseEvent *event) override;
+
+    void changeEvent(QEvent *event) override;
 
 private:
-	Ui::MainWindow* ui;
-	QStandardItemModel* model;
-	QThread* m_discord_thread = nullptr;
-	DiscordWorker* m_discord_worker;
-	DbManager m_dbmanager;
-	QTranslator* appTranslator;
-	QFont wtSymbols;
-	QSettings settings;
+    Ui::MainWindow *ui;
+    QStandardItemModel *model;
+    QThread *m_discord_thread = nullptr;
+    DiscordWorker *m_discord_worker;
+    DbManager m_dbmanager;
+    QTranslator *appTranslator;
+    QFont wtSymbols;
+    QSettings settings;
 
-	void startDiscordPresence();
-	void setActivityFromMainWindow(const QString& state, const QString& details, const QString& logo, time_t epochStartTime = -1, const QString& largeText = QString());
-    void populateReplayTreeView(QTreeView* replayTreeView) const;
-	void onTreeItemClicked(const QModelIndex& index);
-	void executeCommand(const QString& sessionId);
-	//void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);
-	void changeLanguage(const QString& languageCode);
-	void setCustomFont(const QString& fontPath, QWidget* widget);
+    QList<UiPlayerData> alliesList;
+    QList<UiPlayerData> axisList;
+
+    void startDiscordPresence();
+
+    void setActivityFromMainWindow(const QString &state, const QString &details, const QString &logo, time_t epochStartTime = -1, const QString &largeText = QString());
+
+    void populateReplayTreeView(QTreeView *replayTreeView) const;
+
+    void onTreeItemClicked(const QModelIndex &index);
+
+    void executeCommand(const QString &sessionId);
+
+    void populateTeamTable(QTableWidget *table, const QList<UiPlayerData> *players, bool allies);
+
+    //void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);
+    void changeLanguage(const QString &languageCode);
+
+    void setCustomFont(const QString &fontPath, QWidget *widget);
 };
+
 
 #endif // MAINWINDOW_H

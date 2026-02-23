@@ -264,139 +264,201 @@ void MainWindow::executeCommand(const QString &sessionId) {
     ui->mapNameLabel->setText(tr("Map: ") + obj.value(languageCode).toString(QString::fromStdString(rep.header.rawLevel)));
     ui->difficultyLabel->setText(tr("Difficulty: ") + difficultyToStringLocaleAware(static_cast<Constants::Difficulty>(rep.header.difficulty)));
     ui->startTimeLabel->setText(tr("Start time: ") + epochSToFormattedTime(rep.header.startTimeEpochS));
-    //ui->timePlayedLabel->setText(tr("Time played: ") + replayLengthToString(rep.getTimePlayed()));
-    //ui->resultLabel->setText(tr("Result: ") + tr(rep.getStatus().toStdString().c_str()));
+    ui->timePlayedLabel->setText(tr("Time played: ") + replayLengthToString(rep.results["timePlayed"].as<double>()));
 
-    //QList<QPair<Player, PlayerReplayData>> players = rep.getPlayers();
-    //this->alliesList->clear();
-    //this->axisList->clear();
-    //for (const auto& playerPair : players) {
-    //	const PlayerReplayData& playerData = playerPair.second;
-    //
-    //	if (playerData.getTeam() == 1) {
-    //        this->alliesList->append(playerPair);
-    //	}
-    //	else if (playerData.getTeam() == 2) {
-    //        this->axisList->append(playerPair);
-    //	}
-    //}
-    //
-    //std::sort(this->alliesList->begin(), this->alliesList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
-    //	return p1.second.getScore() > p2.second.getScore();
-    //	});
-    //
-    //std::sort(this->axisList->begin(), this->axisList->end(), [](const QPair<Player, PlayerReplayData>& p1, const QPair<Player, PlayerReplayData>& p2) {
-    //	return p1.second.getScore() > p2.second.getScore();
-    //	});
-    //
-    //ui->alliesTable->clear();
-    //ui->axisTable->clear();
-    //
-    //populateTeamTable(ui->alliesTable, alliesList, true);
-    //populateTeamTable(ui->axisTable, axisList, false);
+    std::string status = "left";
+    const auto it = rep.results.data.find("status");
+    if (it != rep.results.data.end()) {
+        status = it->second.as<std::string>();
+    }
+    ui->resultLabel->setText(tr("Result: ") + tr(status.c_str()));
+
+    this->axisList.clear();
+    this->alliesList.clear();
+
+    nlohmann::json j;
+    to_json(j, rep.results);
+
+    if (j.contains("player") && j["player"].is_array()) {
+        nlohmann::json playersInfo;
+        if (j.contains("uiScriptsData") && j["uiScriptsData"].contains("playersInfo")) {
+            playersInfo = j["uiScriptsData"]["playersInfo"];
+        }
+
+        for (const auto &p: j["player"]) {
+            UiPlayerData d;
+
+            d.name = QString::fromStdString(p.value("name", ""));
+            d.clanTag = QString::fromStdString(p.value("clanTag", ""));
+            d.team = p.value("team", 0);
+            d.score = p.value("score", 0);
+            d.userId = QString::fromStdString(p.value("userId", ""));
+
+            d.airKills = p.value("kills", 0);
+            d.groundKills = p.value("groundKills", 0);
+            d.navalKills = p.value("navalKills", 0);
+            d.assists = p.value("assists", 0);
+            d.deaths = p.value("deaths", 0);
+            d.caps = p.value("captureZone", 0);
+            d.damage = p.value("awardDamage", 0);
+            d.bombing = p.value("damageZone", 0);
+
+            d.aiKillsTotal = p.value("aiKills", 0) +
+                             p.value("aiGroundKills", 0) +
+                             p.value("aiNavalKills", 0);
+
+            if (!d.userId.isEmpty() && !playersInfo.is_null()) {
+                std::string key = "__int_" + d.userId.toStdString();
+                if (playersInfo.contains(key)) {
+                    const auto &info = playersInfo[key];
+
+                    std::string country = info.value("country", "");
+                    d.country = QString::fromStdString(country).replace("country_", "");
+
+                    std::string platform = info.value("platform", "");
+                    d.platform = QString::fromStdString(platform);
+
+                    auto crafts = info.value("crafts", nlohmann::json::array());
+                    QStringList lineupList;
+                    for (const auto &craft: crafts.items()) {
+                        try {
+                            if (craft.value().is_string()) {
+                                auto craftName = craft.value().get<std::string>();
+                                lineupList.append(QString::fromStdString(craftName));
+                            }
+                        } catch (...) {
+                            continue;
+                        }
+                    }
+                    d.lineup = lineupList.join(", ");
+                }
+            }
+
+            if (d.platform.isEmpty()) {
+                if (d.name.contains("@psn")) d.platform = "psn";
+                else if (d.name.contains("@live")) d.platform = "xbox";
+                else d.platform = "pc";
+            }
+
+            d.displayName = d.clanTag.isEmpty() ? d.name : (d.clanTag + " " + d.name);
+            d.displayName = d.displayName.replace("@psn", "").replace("@live", "");
+
+            if (d.team == 1) alliesList.append(d);
+            else if (d.team == 2) axisList.append(d);
+        }
+    }
+
+    // 3. Sort Lists
+    auto sorter = [](const UiPlayerData &a, const UiPlayerData &b) { return a.score > b.score; };
+    std::sort(alliesList.begin(), alliesList.end(), sorter);
+    std::sort(axisList.begin(), axisList.end(), sorter);
+
+    // 4. Update UI
+    ui->alliesTable->clear();
+    ui->axisTable->clear();
+    populateTeamTable(ui->alliesTable, &alliesList, true);
+    populateTeamTable(ui->axisTable, &axisList, false);
 }
 
-//void MainWindow::populateTeamTable(QTableWidget *table, const QList<QPair<Player, PlayerReplayData> > *players, bool allies) {
-//    QPalette palette = qApp->palette();
-//    bool isDarkTheme = palette.color(QPalette::Window).lightness() < 128;
-//
-//    table->clear();
-//    table->setRowCount(players->size());
-//    table->setColumnCount(11);
-//    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-//
-//    auto loadIcon = [isDarkTheme](const QString &path) {
-//        QPixmap pixmap(path);
-//        if (isDarkTheme) {
-//            return invertIconColors(QIcon(pixmap)).pixmap(32, 32);
-//        }
-//        return pixmap;
-//    };
-//
-//    QPixmap scorePixmap = loadIcon(":/icons/score.png");
-//    QPixmap killsPixmap = loadIcon(":/icons/kills.png");
-//    QPixmap groundKillsPixmap = loadIcon(":/icons/groundKills.png");
-//    QPixmap navalKillsPixmap = loadIcon(":/icons/navalKills.png");
-//    QPixmap assistsPixmap = loadIcon(":/icons/assists.png");
-//    QPixmap capturedZonesPixmap = loadIcon(":/icons/capturedZones.png");
-//    QPixmap aiKillsPixmap = loadIcon(":/icons/aiKills.png");
-//    QPixmap awardDamagePixmap = loadIcon(":/icons/awardDamage.png");
-//    QPixmap damageZonePixmap = loadIcon(":/icons/damageZone.png");
-//    QPixmap deathsPixmap = loadIcon(":/icons/deaths.png");
-//
-//    table->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Username")));
-//    table->setHorizontalHeaderItem(1, new QTableWidgetItem(QIcon(scorePixmap), ""));
-//    table->setHorizontalHeaderItem(2, new QTableWidgetItem(QIcon(killsPixmap), ""));
-//    table->setHorizontalHeaderItem(3, new QTableWidgetItem(QIcon(groundKillsPixmap), ""));
-//    table->setHorizontalHeaderItem(4, new QTableWidgetItem(QIcon(navalKillsPixmap), ""));
-//    table->setHorizontalHeaderItem(5, new QTableWidgetItem(QIcon(assistsPixmap), ""));
-//    table->setHorizontalHeaderItem(6, new QTableWidgetItem(QIcon(capturedZonesPixmap), ""));
-//    table->setHorizontalHeaderItem(7, new QTableWidgetItem(QIcon(aiKillsPixmap), ""));
-//    table->setHorizontalHeaderItem(8, new QTableWidgetItem(QIcon(awardDamagePixmap), ""));
-//    table->setHorizontalHeaderItem(9, new QTableWidgetItem(QIcon(damageZonePixmap), ""));
-//    table->setHorizontalHeaderItem(10, new QTableWidgetItem(QIcon(deathsPixmap), ""));
-//
-//    for (int row = 0; row < players->size(); ++row) {
-//        const Player &player = players->at(row).first;
-//        const PlayerReplayData &prd = players->at(row).second;
-//
-//        QTableWidgetItem *usernameItem = new QTableWidgetItem();
-//        QString platformIconPath = player.getUsername().contains("@psn") ? ":/icons/psn.png" : player.getUsername().contains("@live") ? ":/icons/xbox.png" : ":/icons/pc.png";
-//        usernameItem->setIcon(QIcon(platformIconPath));
-//        if (isDarkTheme) {
-//            usernameItem->setIcon(invertIconColors(usernameItem->icon()));
-//        }
-//        usernameItem->setFont(wtSymbols);
-//        usernameItem->setText(player.getSquadronTag() + " " + player.getUsername().replace("@psn", "").replace("@live", ""));
-//        table->setItem(row, 0, usernameItem);
-//
-//        auto createItem = [](const QString &text, const QString &tooltip) {
-//            QTableWidgetItem *item = new QTableWidgetItem(text);
-//            item->setToolTip(tooltip);
-//            return item;
-//        };
-//
-//        table->setItem(row, 1, createItem(QString::number(prd.getScore()), tr("Score")));
-//        table->setItem(row, 2, createItem(QString::number(prd.getKills()), tr("Air kills")));
-//        table->setItem(row, 3, createItem(QString::number(prd.getGroundKills()), tr("Ground kills")));
-//        table->setItem(row, 4, createItem(QString::number(prd.getNavalKills()), tr("Naval kills")));
-//        table->setItem(row, 5, createItem(QString::number(prd.getAssists()), tr("Assists")));
-//        table->setItem(row, 6, createItem(QString::number(prd.getCaptureZone()), tr("Captured zones")));
-//        table->setItem(row, 7, createItem(QString::number(prd.getAiKills() + prd.getAiGroundKills() + prd.getAiNavalKills()), tr("AI kills")));
-//        table->setItem(row, 8, createItem(QString::number(prd.getAwardDamage()), tr("Awarded damage")));
-//        table->setItem(row, 9, createItem(QString::number(prd.getDamageZone()), tr("Bombing damage")));
-//        table->setItem(row, 10, createItem(QString::number(prd.getDeaths()), tr("Deaths")));
-//    }
-//
-//    static bool alliesTableIsConnected = false;
-//    static bool axisTableIsConnected = false;
-//
-//    if (!alliesTableIsConnected && allies) {
-//        connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem *item) {
-//            int row = item->row();
-//            if (row >= 0 && row < this->alliesList->size()) {
-//                PlayerProfileDialog dialog(this);
-//                dialog.setPlayerData(this->alliesList->at(row));
-//                dialog.exec();
-//            }
-//        });
-//        alliesTableIsConnected = true;
-//    }
-//
-//    if (!axisTableIsConnected && !allies) {
-//        connect(ui->axisTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem *item) {
-//            int row = item->row();
-//            if (row >= 0 && row < this->axisList->size()) {
-//                PlayerProfileDialog dialog(this);
-//                dialog.setPlayerData(this->axisList->at(row));
-//                dialog.exec();
-//            }
-//        });
-//        axisTableIsConnected = true;
-//    }
-//
-//    table->resizeColumnsToContents();
-//}
+void MainWindow::populateTeamTable(QTableWidget *table, const QList<UiPlayerData> *players, const bool allies) {
+    const QPalette palette = qApp->palette();
+    bool isDarkTheme = palette.color(QPalette::Window).lightness() < 128;
+
+    table->clear();
+    table->setRowCount(players->size());
+    table->setColumnCount(11);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    auto loadIcon = [isDarkTheme](const QString &path) {
+        QPixmap pixmap(path);
+        if (isDarkTheme) {
+            return invertIconColors(QIcon(pixmap)).pixmap(32, 32);
+        }
+        return pixmap;
+    };
+
+    const QPixmap scorePixmap = loadIcon(":/icons/score.png");
+    const QPixmap killsPixmap = loadIcon(":/icons/kills.png");
+    const QPixmap groundKillsPixmap = loadIcon(":/icons/groundKills.png");
+    const QPixmap navalKillsPixmap = loadIcon(":/icons/navalKills.png");
+    const QPixmap assistsPixmap = loadIcon(":/icons/assists.png");
+    const QPixmap capturedZonesPixmap = loadIcon(":/icons/capturedZones.png");
+    const QPixmap aiKillsPixmap = loadIcon(":/icons/aiKills.png");
+    const QPixmap awardDamagePixmap = loadIcon(":/icons/awardDamage.png");
+    const QPixmap damageZonePixmap = loadIcon(":/icons/damageZone.png");
+    const QPixmap deathsPixmap = loadIcon(":/icons/deaths.png");
+
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Username")));
+    table->setHorizontalHeaderItem(1, new QTableWidgetItem(QIcon(scorePixmap), ""));
+    table->setHorizontalHeaderItem(2, new QTableWidgetItem(QIcon(killsPixmap), ""));
+    table->setHorizontalHeaderItem(3, new QTableWidgetItem(QIcon(groundKillsPixmap), ""));
+    table->setHorizontalHeaderItem(4, new QTableWidgetItem(QIcon(navalKillsPixmap), ""));
+    table->setHorizontalHeaderItem(5, new QTableWidgetItem(QIcon(assistsPixmap), ""));
+    table->setHorizontalHeaderItem(6, new QTableWidgetItem(QIcon(capturedZonesPixmap), ""));
+    table->setHorizontalHeaderItem(7, new QTableWidgetItem(QIcon(aiKillsPixmap), ""));
+    table->setHorizontalHeaderItem(8, new QTableWidgetItem(QIcon(awardDamagePixmap), ""));
+    table->setHorizontalHeaderItem(9, new QTableWidgetItem(QIcon(damageZonePixmap), ""));
+    table->setHorizontalHeaderItem(10, new QTableWidgetItem(QIcon(deathsPixmap), ""));
+
+    for (int row = 0; row < players->size(); ++row) {
+        const UiPlayerData &player = players->at(row);
+        QTableWidgetItem *usernameItem = new QTableWidgetItem();
+        QString platformIconPath = player.name.contains("@psn") ? ":/icons/psn.png" : player.name.contains("@live") ? ":/icons/xbox.png" : ":/icons/pc.png";
+        usernameItem->setIcon(QIcon(platformIconPath));
+        if (isDarkTheme) {
+            usernameItem->setIcon(invertIconColors(usernameItem->icon()));
+        }
+        usernameItem->setFont(wtSymbols);
+        usernameItem->setText(QString(player.name).replace("@psn", "").replace("@live", ""));
+        table->setItem(row, 0, usernameItem);
+
+        auto createItem = [](const QString &text, const QString &tooltip) {
+            QTableWidgetItem *item = new QTableWidgetItem(text);
+            item->setToolTip(tooltip);
+            return item;
+        };
+
+        table->setItem(row, 1, createItem(QString::number(player.score), tr("Score")));
+        table->setItem(row, 2, createItem(QString::number(player.airKills), tr("Air kills")));
+        table->setItem(row, 3, createItem(QString::number(player.groundKills), tr("Ground kills")));
+        table->setItem(row, 4, createItem(QString::number(player.navalKills), tr("Naval kills")));
+        table->setItem(row, 5, createItem(QString::number(player.assists), tr("Assists")));
+        table->setItem(row, 6, createItem(QString::number(player.caps), tr("Captured zones")));
+        table->setItem(row, 7, createItem(QString::number(player.aiKillsTotal), tr("AI kills")));
+        table->setItem(row, 8, createItem(QString::number(player.damage), tr("Awarded damage")));
+        table->setItem(row, 9, createItem(QString::number(player.bombing), tr("Bombing damage")));
+        table->setItem(row, 10, createItem(QString::number(player.deaths), tr("Deaths")));
+    }
+
+    static bool alliesTableIsConnected = false;
+    static bool axisTableIsConnected = false;
+
+    if (!alliesTableIsConnected && allies) {
+        connect(ui->alliesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem *item) {
+            const int row = item->row();
+            if (row >= 0 && row < this->alliesList.size()) {
+                PlayerProfileDialog dialog(this);
+                dialog.setPlayerData(this->alliesList.at(row));
+                dialog.exec();
+            }
+        });
+        alliesTableIsConnected = true;
+    }
+
+    if (!axisTableIsConnected && !allies) {
+        connect(ui->axisTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem *item) {
+            const int row = item->row();
+            if (row >= 0 && row < this->axisList.size()) {
+                PlayerProfileDialog dialog(this);
+                dialog.setPlayerData(this->axisList.at(row));
+                dialog.exec();
+            }
+        });
+        axisTableIsConnected = true;
+    }
+
+    table->resizeColumnsToContents();
+}
 
 void MainWindow::onLanguageChanged(const QString &languageCode) {
     qApp->removeTranslator(appTranslator);

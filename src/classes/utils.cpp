@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "src/version.h"
 #include "logger.h"
+#include <QHash>
 
 void checkAppVersion() {
     QUrl url("https://raw.githubusercontent.com/Sgambe33/WT-Plotter/refs/heads/main/version.json");
@@ -152,30 +153,48 @@ QIcon invertIconColors(const QIcon &icon) {
 }
 
 QJsonObject getJsonFromResources(const QString &resourceName, const QString &identifier) {
-    QFile file(resourceName);
-    if (!file.open(QIODevice::ReadOnly)) {
-        LOG_WARN_GLOBAL(QString("Failed to oen file: %1").arg(resourceName));
-        return QJsonObject();
-    }
+    static QHash<QString, QHash<QString, QJsonObject> > resourceCache;
 
-    QByteArray data = file.readAll();
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+    if (!resourceCache.contains(resourceName)) {
+        QFile file(resourceName);
+        if (!file.open(QIODevice::ReadOnly)) {
+            LOG_WARN_GLOBAL(QString("Failed to open file: %1").arg(resourceName));
+            return QJsonObject();
+        }
 
-    if (jsonDoc.isNull() || !jsonDoc.isArray()) {
-        LOG_WARN_GLOBAL(QString("Failed to parse JSON array from file: %1").arg(resourceName));
-        return QJsonObject();
-    }
+        const QByteArray data = file.readAll();
+        const QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+        if (jsonDoc.isNull() || !jsonDoc.isArray()) {
+            LOG_WARN_GLOBAL(QString("Failed to parse JSON array from file: %1").arg(resourceName));
+            return QJsonObject();
+        }
 
-    const QJsonArray jsonArray = jsonDoc.array();
-
-    for (const QJsonValue &value: jsonArray) {
-        if (value.isObject()) {
-            QJsonObject obj = value.toObject();
-            if (obj.contains("identifier") && obj["identifier"].toString() == identifier) {
-                return obj;
+        QHash<QString, QJsonObject> byIdentifier;
+        const QJsonArray jsonArray = jsonDoc.array();
+        for (const QJsonValue &value: jsonArray) {
+            if (!value.isObject()) {
+                continue;
+            }
+            const QJsonObject obj = value.toObject();
+            const QString id = obj.value("identifier").toString();
+            if (!id.isEmpty()) {
+                byIdentifier.insert(id, obj);
             }
         }
+        resourceCache.insert(resourceName, std::move(byIdentifier));
     }
-    LOG_WARN_GLOBAL(QString("No ibject found with identifier: %1").arg(identifier));
+
+    const auto resourceIt = resourceCache.constFind(resourceName);
+    if (resourceIt == resourceCache.cend()) {
+        return QJsonObject();
+    }
+
+    const auto &byIdentifier = resourceIt.value();
+    const auto objectIt = byIdentifier.constFind(identifier);
+    if (objectIt != byIdentifier.cend()) {
+        return objectIt.value();
+    }
+
+    LOG_WARN_GLOBAL(QString("No object found with identifier: %1").arg(identifier));
     return QJsonObject();
 }

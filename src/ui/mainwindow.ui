@@ -306,11 +306,18 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QToolButton" name="toolButton">
              <property name="text">
-              <string>...</string>
+              <string>Play</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="toolButton_2">
+             <property name="text">
+              <string>Pause</string>
              </property>
             </widget>
            </item>

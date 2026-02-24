@@ -16,6 +16,10 @@
 #include <QTableWidget>
 #include <QStackedWidget>
 #include <QFont>
+#include <QTimer>
+#include <QPointF>
+#include <QListWidget>
+#include <cstdint>
 
 #include "playerprofiledialog.h"
 #include "../classes/dbmanager.h"
@@ -73,6 +77,12 @@ protected:
     void changeEvent(QEvent *event) override;
 
 private:
+    struct MapLevelConfig {
+        bool isValid = false;
+        double size = 0.0;
+        QPointF bottomLeft;
+    };
+
     Ui::MainWindow *ui;
     QStandardItemModel *model;
     QThread *m_discord_thread = nullptr;
@@ -84,6 +94,10 @@ private:
 
     QList<UiPlayerData> alliesList;
     QList<UiPlayerData> axisList;
+    wrpl::Replay m_selectedReplay;
+    QTimer *m_replayTimer = nullptr;
+    QListWidget *m_chatList = nullptr;
+    QThread *m_serverReplayImportThread = nullptr;
 
     void startDiscordPresence();
 
@@ -94,10 +108,19 @@ private:
     void onTreeItemClicked(const QModelIndex &index);
 
     void executeCommand(const QString &sessionId);
+    void importServerReplay(const QString &sessionId);
 
     void populateTeamTable(QTableWidget *table, const QList<UiPlayerData> *players, bool allies);
 
-    //void populateTeamTable(QTableWidget* table, const QList<QPair<Player, PlayerReplayData>>* players, bool allies);
+    void setupReplayControls();
+    void setupReplayEventTabs();
+    void populateChatList(const std::vector<ChatPacket> &chatPackets) const;
+    void syncChatWithReplayTime(uint32_t currentTimeMs, bool autoScroll) const;
+    void configureReplayPlayback();
+    void updateReplayTimeLabel(int packetIndex) const;
+    QString formatReplayTimeMs(uint32_t timeMs) const;
+    MapLevelConfig resolveMapLevelConfig(const std::string &rawLevel) const;
+
     void changeLanguage(const QString &languageCode);
 
     void setCustomFont(const QString &fontPath, QWidget *widget);

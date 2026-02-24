@@ -1,0 +1,14 @@
+[
+  {
+    "identifier": "avg_abandoned_town",
+    "size": 4096,
+    "bottomLeftX": -2048,
+    "bottomLeftY": -2048
+  },
+  {
+    "identifier": "avg_sweden",
+    "size": 4096,
+    "bottomLeftX": -2048,
+    "bottomLeftY": -2048
+  }
+]

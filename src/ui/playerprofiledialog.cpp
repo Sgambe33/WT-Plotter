@@ -1,11 +1,14 @@
 #include "playerprofiledialog.h"
 #include "ui_playerprofiledialog.h"
 #include <QFontDatabase>
+#include <QDesktopServices>
+#include <QUrl>
 
 
-PlayerProfileDialog::PlayerProfileDialog(QWidget *parent) : QDialog(parent),
-                                                            ui(new Ui::PlayerProfileDialog),
-                                                            settings(new QSettings("sgambe33", "wtplotter", this)) {
+PlayerProfileDialog::PlayerProfileDialog(QWidget *parent)
+    : QDialog(parent),
+      ui(new Ui::PlayerProfileDialog),
+      settings(new QSettings("sgambe33", "wtplotter", this)) {
     ui->setupUi(this);
 
     const int id = QFontDatabase::addApplicationFont(":/fonts/wt_symbols.ttf");
@@ -20,11 +23,12 @@ PlayerProfileDialog::PlayerProfileDialog(QWidget *parent) : QDialog(parent),
     ui->lineupTable->setHorizontalHeaderLabels({tr("Vehicle"), tr("Rank"), tr("Arcade BR"), tr("Realistic BR"), tr("Simulator BR")});
     ui->lineupTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    // prefer reserving capacity for the vehicle DB to avoid rehashing
     loadVehicleDatabase();
 
     connect(ui->playerProfileButton, &QPushButton::clicked, this, [this] {
-        const QString url = "https://warthunder.com/en/community/searchplayers?name=" + playerId;
-        QDesktopServices::openUrl(QUrl(url));
+        const QString url = QStringLiteral("https://warthunder.com/en/community/searchplayers?name=") + playerId;
+        QDesktopServices::openUrl(QUrl::fromUserInput(url));
     });
 }
 
@@ -34,22 +38,28 @@ PlayerProfileDialog::~PlayerProfileDialog() {
 
 void PlayerProfileDialog::loadVehicleDatabase() {
     QFile file(":/translations/vehicles.json");
-    if (file.open(QIODevice::ReadOnly)) {
-        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-        if (doc.isArray()) {
-            const QJsonArray array = doc.array();
-            m_vehicleDatabase.reserve(array.size());
+    if (!file.open(QIODevice::ReadOnly)) {
+        return;
+    }
 
-            for (const QJsonValue &val: array) {
-                if (val.isObject()) {
-                    QJsonObject obj = val.toObject();
-                    if (obj.contains("identifier")) {
-                        m_vehicleDatabase.insert(obj["identifier"].toString(), obj);
-                    }
-                }
-            }
-        }
-        file.close();
+    const QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isArray()) return;
+
+    const QJsonArray array = doc.array();
+    // reserve capacity if supported by the container type
+    m_vehicleDatabase.reserve(array.size());
+
+    for (const QJsonValue &val: array) {
+        if (!val.isObject()) continue;
+        const QJsonObject obj = val.toObject();
+        if (!obj.contains("identifier")) continue;
+        const QString id = obj.value("identifier").toString();
+        if (id.isEmpty()) continue;
+        // insert a copy of the object keyed by identifier
+        m_vehicleDatabase.insert(id, obj);
     }
 }
 
@@ -69,34 +79,55 @@ void PlayerProfileDialog::setPlayerData(const UiPlayerData &playerData) {
 
     QStringList vehicles = playerData.lineup.split(',', Qt::SkipEmptyParts);
 
-    ui->lineupTable->setRowCount(vehicles.size());
-    ui->lineupTable->setSortingEnabled(false);
+    // Prepare table for bulk update to reduce repaints
+    QTableWidget *table = ui->lineupTable;
+    table->setSortingEnabled(false);
+    table->setUpdatesEnabled(false);
+    table->clearContents();
+
+    const int vehicleCount = vehicles.size();
+    table->setRowCount(vehicleCount);
 
     const QString lang = settings->value("language", "en").toString();
 
-    for (int i = 0; i < vehicles.size(); ++i) {
-        QString vehicleId = vehicles[i].trimmed();
-        QJsonObject obj = m_vehicleDatabase.value(vehicleId);
+    int row = 0;
+    for (const QString &rawVehicle: vehicles) {
+        const QString vehicleId = rawVehicle.trimmed();
+        if (vehicleId.isEmpty()) {
+            ++row;
+            continue;
+        }
 
-        if (obj.isEmpty()) continue;
+        // Use constFind to avoid creating temporary QJsonObject copies and suppress warnings
+        auto it = m_vehicleDatabase.constFind(vehicleId);
+        if (it == m_vehicleDatabase.constEnd()) {
+            ++row;
+            continue;
+        }
+        const QJsonObject &obj = it.value();
 
-        QTableWidgetItem *item = new QTableWidgetItem(obj.value(lang).toString());
-        item->setFont(wtSymbols);
+        // Name cell
+        QTableWidgetItem *nameItem = new QTableWidgetItem(obj.value(lang).toString());
+        nameItem->setFont(wtSymbols);
+        table->setItem(row, 0, nameItem);
 
-        ui->lineupTable->setItem(i, 0, item);
-
-        auto addNumItem = [&](int col, double val) {
+        // Helper lambda to add numeric items (int/double) with DisplayRole to allow numeric sorting
+        auto addNumItem = [&](int col, const QVariant &val) {
             QTableWidgetItem *numItem = new QTableWidgetItem();
             numItem->setData(Qt::DisplayRole, val);
-            ui->lineupTable->setItem(i, col, numItem);
+            numItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+            table->setItem(row, col, numItem);
         };
 
         addNumItem(1, obj.value("rank").toInt());
         addNumItem(2, obj.value("ab_br").toDouble());
         addNumItem(3, obj.value("rb_br").toDouble());
         addNumItem(4, obj.value("sb_br").toDouble());
+
+        ++row;
     }
 
-    ui->lineupTable->resizeColumnsToContents();
-    ui->lineupTable->setSortingEnabled(true);
+    table->resizeColumnsToContents();
+    table->setSortingEnabled(true);
+    table->setUpdatesEnabled(true);
 }

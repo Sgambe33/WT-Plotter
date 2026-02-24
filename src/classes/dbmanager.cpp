@@ -10,6 +10,25 @@
 using json = nlohmann::json;
 
 namespace {
+    void populateReplayHeaderFromQuery(const QSqlQuery &query, ReplayHeader &header) {
+        header.sessionId = query.value("session_id").toString().toStdString();
+        header.wrplVersion = query.value("wrpl_version").toUInt();
+        header.rawLevel = query.value("raw_level").toString().toStdString();
+        header.rawLevelSettings = query.value("raw_level_settings").toString().toStdString();
+        header.rawBattleType = query.value("raw_battle_type").toString().toStdString();
+        header.rawEnvironment = query.value("raw_environment").toString().toStdString();
+        header.rawVisibility = query.value("raw_visibility").toString().toStdString();
+        header.difficulty = query.value("difficulty").toInt();
+        header.sessionType = query.value("session_type").toUInt();
+        header.isServer = query.value("is_server").toInt() != 0;
+        header.rawLocationName = query.value("raw_location_name").toString().toStdString();
+        header.startTimeEpochS = query.value("start_time_epoch_ms").toULongLong();
+        header.timeLimitInMinutes = query.value("time_limit_in_minutes").toUInt();
+        header.scoreLimit = query.value("score_limit").toUInt();
+        header.rawBattleClass = query.value("raw_battle_class").toString().toStdString();
+        header.rawBattleKillStreak = query.value("raw_battle_kill_streak").toString().toStdString();
+    }
+
     template<typename T>
     QByteArray serializePacketVector(const std::vector<T> &packets) {
         QByteArray blob;
@@ -294,7 +313,6 @@ bool DbManager::insertReplay(const wrpl::Replay &replay) {
     }
 
     try {
-        // Insert ReplayMetadata
         m_insertReplayMetadataQuery.bindValue(":session_id", QString::fromStdString(replay.header.sessionId));
         m_insertReplayMetadataQuery.bindValue(":author_id", 0); // TODO: extract from results if available
         m_insertReplayMetadataQuery.bindValue(":wrpl_version", replay.header.wrplVersion);
@@ -341,6 +359,7 @@ bool DbManager::insertReplay(const wrpl::Replay &replay) {
         if (!m_db.commit()) {
             throw std::runtime_error("Commit failed");
         }
+
         return true;
     } catch (const std::exception &e) {
         m_db.rollback();
@@ -368,23 +387,7 @@ QMap<QDate, QList<wrpl::Replay> > DbManager::fetchReplaysGroupedByDate() const {
 
     while (query.next()) {
         wrpl::Replay replay;
-
-        replay.header.sessionId = query.value("session_id").toString().toStdString();
-        replay.header.wrplVersion = query.value("wrpl_version").toUInt();
-        replay.header.rawLevel = query.value("raw_level").toString().toStdString();
-        replay.header.rawLevelSettings = query.value("raw_level_settings").toString().toStdString();
-        replay.header.rawBattleType = query.value("raw_battle_type").toString().toStdString();
-        replay.header.rawEnvironment = query.value("raw_environment").toString().toStdString();
-        replay.header.rawVisibility = query.value("raw_visibility").toString().toStdString();
-        replay.header.difficulty = query.value("difficulty").toInt();
-        replay.header.sessionType = query.value("session_type").toUInt();
-        replay.header.isServer = query.value("is_server").toInt() != 0;
-        replay.header.rawLocationName = query.value("raw_location_name").toString().toStdString();
-        replay.header.startTimeEpochS = query.value("start_time_epoch_ms").toULongLong();
-        replay.header.timeLimitInMinutes = query.value("time_limit_in_minutes").toUInt();
-        replay.header.scoreLimit = query.value("score_limit").toUInt();
-        replay.header.rawBattleClass = query.value("raw_battle_class").toString().toStdString();
-        replay.header.rawBattleKillStreak = query.value("raw_battle_kill_streak").toString().toStdString();
+        populateReplayHeaderFromQuery(query, replay.header);
 
         QDate dateKey = QDateTime::fromSecsSinceEpoch(replay.header.startTimeEpochS).date();
         replayMap[dateKey].append(replay);
@@ -392,7 +395,7 @@ QMap<QDate, QList<wrpl::Replay> > DbManager::fetchReplaysGroupedByDate() const {
 
     for (auto &replays: replayMap) {
         std::sort(replays.begin(), replays.end(), [](const wrpl::Replay &a, const wrpl::Replay &b) {
-            return a.header.startTimeEpochS < b.header.startTimeEpochS;
+            return a.header.startTimeEpochS > b.header.startTimeEpochS;
         });
     }
 
@@ -403,7 +406,7 @@ quint32 DbManager::getLatestReplay() {
     QSqlQuery query(m_db);
     if (query.exec("SELECT start_time_epoch_ms FROM ReplayMetadata ORDER BY start_time_epoch_ms DESC LIMIT 1")) {
         if (query.next()) {
-            return query.value(0).toInt();
+            return query.value(0).toUInt();
         }
     } else {
         LOG_WARN("Failed to fetch latest replay:" + query.lastError().text());
@@ -429,26 +432,10 @@ wrpl::Replay DbManager::getReplayBySessionId(const QString &sessionId) const {
 
     wrpl::Replay replay;
 
-    // Populate header fields
-    replay.header.sessionId = query.value("session_id").toString().toStdString();
-    replay.header.wrplVersion = query.value("wrpl_version").toUInt();
-    replay.header.rawLevel = query.value("raw_level").toString().toStdString();
-    replay.header.rawLevelSettings = query.value("raw_level_settings").toString().toStdString();
-    replay.header.rawBattleType = query.value("raw_battle_type").toString().toStdString();
-    replay.header.rawEnvironment = query.value("raw_environment").toString().toStdString();
-    replay.header.rawVisibility = query.value("raw_visibility").toString().toStdString();
-    replay.header.difficulty = query.value("difficulty").toInt();
-    replay.header.sessionType = query.value("session_type").toUInt();
-    replay.header.isServer = query.value("is_server").toInt() != 0;
-    replay.header.rawLocationName = query.value("raw_location_name").toString().toStdString();
-    replay.header.startTimeEpochS = query.value("start_time_epoch_ms").toULongLong();
-    replay.header.timeLimitInMinutes = query.value("time_limit_in_minutes").toUInt();
-    replay.header.scoreLimit = query.value("score_limit").toUInt();
-    replay.header.rawBattleClass = query.value("raw_battle_class").toString().toStdString();
-    replay.header.rawBattleKillStreak = query.value("raw_battle_kill_streak").toString().toStdString();
+    populateReplayHeaderFromQuery(query, replay.header);
 
     query.prepare(R"(
-        SELECT settings_blk, results_blk, chat_packets, award_packets, movement_packets
+        SELECT settings_blk, results_blk, chat_packets, kill_packets, award_packets, movement_packets, slot_packets
         FROM ReplayData
         WHERE session_id = :session_id
     )");
@@ -462,12 +449,16 @@ wrpl::Replay DbManager::getReplayBySessionId(const QString &sessionId) const {
     replay.results = deserializeJsonToBlkMap(query.value("results_blk").toString());
     replay.settings = deserializeJsonToBlkMap(query.value("settings_blk").toString());
     replay.chatPackets = deserializePacketVector<ChatPacket>(query.value("chat_packets").toByteArray());
+    replay.killPackets = deserializePacketVector<KillPacket>(query.value("kill_packets").toByteArray());
     replay.awardPackets = deserializePacketVector<AwardPacket>(query.value("award_packets").toByteArray());
     replay.movementPackets = deserializePacketVector<MovementPacket>(query.value("movement_packets").toByteArray());
+    replay.slotPackets = deserializePacketVector<SlotPacket>(query.value("slot_packets").toByteArray());
 
     qDebug() << "Deserialized" << replay.chatPackets.size() << "chat packets, "
+             << replay.killPackets.size() << "kill packets, "
              << replay.awardPackets.size() << "award packets, "
-             << replay.movementPackets.size() << "movement packets for session_id:" << sessionId;
+             << replay.movementPackets.size() << "movement packets, "
+             << replay.slotPackets.size() << "slot packets for session_id:" << sessionId;
 
     return replay;
 }

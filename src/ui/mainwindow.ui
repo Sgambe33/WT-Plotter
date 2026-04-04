@@ -139,11 +139,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QStackedWidget" name="stackedWidget_2">
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="page">
+      <widget class="QWidget" name="page">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QFrame" name="frame">
@@ -229,22 +225,22 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="playLocalReplayButton">
+            <widget class="QPushButton" name="downloadServerReplayButton">
              <property name="text">
-              <string>Play local</string>
+              <string>Get server replay</string>
              </property>
              <property name="icon">
-              <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+              <iconset theme="QIcon::ThemeIcon::GoDown"/>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="playServerReplayButton">
+            <widget class="QPushButton" name="watchReplayButton">
              <property name="text">
-              <string>Play server</string>
+               <string>View chat</string>
              </property>
              <property name="icon">
-              <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+               <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
              </property>
             </widget>
            </item>
@@ -278,67 +274,6 @@
           </widget>
          </item>
         </layout>
-       </widget>
-       <widget class="QWidget" name="page_2">
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QSplitter" name="splitter_2">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
-           </property>
-           <widget class="SceneImageViewer" name="mappa"/>
-           <widget class="QTabWidget" name="tabWidget_2">
-            <property name="currentIndex">
-             <number>0</number>
-            </property>
-            <widget class="QWidget" name="tab_3">
-             <attribute name="title">
-              <string>Chat</string>
-             </attribute>
-             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
-            </widget>
-            <widget class="QWidget" name="tab_4">
-             <attribute name="title">
-              <string>Battle log</string>
-             </attribute>
-            </widget>
-           </widget>
-          </widget>
-         </item>
-         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QToolButton" name="toolButton">
-             <property name="text">
-              <string>Play</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButton_2">
-             <property name="text">
-              <string>Pause</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="horizontalSlider">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>0:00/0:00</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
       </widget>
      </widget>
     </item>
@@ -380,7 +315,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>22</height>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

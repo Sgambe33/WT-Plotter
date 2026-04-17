@@ -1,3 +1,3 @@
-[submodule "lib/wrpl_parser"]
-	path = lib/wrpl_parser
+[submodule "libs/wrpl_parser"]
+	path = libs/WRPL_parser
 	url = https://github.com/Sgambe33/WRPL_parser

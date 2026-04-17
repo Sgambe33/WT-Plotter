@@ -330,6 +330,7 @@ void Gui_DiscordRichPresence() {
         ImGui::Text("Playing %s", g_AppState.activityName.c_str());
         ImGui::Text("Status: %s", g_AppState.activityStatus.c_str());
         ImGui::Text("Details: %s", g_AppState.activityDetails.c_str());
+        ImGui::Text("Crew: %d / %d", g_AppState.rpc_party.CurrentSize(), g_AppState.rpc_party.MaxSize());
 
         ImGui::Separator();
         ImGui::Text("Current Image: %s", g_AppState.currentRpcImageKey.c_str());
@@ -486,7 +487,6 @@ void Gui_PreferencesDialog() {
             g_AppState.prefs = tempPrefs;
             SavePreferences(g_AppState.prefs);
             g_AppState.showPreferencesDialog = false;
-            // Reload replays immediately if replay path changed
             g_AppState.treeNodeOpen.clear();
             LoadReplaysFromDisk();
          }

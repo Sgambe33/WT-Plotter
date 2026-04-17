@@ -61,7 +61,7 @@ void TelemetryManager::ParseIndicators(const std::string &buf, TelemetryUpdate &
         const auto indicators_json = json::parse(buf);
         indicators_valid = indicators_json.value("valid", false);
         telemetry_update.unit_name = indicators_json.value("type", "");
-        telemetry_update.actual_crew = indicators_json.value("crew_current", 0); //TODO: use getparty.size?
+        telemetry_update.current_crew = indicators_json.value("crew_current", 0); //TODO: use getparty.size?
         telemetry_update.total_crew = indicators_json.value("crew_total", 0);
         telemetry_update.unit_speed = indicators_json.value("speed", 0);
     } catch (const std::exception &e) {
@@ -76,6 +76,7 @@ void TelemetryManager::ParseMapInfo(const std::string &buf, TelemetryUpdate &tel
     try {
         const auto map_info_json = json::parse(buf);
         map_valid = map_info_json.value("valid", false);
+        if (!map_valid) return;
         // Attempt to read map hash if provided
         if (map_info_json.contains("map_hash") && map_info_json["map_hash"].is_string()) {
             std::string map_md5_hash = map_info_json["map_hash"].get<std::string>();

@@ -7,6 +7,8 @@
 #include <nlohmann/json.hpp>
 #include <SDL3/SDL.h>
 
+#include "discordpp.h"
+
 using json = nlohmann::json;
 
 // ==========================================
@@ -74,7 +76,15 @@ struct AppState {
     // SDL Renderer pointer for texture loading
     SDL_Renderer* renderer = nullptr;
 
-    // RPC Image texture
+    // RPC STUFF
+    std::shared_ptr<discordpp::Client> client;
+    discordpp::Activity rpc_activity;
+    discordpp::ActivityAssets rpc_assets;
+    discordpp::ActivityTimestamps rpc_timestamps;
+    discordpp::ActivityParty rpc_party;
+
+
+
     SDL_Texture* rpcImageTexture = nullptr;
     int rpcImageWidth = 0;
     int rpcImageHeight = 0;

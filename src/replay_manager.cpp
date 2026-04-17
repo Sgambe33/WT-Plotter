@@ -1,6 +1,7 @@
 #include "replay_manager.h"
 #include <filesystem>
 #include <iostream>
+#include "../libs/WRPL_parser/include/wrpl.h"
 
 extern AppState g_AppState;
 
@@ -16,6 +17,11 @@ void LoadReplaysFromDisk() {
 
                 // Extract date from filename like "#2026.01.21 22.57.15.wrpl"
                 if (filename.size() > 11 && filename[0] == '#') {
+
+                    //wrpl::parseClientReplay(dir_entry.path().string());
+
+
+
                     ReplayFile replay;
                     replay.fullPath = dir_entry.path();
                     replay.filename = filename;

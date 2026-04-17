@@ -5,6 +5,7 @@
 #define DISCORDPP_IMPLEMENTATION
 #include <iostream>
 #include "discordpp.h"
+#include "libs/sqlite3/sqlite3.h"
 #include "src/logger.h"
 #include "src/app_state.h"
 #include "src/constants.h"
@@ -13,49 +14,96 @@
 #include "src/rpc_manager.h"
 #include "src/tray_support.h"
 #include "src/gui_windows.h"
-#include "src/status_thread.h"
+#include "src/telemetry_thread.h"
 
 ImFont *g_WtSymbolsFont = nullptr;
 
-// ==========================================
-// 4. MAIN ENTRY POINT
-// ==========================================
 constexpr uint64_t APPLICATION_ID = 1338259195455344650;
+extern Uint32 EVENT_TELEMETRY_UPDATED;
+
+
+void InitAppFolder() {
+    const char *documents_path = SDL_GetUserFolder(SDL_FOLDER_DOCUMENTS);
+    if (documents_path == nullptr) {
+        app_log::error("Failed to get user documents folder: " + std::string(SDL_GetError()));
+        return;
+    }
+
+    const std::filesystem::path documents_dir = documents_path;
+    const std::filesystem::path app_folder = documents_dir / "wtplotter/plots";
+    if (!std::filesystem::exists(app_folder)) {
+        create_directories(app_folder);
+    }
+}
+
+void InitSQLiteDB() {
+    const char *documents_path = SDL_GetUserFolder(SDL_FOLDER_DOCUMENTS);
+    if (documents_path == nullptr) {
+        app_log::error("Failed to get user documents folder: " + std::string(SDL_GetError()));
+        return;
+    }
+    const std::filesystem::path documents_dir = documents_path;
+    const std::filesystem::path db_path = documents_dir / "wtplotter/replays.sqlite3";
+    if (!std::filesystem::exists(db_path)) {
+        sqlite3 *db;
+        int rc = sqlite3_open(reinterpret_cast<const char *>(absolute(db_path).c_str()), &db);
+        if( rc ) {
+            app_log::error("Failed to open database: " + std::string(SDL_GetError()));
+            return;
+        }
+        for (std::string statement : Constants::SQLITE_TABLES_DEFINITIONS) {
+            rc = sqlite3_exec(db, statement.c_str(), nullptr, nullptr, nullptr);
+            if (rc != SQLITE_OK) {
+                app_log::error("Failed to create tables: " + std::string(sqlite3_errmsg(db)));
+                sqlite3_close(db);
+                return;
+            }
+            app_log::info("SQLITE tables created");
+        }
+        app_log::info("Opened database successfully");
+        sqlite3_close(db);
+    }
+}
+
 
 int main(int, char *[]) {
     if (!app_log::init()) {
         std::cerr << "Logger initialization failed\n";
     }
 
-    //Setup discord
-    app_log::info("Initializing Discord SDK...");
-    auto client = std::make_shared<discordpp::Client>();
-    client->SetApplicationId(APPLICATION_ID);
+    InitAppFolder();
+    InitSQLiteDB();
 
-    discordpp::Activity activity;
-    activity.SetApplicationId(APPLICATION_ID);
-    activity.SetType(discordpp::ActivityTypes::Playing);
-    activity.SetName(g_AppState.activityName);
-    activity.SetState(g_AppState.activityStatus);
-    activity.SetDetails(g_AppState.activityDetails);
-    discordpp::ActivityAssets assets;
-    assets.SetLargeImage("logowt_stripe_flat");
-    activity.SetAssets(assets);
-    discordpp::ActivityTimestamps timestamps;
-    timestamps.SetStart(time(nullptr));
-    activity.SetTimestamps(timestamps);
+    //Setup discord only if the user wants
+    if (g_AppState.prefs.enableDiscordRichPresence) {
+        app_log::info("Initializing Discord SDK...");
+        g_AppState.client = std::make_shared<discordpp::Client>();
+        g_AppState.client->SetApplicationId(APPLICATION_ID);
+        g_AppState.rpc_activity.SetApplicationId(APPLICATION_ID);
+        g_AppState.rpc_activity.SetType(discordpp::ActivityTypes::Playing);
+        g_AppState.rpc_activity.SetName(g_AppState.activityName);
+        g_AppState.rpc_party.SetId("crew");
+        g_AppState.rpc_assets.SetLargeImage("logowt_stripe_flat");
+        g_AppState.rpc_activity.SetAssets(g_AppState.rpc_assets);
+        g_AppState.rpc_timestamps.SetStart(time(nullptr));
+        g_AppState.rpc_activity.SetTimestamps(g_AppState.rpc_timestamps);
 
-    // Update rich presence
-    client->UpdateRichPresence(activity, [](const discordpp::ClientResult &result) {
-        if (result.Successful()) {
-            app_log::info("Rich Presence updated successfully");
-        } else {
-            app_log::error("Rich Presence update failed: " + result.Error());
-        }
+        g_AppState.client->UpdateRichPresence(g_AppState.rpc_activity, [](const discordpp::ClientResult &result) {
+            if (result.Successful()) {
+                app_log::info("Rich Presence updated successfully");
+            } else {
+                app_log::error("Rich Presence update failed: " + result.Error());
+            }
+        });
+    }
+
+    // Game telemetry thread setup
+    TelemetryManager telemetry_manager;
+    telemetry_manager.Start(std::chrono::milliseconds(2000), [](const TelemetryUpdate &update) {
+        SDL_Event event;
+        event.type = EVENT_TELEMETRY_UPDATED;
+        SDL_PushEvent(&event);
     });
-
-    // Start background status thread (no direct callback to avoid thread-safety issues with Discord SDK)
-    status_thread::start_status_thread(nullptr, std::chrono::milliseconds(2000));
 
     // Setup SDL
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -67,7 +115,7 @@ int main(int, char *[]) {
     // Create window with SDL_Renderer graphics context
     float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     constexpr auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
-    SDL_Window *window = SDL_CreateWindow("WT Plotter",static_cast<int>(1280 * main_scale), static_cast<int>(800 * main_scale), window_flags);
+    SDL_Window *window = SDL_CreateWindow("WT Plotter",static_cast<int>(600 * main_scale), static_cast<int>(480 * main_scale), window_flags);
     if (window == nullptr) {
         app_log::error(std::string("SDL_CreateWindow failed: ") + SDL_GetError());
         app_log::shutdown();
@@ -85,15 +133,8 @@ int main(int, char *[]) {
     // Store renderer in AppState for texture loading
     g_AppState.renderer = renderer;
 
-    // Load preferences
     LoadPreferences(g_AppState.prefs);
-
-    // Load replays once at startup (populate AppState)
     LoadReplaysFromDisk();
-
-    if (!SDL_SetRenderVSync(renderer, 1)) {
-        printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
-    }
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -108,8 +149,7 @@ int main(int, char *[]) {
     font_config.OversampleV = 1; // Default is 1
     io.Fonts->AddFontDefault(&font_config);
     io.Fonts->TexMaxWidth = 512; // Smaller texture atlas
-    g_WtSymbolsFont = io.Fonts->AddFontFromFileTTF("wt_symbols.ttf", 16.0f); // scegli la size desiderata
-    // Setup Dear ImGui style
+    g_WtSymbolsFont = io.Fonts->AddFontFromFileTTF("wt_symbols.ttf", 16.0f);
     ImGui::StyleColorsDark();
 
     // DISABLE WINDOW TRANSPARENCY
@@ -126,7 +166,7 @@ int main(int, char *[]) {
     tray_support::init(window);
 
     // Main loop
-    constexpr Uint64 kTargetFrameMs = 1000 / 60; // 60 FPS cap
+    constexpr Uint64 kTargetFrameMs = 1000 / 60;
     bool done = false;
     while (!done) {
         const Uint64 frameStartMs = SDL_GetTicks();
@@ -140,10 +180,8 @@ int main(int, char *[]) {
         bool needsContinuousUpdate = g_AppState.isPlaying || (g_AppState.listMode == AppState::ListMode::Loading);
         Sint32 timeout_ms = needsContinuousUpdate ? 16 : 250;
 
-        // 2. Wait for an OS event OR the timeout to expire
         SDL_Event event;
         if (SDL_WaitEventTimeout(&event, timeout_ms)) {
-            // We got an event! Process it, and then process any others currently in the queue.
             do {
                 ImGui_ImplSDL3_ProcessEvent(&event);
                 if (event.type == SDL_EVENT_QUIT)
@@ -151,34 +189,15 @@ int main(int, char *[]) {
                 if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
                     tray_support::handle_window_close();
                 }
+                if (event.type == EVENT_TELEMETRY_UPDATED) {
+                    TelemetryUpdate telemetry_update;
+                    if (telemetry_manager.TryPopUpdate(telemetry_update)) {
+                        UpdateRPC(&telemetry_update);
+                    }
+                }
             } while (SDL_PollEvent(&event));
         }
 
-        // Consume any pending server status updates and update Discord presence from main thread
-        status_thread::ServerStatus st;
-        while (status_thread::try_pop_status(st)) {
-            // Map server status to Discord Activity
-            discordpp::Activity newAct = activity; // copy base activity
-            if (st.online) {
-                newAct.SetState("In Match");
-                newAct.SetDetails(st.unit + " / " + std::to_string(st.online));
-                discordpp::ActivityAssets newAssets = assets;
-                newAssets.SetLargeImage(st.map);
-                newAct.SetAssets(newAssets);
-                g_AppState.activityDetails = st.unit + " / " + std::to_string(st.online) + " / Map: " + st.map;
-            } else {
-                newAct.SetState("In Lobby");
-                newAct.SetDetails("Idle");
-            }
-
-            client->UpdateRichPresence(newAct, [](const discordpp::ClientResult &result) {
-                if (!result.Successful()) {
-                    app_log::error("Rich Presence update failed: " + result.Error());
-                }
-            });
-        }
-
-        // Start the Dear ImGui frame
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
@@ -193,20 +212,12 @@ int main(int, char *[]) {
         Gui_DiscordRichPresence();
         Gui_AboutDialog();
         Gui_PreferencesDialog();
-        ImGui::ShowMetricsWindow();
+        //ImGui::ShowMetricsWindow();
 
 
         // Simulate loading progress
         if (g_AppState.listMode == AppState::ListMode::Loading) {
             g_AppState.loadingProgress += 0.01f;
-        }
-
-        // Simulate playback progress
-        if (g_AppState.isPlaying) {
-            g_AppState.playbackProgress += 0.1f;
-            if (g_AppState.playbackProgress > 100.0f) {
-                g_AppState.playbackProgress = 0.0f;
-            }
         }
 
         // Rendering
@@ -217,15 +228,7 @@ int main(int, char *[]) {
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
 
-        // Keep a stable 60 FPS even if VSync is unavailable/disabled.
-        const Uint64 frameTimeMs = SDL_GetTicks() - frameStartMs;
-        if (frameTimeMs < kTargetFrameMs) {
-            SDL_Delay(static_cast<Uint32>(kTargetFrameMs - frameTimeMs));
-        }
     }
-
-    // Cleanup
-    status_thread::stop_status_thread();
 
     // Clean up RPC texture
     if (g_AppState.rpcImageTexture) {

@@ -15,7 +15,7 @@ struct TelemetryUpdate {
 
     std::string unit_name;
     int total_crew;
-    int actual_crew;
+    int current_crew;
     int unit_speed;
     std::vector<std::tuple<float, float, std::string>> positions;
     std::string map_name;
@@ -24,7 +24,7 @@ struct TelemetryUpdate {
     void Reset() {
         unit_name.clear();
         total_crew = 0;
-        actual_crew = 0;
+        current_crew = 0;
         unit_speed = 0;
         positions.clear();
         map_name.clear();

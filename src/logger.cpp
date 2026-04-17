@@ -60,7 +60,7 @@ namespace app_log {
             std::filesystem::create_directories(path.parent_path(), ec);
         }
 
-        g_logFile.open(path, std::ios::out | std::ios::app);
+        g_logFile.open(path, std::ios::out | std::ios::trunc);
         g_initialized = g_logFile.is_open();
         g_logFilePath = path.string();
 

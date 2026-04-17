@@ -58,8 +58,8 @@ add_executable(hello_world_
         libs/sqlite3/sqlite3.h
         src/logger.cpp
         src/logger.h
-        src/status_thread.cpp
-        src/status_thread.h
+        src/telemetry_thread.cpp
+        src/telemetry_thread.h
         src/app_state.cpp
         src/app_state.h
         src/preferences.cpp
@@ -98,6 +98,7 @@ target_link_libraries(hello_world_ PRIVATE
         SDL3::SDL3
         SDL3_image::SDL3_image
         nlohmann_json::nlohmann_json
+        WRPL::wrpl
 )
 
 # Discord SDK linking (variables provided by Discord module)

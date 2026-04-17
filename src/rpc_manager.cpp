@@ -3,12 +3,13 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <iostream>
+#include "logger.h"
 
 extern AppState g_AppState;
 
 void LoadRpcImage(const std::string& imageKey) {
     if (!g_AppState.renderer) {
-        std::cerr << "❌ Renderer not initialized\n";
+        app_log::error("Renderer not initialized");
         return;
     }
 
@@ -23,13 +24,13 @@ void LoadRpcImage(const std::string& imageKey) {
     SDL_Surface* surface = IMG_Load(imagePath.c_str());
 
     if (!surface) {
-        std::cerr << "❌ Failed to load RPC image: " << imagePath << " - " << SDL_GetError() << "\n";
+        app_log::error("Failed to load RPC image: " + imagePath + " - " + SDL_GetError());
         // Try alternative path format
         imagePath = "assets/" + imageKey + "_map.png";
         surface = IMG_Load(imagePath.c_str());
 
         if (!surface) {
-            std::cerr << "❌ Failed to load RPC image (alt): " << imagePath << " - " << SDL_GetError() << "\n";
+            app_log::error("Failed to load RPC image (alt): " + imagePath + " - " + SDL_GetError());
             return;
         }
     }
@@ -40,8 +41,11 @@ void LoadRpcImage(const std::string& imageKey) {
     SDL_DestroySurface(surface);
 
     if (g_AppState.rpcImageTexture) {
-        std::cout << "✅ RPC image loaded: " << imagePath << " (" << g_AppState.rpcImageWidth << "x" << g_AppState.rpcImageHeight << ")\n";
+        app_log::info(
+            "RPC image loaded: " + imagePath +
+            " (" + std::to_string(g_AppState.rpcImageWidth) + "x" + std::to_string(g_AppState.rpcImageHeight) + ")"
+        );
     } else {
-        std::cerr << "❌ Failed to create texture from surface: " << SDL_GetError() << "\n";
+        app_log::error("Failed to create texture from surface: " + std::string(SDL_GetError()));
     }
 }

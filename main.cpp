@@ -5,11 +5,13 @@
 #define DISCORDPP_IMPLEMENTATION
 #include <iostream>
 #include "discordpp.h"
+#include "src/logger.h"
 #include "src/app_state.h"
 #include "src/constants.h"
 #include "src/preferences.h"
 #include "src/replay_manager.h"
 #include "src/rpc_manager.h"
+#include "src/tray_support.h"
 #include "src/gui_windows.h"
 #include "src/status_thread.h"
 
@@ -21,8 +23,12 @@ ImFont *g_WtSymbolsFont = nullptr;
 constexpr uint64_t APPLICATION_ID = 1338259195455344650;
 
 int main(int, char *[]) {
+    if (!app_log::init()) {
+        std::cerr << "Logger initialization failed\n";
+    }
+
     //Setup discord
-    std::cout << "🚀 Initializing Discord SDK...\n";
+    app_log::info("Initializing Discord SDK...");
     auto client = std::make_shared<discordpp::Client>();
     client->SetApplicationId(APPLICATION_ID);
 
@@ -42,9 +48,9 @@ int main(int, char *[]) {
     // Update rich presence
     client->UpdateRichPresence(activity, [](const discordpp::ClientResult &result) {
         if (result.Successful()) {
-            std::cout << "🎮 Rich Presence updated successfully!\n";
+            app_log::info("Rich Presence updated successfully");
         } else {
-            std::cerr << "❌ Rich Presence update failed" << result.Error();
+            app_log::error("Rich Presence update failed: " + result.Error());
         }
     });
 
@@ -53,7 +59,8 @@ int main(int, char *[]) {
 
     // Setup SDL
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        printf("Error: %s\n", SDL_GetError());
+        app_log::error(std::string("SDL_Init failed: ") + SDL_GetError());
+        app_log::shutdown();
         return 1;
     }
 
@@ -62,14 +69,16 @@ int main(int, char *[]) {
     constexpr auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window *window = SDL_CreateWindow("WT Plotter",static_cast<int>(1280 * main_scale), static_cast<int>(800 * main_scale), window_flags);
     if (window == nullptr) {
-        printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
+        app_log::error(std::string("SDL_CreateWindow failed: ") + SDL_GetError());
+        app_log::shutdown();
         return -1;
     }
 
     // Create SDL_Renderer
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (renderer == nullptr) {
-        printf("Error: SDL_CreateRenderer(): %s\n", SDL_GetError());
+        app_log::error(std::string("SDL_CreateRenderer failed: ") + SDL_GetError());
+        app_log::shutdown();
         return -1;
     }
 
@@ -114,18 +123,35 @@ int main(int, char *[]) {
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
+    tray_support::init(window);
+
     // Main loop
+    constexpr Uint64 kTargetFrameMs = 1000 / 60; // 60 FPS cap
     bool done = false;
     while (!done) {
+        const Uint64 frameStartMs = SDL_GetTicks();
+        tray_support::poll();
+        if (tray_support::consume_quit_request()) {
+            done = true;
+        }
+
         discordpp::RunCallbacks();
         // Poll and handle events
+        bool needsContinuousUpdate = g_AppState.isPlaying || (g_AppState.listMode == AppState::ListMode::Loading);
+        Sint32 timeout_ms = needsContinuousUpdate ? 16 : 250;
+
+        // 2. Wait for an OS event OR the timeout to expire
         SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL3_ProcessEvent(&event);
-            if (event.type == SDL_EVENT_QUIT)
-                done = true;
-            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
-                done = true;
+        if (SDL_WaitEventTimeout(&event, timeout_ms)) {
+            // We got an event! Process it, and then process any others currently in the queue.
+            do {
+                ImGui_ImplSDL3_ProcessEvent(&event);
+                if (event.type == SDL_EVENT_QUIT)
+                    done = true;
+                if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
+                    tray_support::handle_window_close();
+                }
+            } while (SDL_PollEvent(&event));
         }
 
         // Consume any pending server status updates and update Discord presence from main thread
@@ -147,7 +173,7 @@ int main(int, char *[]) {
 
             client->UpdateRichPresence(newAct, [](const discordpp::ClientResult &result) {
                 if (!result.Successful()) {
-                    std::cerr << "❌ Rich Presence update failed: " << result.Error() << std::endl;
+                    app_log::error("Rich Presence update failed: " + result.Error());
                 }
             });
         }
@@ -190,6 +216,12 @@ int main(int, char *[]) {
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
+
+        // Keep a stable 60 FPS even if VSync is unavailable/disabled.
+        const Uint64 frameTimeMs = SDL_GetTicks() - frameStartMs;
+        if (frameTimeMs < kTargetFrameMs) {
+            SDL_Delay(static_cast<Uint32>(kTargetFrameMs - frameTimeMs));
+        }
     }
 
     // Cleanup
@@ -204,9 +236,13 @@ int main(int, char *[]) {
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 
+    tray_support::shutdown();
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    app_log::shutdown();
 
     return 0;
 }

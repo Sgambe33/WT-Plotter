@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <deque>
 #include <iostream>
+#include "logger.h"
 
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
@@ -278,7 +279,7 @@ namespace status_thread {
             st.unitCrewTotal = j.value("crew_total", 0);
             st.unitSpeed = j.value("speed", 0);
         } catch (const std::exception &e) {
-            std::cerr << "status_thread: indicators JSON parse error: " << e.what() << std::endl;
+            app_log::error(std::string("status_thread: indicators JSON parse error: ") + e.what());
         }
     }
 
@@ -298,14 +299,14 @@ namespace status_thread {
                 }
             }
         } catch (const std::exception &e) {
-            std::cerr << "status_thread: map_info JSON parse error: " << e.what() << std::endl;
+            app_log::error(std::string("status_thread: map_info JSON parse error: ") + e.what());
         }
     }
 
     void worker_fn() {
         CURL *curl = curl_easy_init();
         if (!curl) {
-            std::cerr << "status_thread: curl_easy_init failed" << std::endl;
+            app_log::error("status_thread: curl_easy_init failed");
             return;
         }
 
@@ -408,17 +409,17 @@ namespace status_thread {
                     try {
                         user_cb(st);
                     } catch (const std::exception &e) {
-                        std::cerr << "status_thread: user callback threw: " << e.what() << std::endl;
-                    }
-                }
-            } else {
+                        app_log::error(std::string("status_thread: user callback threw: ") + e.what());
+                     }
+                 }
+             } else {
                 // Log intermittently
                 static int fail_count = 0;
                 fail_count++;
                 if (fail_count % 10 == 0) {
-                    std::cerr << "status_thread: failed to query status endpoint" << std::endl;
-                }
-            }
+                    app_log::warn("status_thread: failed to query status endpoint");
+                 }
+             }
 
             // Sleep with early exit
             std::unique_lock<std::mutex> lk(mu);

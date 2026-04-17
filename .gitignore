@@ -1,3 +1,5 @@
 build*/
 cmake-build-*/
 external/
+.idea
+discord_social_sdk

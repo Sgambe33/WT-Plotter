@@ -13,7 +13,7 @@ using json = nlohmann::json;
 // PREFERENCES
 // ==========================================
 struct Preferences {
-    std::string replayPath = R"(/mnt/HDD/SteamLibrary/steamapps/common/War Thunder/Replays)";
+    std::string replayPath = R"(E:/SteamLibrary/steamapps/common/War Thunder/Replays)";
     std::string language = "en";
     bool autoDownloadServerReplay = false;
     bool enableDiscordRichPresence = true;

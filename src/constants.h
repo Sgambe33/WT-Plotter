@@ -8,7 +8,7 @@ namespace Constants {
     constexpr float FOOTER_HEIGHT = 60.0f;
     constexpr float PROGRESS_BAR_WIDTH = 200.0f;
     constexpr float MAP_PREVIEW_WIDTH = 120.0f;
-    constexpr float MAP_PREVIEW_HEIGHT = 80.0f;
+    constexpr float MAP_PREVIEW_HEIGHT = 120.0f;
     constexpr float MAP_AREA_RATIO = 0.7f;
     constexpr float CHAT_AREA_RATIO = 0.28f;
     constexpr ImVec4 COLOR_VICTORY = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -53,6 +53,26 @@ namespace Constants {
         )"
     };
 
+    inline std::map<std::string, std::string> UNICODE_SYMBOLS = {
+        {"Fighter", "┤"},
+        {"Attacker", "┞"},
+        {"Bomber", "┠"},
+        {"Player", "╧"},
+        {"LightTank", "┪"},
+        {"MediumTank", "┬"},
+        {"HeavyTank", "┨"},
+        {"SPAA", "┰"},
+        {"TankDestroyer", "┴"},
+        {"capture_zone", "╶"},
+        {"respawn_base_tank", "␝"},
+
+
+        {"Allies", "\uE001"},
+        {"Axis", "\uE002"},
+        {"Victory", "\uE003"},
+        {"Defeat", "\uE004"},
+        {"Unknown", "\uE000"}
+    };
 }
 
 #endif // CONSTANTS_H

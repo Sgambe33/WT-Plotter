@@ -14,6 +14,41 @@
 #include "SDL3/SDL_events.h"
 using json = nlohmann::json;
 
+namespace {
+void CollectPointsFromNode(const json &node, std::vector<std::tuple<float, float, std::string, std::string>> &out) {
+    if (node.is_object()) {
+        const auto x_it = node.find("x");
+        const auto y_it = node.find("y");
+        if (x_it != node.end() && y_it != node.end() && x_it->is_number() && y_it->is_number()) {
+            std::string color = "point";
+            std::string unit_icon = "MediumTank";
+            const auto color_it = node.find("color");
+            const auto icon_it = node.find("icon");
+
+            if (color_it != node.end() && color_it->is_string()) {
+                color = color_it->get<std::string>();
+            }
+
+            if (icon_it != node.end() && icon_it->is_string()) {
+                unit_icon = icon_it->get<std::string>();
+            }
+            out.emplace_back(x_it->get<float>(), y_it->get<float>(), color, unit_icon);
+        }
+
+        for (const auto &item: node.items()) {
+            CollectPointsFromNode(item.value(), out);
+        }
+        return;
+    }
+
+    if (node.is_array()) {
+        for (const auto &entry: node) {
+            CollectPointsFromNode(entry, out);
+        }
+    }
+}
+}
+
 Uint32 EVENT_TELEMETRY_UPDATED = SDL_RegisterEvents(1);
 
 size_t TelemetryManager::WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -76,17 +111,20 @@ void TelemetryManager::ParseMapInfo(const std::string &buf, TelemetryUpdate &tel
     try {
         const auto map_info_json = json::parse(buf);
         map_valid = map_info_json.value("valid", false);
-        if (!map_valid) return;
-        // Attempt to read map hash if provided
-        if (map_info_json.contains("map_hash") && map_info_json["map_hash"].is_string()) {
-            std::string map_md5_hash = map_info_json["map_hash"].get<std::string>();
-            auto it = m_MapNameCache.find(map_md5_hash);
-            if (it != m_MapNameCache.end()) {
-                telemetry_update.map_name = it->second;
-            }
-        }
     } catch (const std::exception &e) {
         app_log::error(std::string("telemetry_thread: map_info JSON parse error: ") + e.what());
+    }
+}
+
+// Parse map_info JSON (from /map_obj.json)
+void TelemetryManager::ParseMapObj(const std::string &buf, TelemetryUpdate &telemetry_update) {
+    telemetry_update.positions.clear();
+    if (buf.empty()) return;
+    try {
+        const auto map_objects_json = json::parse(buf);
+        CollectPointsFromNode(map_objects_json, telemetry_update.positions);
+    } catch (const std::exception &e) {
+        app_log::error(std::string("telemetry_thread: map_obj JSON parse error: ") + e.what());
     }
 }
 
@@ -103,21 +141,27 @@ void TelemetryManager::WorkerLoop() {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1500L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 
-    const char *urls[] = {"http://127.0.0.1:8111/indicators", "http://127.0.0.1:8111/map_info.json"};
+    const char *urls[] = {
+        "http://127.0.0.1:8111/indicators",
+        "http://127.0.0.1:8111/map_info.json",
+        "http://127.0.0.1:8111/map_obj.json"
+    };
     constexpr size_t IDX_INDICATORS = 0;
     constexpr size_t IDX_MAPINFO = 1;
+    constexpr size_t IDX_MAPOBJ = 2;
     constexpr size_t url_count = std::size(urls);
 
     constexpr auto map_img_url = "http://127.0.0.1:8111/map.img";
 
     int fail_count = 0; // Thread-safe fail counter (non-static)
-    std::string buffers[2];
+    std::string buffers[3];
     std::string mapImgBuf;
 
     while (m_Running.load()) {
         // Pre-allocate string buffers to avoid repeated allocations
         buffers[IDX_INDICATORS].clear();
         buffers[IDX_MAPINFO].clear();
+        buffers[IDX_MAPOBJ].clear();
         mapImgBuf.clear();
 
         bool fetched_any = false;
@@ -162,6 +206,7 @@ void TelemetryManager::WorkerLoop() {
 
             ParseIndicators(buffers[IDX_INDICATORS], telemetry_update, indicators_valid);
             ParseMapInfo(buffers[IDX_MAPINFO], telemetry_update, map_valid);
+            ParseMapObj(buffers[IDX_MAPOBJ], telemetry_update);
 
             // If we fetched the raw image, compute MD5 and lookup in mapNameCache
             // Only compute MD5 if map name isn't already set from JSON

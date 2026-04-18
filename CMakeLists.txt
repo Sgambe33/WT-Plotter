@@ -149,3 +149,14 @@ endif ()
 if (UNIX AND NOT APPLE)
     target_link_libraries(hello_world_ PRIVATE pthread dl m)
 endif ()
+
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(DEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
+
+add_custom_command(
+        TARGET hello_world_ POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${SOURCE_DIR}"
+        "${DEST_DIR}"
+        COMMENT "Copying assets to build directory..."
+)

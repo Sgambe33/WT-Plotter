@@ -6,9 +6,116 @@
 #include "preferences.h"
 #include <SDL3/SDL.h>
 #include <cstring>
+#include <fstream>
+#include <algorithm>
+#include <iostream>
+#include <curl/curl.h>
+#include <SDL3_image/SDL_image.h>
 
 extern AppState g_AppState;
 extern ImFont *g_WtSymbolsFont;
+
+namespace {
+size_t CurlWriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
+    const size_t real_size = size * nmemb;
+    auto *buffer = static_cast<std::string *>(userp);
+    buffer->append(static_cast<const char *>(contents), real_size);
+    return real_size;
+}
+
+bool ReloadTelemetryMapTexture() {
+    if (g_AppState.renderer == nullptr) {
+        return false;
+    }
+
+    CURL *curl = curl_easy_init();
+    if (curl == nullptr) {
+        SDL_Log("Failed to initialize curl for telemetry map");
+        return false;
+    }
+
+    std::string map_bytes;
+    curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:8111/map.img");
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1500L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &map_bytes);
+
+    const CURLcode res = curl_easy_perform(curl);
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK || http_code < 200 || http_code >= 300 || map_bytes.empty()) {
+        return false;
+    }
+
+    constexpr auto cache_path = "assets/map_images/.telemetry_map_cache.img";
+    {
+        std::ofstream out(cache_path, std::ios::binary | std::ios::trunc);
+        if (!out.is_open()) {
+            SDL_Log("Failed to open telemetry map cache file: %s", cache_path);
+            return false;
+        }
+        out.write(map_bytes.data(), static_cast<std::streamsize>(map_bytes.size()));
+    }
+
+    SDL_Surface *surface = IMG_Load(cache_path);
+    if (surface == nullptr) {
+        SDL_Log("Failed to load telemetry map image from cache: %s", SDL_GetError());
+        return false;
+    }
+
+    SDL_Texture *new_texture = SDL_CreateTextureFromSurface(g_AppState.renderer, surface);
+    if (new_texture == nullptr) {
+        SDL_Log("Failed to create telemetry map texture: %s", SDL_GetError());
+        SDL_DestroySurface(surface);
+        return false;
+    }
+
+    if (g_AppState.telemetryMapTexture != nullptr) {
+        SDL_DestroyTexture(g_AppState.telemetryMapTexture);
+    }
+
+    g_AppState.telemetryMapTexture = new_texture;
+    g_AppState.telemetryMapWidth = surface->w;
+    g_AppState.telemetryMapHeight = surface->h;
+    SDL_DestroySurface(surface);
+    return true;
+}
+
+float NormalizePointCoord(float value) {
+    // Telemetry coordinates are already normalized in [0,1].
+    return std::clamp(value, 0.0f, 1.0f);
+}
+}
+
+static bool EnsureReplayMapPreviewLoaded(const char *imagePath) {
+    if (g_AppState.replay_details_map_preview != nullptr) {
+        return true;
+    }
+    if (g_AppState.renderer == nullptr) {
+        return false;
+    }
+
+    SDL_Surface *surface = IMG_Load(imagePath);
+    if (surface == nullptr) {
+        SDL_Log("Failed to load map preview surface '%s': %s", imagePath, SDL_GetError());
+        return false;
+    }
+
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(g_AppState.renderer, surface);
+    SDL_DestroySurface(surface);
+
+    if (texture == nullptr) {
+        SDL_Log("Failed to create map preview texture '%s': %s", imagePath, SDL_GetError());
+        return false;
+    }
+
+    g_AppState.replay_details_map_preview = texture;
+    return true;
+}
 
 // ==========================================
 // PANEL DRAWING FUNCTIONS
@@ -141,23 +248,27 @@ void DrawReplayDetails() {
 
     // Map Image Placeholder
     ImGui::BeginGroup();
-    ImGui::Button("[ Map Image ]", ImVec2(Constants::MAP_PREVIEW_WIDTH, Constants::MAP_PREVIEW_HEIGHT));
+    const char *imagePath = "assets/map_images/avg_abandoned_town_tankmap.png";
+    if (EnsureReplayMapPreviewLoaded(imagePath)) {
+        ImGui::Image((ImTextureID) (intptr_t) g_AppState.replay_details_map_preview,
+                     ImVec2(Constants::MAP_PREVIEW_WIDTH, Constants::MAP_PREVIEW_HEIGHT));
+    } else {
+        ImGui::Button("[ Map Image ]", ImVec2(Constants::MAP_PREVIEW_WIDTH, Constants::MAP_PREVIEW_HEIGHT));
+    }
     ImGui::EndGroup();
 
     ImGui::Separator();
 
     // Action Buttons
-    if (ImGui::Button("Server Replay")) {
+    if (ImGui::Button("Download Server Replay")) {
         // TODO: Implement server replay
     }
     ImGui::SameLine();
-    if (ImGui::Button("Play Local")) {
-        g_AppState.detailMode = AppState::DetailMode::Playback;
-        g_AppState.playbackProgress = 0.0f;
-        g_AppState.isPlaying = false;
+    if (ImGui::Button("Watch Server Replay")) {
+        // TODO: Implement server playback
     }
     ImGui::SameLine();
-    if (ImGui::Button("Play Server")) {
+    if (ImGui::Button("Export Replay Plot")) {
         // TODO: Implement server playback
     }
 
@@ -170,13 +281,13 @@ void DrawReplayDetails() {
                 ImGui::TableSetupColumn("Player");
                 ImGui::TableSetupColumn("Score");
                 ImGui::TableSetupColumn("Air kills");
-                ImGui::TableSetupColumn("Ground Kills");
-                ImGui::TableSetupColumn("Naval Kills");
+                ImGui::TableSetupColumn("▮");
+                ImGui::TableSetupColumn("┚");
                 ImGui::TableSetupColumn("Assists");
-                ImGui::TableSetupColumn("Captured Zones");
+                ImGui::TableSetupColumn("△");
                 ImGui::TableSetupColumn("AI Kills");
                 ImGui::TableSetupColumn("Awarded damage");
-                ImGui::TableSetupColumn("Bombing damage");
+                ImGui::TableSetupColumn("▲");
                 ImGui::TableSetupColumn("▴"); // Deaths
 
                 if (g_WtSymbolsFont) {
@@ -275,6 +386,140 @@ void DrawPlaybackView() {
     ImGui::Text("0:45/2:00");
 }
 
+void Gui_OnTelemetryUpdate(const TelemetryUpdate &update) {
+    g_AppState.telemetryPositions = update.positions;
+    g_AppState.telemetryMapName = update.map_name;
+    if (g_AppState.telemetryMapName != g_AppState.telemetryMapLastName) {
+        g_AppState.telemetryMapZoom = 1.0f;
+        g_AppState.telemetryMapPanX = 0.0f;
+        g_AppState.telemetryMapPanY = 0.0f;
+        g_AppState.telemetryMapLastName = g_AppState.telemetryMapName;
+    }
+    ReloadTelemetryMapTexture();
+}
+
+void Gui_TelemetryMapWindow() {
+    if (!g_AppState.showTelemetryMapWindow) return;
+
+    ImGui::SetNextWindowPos(ImVec2(920, 40), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(560, 560), ImGuiCond_FirstUseEver);
+
+    if (ImGui::Begin("Telemetry Map", &g_AppState.showTelemetryMapWindow)) {
+        ImGui::Checkbox("Live updates", &g_AppState.prefs.telemetryLiveUpdates);
+        if (ImGui::Button("Reset View")) {
+            g_AppState.telemetryMapZoom = 1.0f;
+            g_AppState.telemetryMapPanX = 0.0f;
+            g_AppState.telemetryMapPanY = 0.0f;
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("Wheel: zoom, Middle mouse drag: pan");
+        ImGui::Text("Map: %s", g_AppState.telemetryMapName.empty() ? "unknown" : g_AppState.telemetryMapName.c_str());
+        ImGui::Text("Points: %d", static_cast<int>(g_AppState.telemetryPositions.size()));
+        ImGui::Separator();
+
+        if (g_AppState.telemetryMapTexture == nullptr || g_AppState.telemetryMapWidth <= 0 || g_AppState.telemetryMapHeight <= 0) {
+            ImGui::TextDisabled("Waiting for telemetry map from localhost:8111/map.img");
+        } else {
+            const ImVec2 avail = ImGui::GetContentRegionAvail();
+            const float aspect = static_cast<float>(g_AppState.telemetryMapWidth) / static_cast<float>(g_AppState.telemetryMapHeight);
+
+            ImVec2 image_size = avail;
+            if (image_size.y > 0.0f && image_size.x / image_size.y > aspect) {
+                image_size.x = image_size.y * aspect;
+            } else if (aspect > 0.0f) {
+                image_size.y = image_size.x / aspect;
+            }
+
+            const auto clamp_map_view = [](float &zoom, float &pan_x, float &pan_y) {
+                zoom = std::clamp(zoom, 1.0f, 12.0f);
+                const float visible = 1.0f / zoom;
+                pan_x = std::clamp(pan_x, 0.0f, 1.0f - visible);
+                pan_y = std::clamp(pan_y, 0.0f, 1.0f - visible);
+            };
+
+            clamp_map_view(g_AppState.telemetryMapZoom, g_AppState.telemetryMapPanX, g_AppState.telemetryMapPanY);
+
+            float visible_w = 1.0f / g_AppState.telemetryMapZoom;
+            float visible_h = 1.0f / g_AppState.telemetryMapZoom;
+            ImVec2 uv0(g_AppState.telemetryMapPanX, g_AppState.telemetryMapPanY);
+            ImVec2 uv1(g_AppState.telemetryMapPanX + visible_w, g_AppState.telemetryMapPanY + visible_h);
+
+            const ImVec2 image_pos = ImGui::GetCursorScreenPos();
+            ImGui::Image((ImTextureID) (intptr_t) g_AppState.telemetryMapTexture, image_size, uv0, uv1);
+
+            const bool hovered = ImGui::IsItemHovered();
+            ImGuiIO &io = ImGui::GetIO();
+
+            if (hovered && io.MouseWheel != 0.0f && image_size.x > 0.0f && image_size.y > 0.0f) {
+                const float local_x = std::clamp((io.MousePos.x - image_pos.x) / image_size.x, 0.0f, 1.0f);
+                const float local_y = std::clamp((io.MousePos.y - image_pos.y) / image_size.y, 0.0f, 1.0f);
+
+                const float anchor_u = uv0.x + local_x * visible_w;
+                const float anchor_v = uv0.y + local_y * visible_h;
+
+                const float zoom_factor = io.MouseWheel > 0.0f ? 1.2f : (1.0f / 1.2f);
+                g_AppState.telemetryMapZoom = std::clamp(g_AppState.telemetryMapZoom * zoom_factor, 1.0f, 12.0f);
+
+                visible_w = 1.0f / g_AppState.telemetryMapZoom;
+                visible_h = 1.0f / g_AppState.telemetryMapZoom;
+                g_AppState.telemetryMapPanX = anchor_u - local_x * visible_w;
+                g_AppState.telemetryMapPanY = anchor_v - local_y * visible_h;
+                clamp_map_view(g_AppState.telemetryMapZoom, g_AppState.telemetryMapPanX, g_AppState.telemetryMapPanY);
+            }
+
+            if (hovered && ImGui::IsMouseDown(ImGuiMouseButton_Middle) && image_size.x > 0.0f && image_size.y > 0.0f) {
+                g_AppState.telemetryMapPanX -= (io.MouseDelta.x / image_size.x) * visible_w;
+                g_AppState.telemetryMapPanY -= (io.MouseDelta.y / image_size.y) * visible_h;
+                clamp_map_view(g_AppState.telemetryMapZoom, g_AppState.telemetryMapPanX, g_AppState.telemetryMapPanY);
+            }
+
+            visible_w = 1.0f / g_AppState.telemetryMapZoom;
+            visible_h = 1.0f / g_AppState.telemetryMapZoom;
+            uv0 = ImVec2(g_AppState.telemetryMapPanX, g_AppState.telemetryMapPanY);
+            uv1 = ImVec2(g_AppState.telemetryMapPanX + visible_w, g_AppState.telemetryMapPanY + visible_h);
+
+            ImGui::Text("Zoom: %.2fx", g_AppState.telemetryMapZoom);
+
+            auto HexToImU32 = [](const char* hexStr) -> ImU32 {
+                int r, g, b;
+                if (hexStr[0] == '#') hexStr++;
+
+                // sscanf returns the number of items successfully filled
+                if (sscanf(hexStr, "%02x%02x%02x", &r, &g, &b) == 3) {
+                    return IM_COL32(r, g, b, 255);
+                }
+
+                return IM_COL32(255, 255, 255, 255); // Default to white if parsing fails
+            };
+
+            if (g_AppState.prefs.telemetryLiveUpdates) {
+                ImDrawList *draw_list = ImGui::GetWindowDrawList();
+                for (const auto &[x, y, color, unit_icon]: g_AppState.telemetryPositions) {
+                    const float nx = NormalizePointCoord(x);
+                    const float ny = NormalizePointCoord(y);
+                    if (nx < uv0.x || nx > uv1.x || ny < uv0.y || ny > uv1.y) {
+                        continue;
+                    }
+
+                    const float local_x = (nx - uv0.x) / (uv1.x - uv0.x);
+                    const float local_y = (ny - uv0.y) / (uv1.y - uv0.y);
+                    const ImVec2 point_pos(image_pos.x + local_x * image_size.x, image_pos.y + local_y * image_size.y);
+
+                    if (g_WtSymbolsFont) {
+                        constexpr float kSymbolFontSize = 16.0f;
+                        draw_list->AddText(g_WtSymbolsFont, kSymbolFontSize+1, point_pos, IM_COL32(0, 0, 0, 255), Constants::UNICODE_SYMBOLS[unit_icon].c_str());
+                        draw_list->AddText(g_WtSymbolsFont, kSymbolFontSize, point_pos, HexToImU32(color.c_str()), Constants::UNICODE_SYMBOLS[unit_icon].c_str());
+                    } else {
+                        draw_list->AddCircleFilled(point_pos, 4.0f, HexToImU32(color.c_str()));
+                    }
+                }
+            }
+
+        }
+    }
+    ImGui::End();
+}
+
 // ==========================================
 // WINDOW FUNCTIONS
 // ==========================================
@@ -336,12 +581,12 @@ void Gui_DiscordRichPresence() {
         ImGui::Text("Current Image: %s", g_AppState.currentRpcImageKey.c_str());
 
         // Display the RPC image if loaded
-        if (g_AppState.rpcImageTexture) {
+        if (g_AppState.replay_details_map_preview) {
             ImGui::Separator();
             ImGui::Text("Activity Image:");
 
             // Display at 60x60 pixels
-            ImGui::Image((ImTextureID) (intptr_t) g_AppState.rpcImageTexture,
+            ImGui::Image((ImTextureID) (intptr_t) g_AppState.replay_details_map_preview,
                          ImVec2(60.0f, 60.0f));
         } else {
             ImGui::TextDisabled("No image loaded");
@@ -479,6 +724,10 @@ void Gui_PreferencesDialog() {
         ImGui::Checkbox("Enable Discord Rich Presence", &tempPrefs.enableDiscordRichPresence);
         ImGui::TextDisabled("If enabled, a better Discord Rich Presence will be provided.");
 
+        ImGui::Spacing();
+        ImGui::Checkbox("Enable Live Telemetry Updates", &tempPrefs.telemetryLiveUpdates);
+        ImGui::TextDisabled("If enabled, the map will show live unit positions during playback (similar to in-game minimap).");
+
         // Buttons
         ImGui::Separator();
         ImGui::Spacing();
@@ -528,6 +777,7 @@ void Gui_MenuBar() {
             ImGui::MenuItem("Details", nullptr, &g_AppState.showDetailsWindow);
             ImGui::MenuItem("Playback", nullptr, &g_AppState.showPlaybackWindow);
             ImGui::MenuItem("Discord Rich Presence", nullptr, &g_AppState.showRichPresence);
+            ImGui::MenuItem("Telemetry Map", nullptr, &g_AppState.showTelemetryMapWindow);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help")) {

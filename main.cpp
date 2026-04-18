@@ -142,14 +142,14 @@ int main(int, char *[]) {
     ImGuiIO &io = ImGui::GetIO();
     (void) io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     // Optimize font atlas for lower memory usage
     ImFontConfig font_config;
     font_config.OversampleH = 1; // Default is 3
     font_config.OversampleV = 1; // Default is 1
     io.Fonts->AddFontDefault(&font_config);
     io.Fonts->TexMaxWidth = 512; // Smaller texture atlas
-    g_WtSymbolsFont = io.Fonts->AddFontFromFileTTF("wt_symbols.ttf", 16.0f);
+    g_WtSymbolsFont = io.Fonts->AddFontFromFileTTF("assets/fonts/wt_symbols.ttf", 16.0f);
     ImGui::StyleColorsDark();
 
     // DISABLE WINDOW TRANSPARENCY
@@ -163,15 +163,13 @@ int main(int, char *[]) {
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
-    tray_support::init(window);
+    TraySupport::Init(window);
 
     // Main loop
-    constexpr Uint64 kTargetFrameMs = 1000 / 60;
     bool done = false;
     while (!done) {
-        const Uint64 frameStartMs = SDL_GetTicks();
-        tray_support::poll();
-        if (tray_support::consume_quit_request()) {
+        TraySupport::Poll();
+        if (TraySupport::ConsumeQuitRequest()) {
             done = true;
         }
 
@@ -187,12 +185,18 @@ int main(int, char *[]) {
                 if (event.type == SDL_EVENT_QUIT)
                     done = true;
                 if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
-                    tray_support::handle_window_close();
+                    TraySupport::HandleWindowClose();
                 }
                 if (event.type == EVENT_TELEMETRY_UPDATED) {
                     TelemetryUpdate telemetry_update;
-                    if (telemetry_manager.TryPopUpdate(telemetry_update)) {
+                    bool has_update = false;
+                    while (telemetry_manager.TryPopUpdate(telemetry_update)) {
+                        has_update = true;
+                    }
+                    if (has_update) {
                         UpdateRPC(&telemetry_update);
+                        Gui_OnTelemetryUpdate(telemetry_update);
+                        g_AppState.telemetryPositions.insert(g_AppState.telemetryPositions.end(), telemetry_update.positions.begin(), telemetry_update.positions.end());
                     }
                 }
             } while (SDL_PollEvent(&event));
@@ -201,6 +205,7 @@ int main(int, char *[]) {
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        ImGui::DockSpaceOverViewport((ImGuiID) 1, ImGui::GetMainViewport());
 
         // Menu bar
         Gui_MenuBar();
@@ -210,6 +215,7 @@ int main(int, char *[]) {
         Gui_DetailsWindow();
         Gui_PlaybackWindow();
         Gui_DiscordRichPresence();
+        Gui_TelemetryMapWindow();
         Gui_AboutDialog();
         Gui_PreferencesDialog();
         //ImGui::ShowMetricsWindow();
@@ -231,15 +237,18 @@ int main(int, char *[]) {
     }
 
     // Clean up RPC texture
-    if (g_AppState.rpcImageTexture) {
-        SDL_DestroyTexture(g_AppState.rpcImageTexture);
+    if (g_AppState.replay_details_map_preview) {
+        SDL_DestroyTexture(g_AppState.replay_details_map_preview);
+    }
+    if (g_AppState.telemetryMapTexture) {
+        SDL_DestroyTexture(g_AppState.telemetryMapTexture);
     }
 
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 
-    tray_support::shutdown();
+    TraySupport::Shutdown();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

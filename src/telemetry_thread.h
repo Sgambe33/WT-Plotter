@@ -9,6 +9,8 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <tuple>
+#include <vector>
 
 struct TelemetryUpdate {
     enum class PlayerState { Unknown = 0, InHangar = 1, InMatch = 2 };
@@ -17,7 +19,7 @@ struct TelemetryUpdate {
     int total_crew;
     int current_crew;
     int unit_speed;
-    std::vector<std::tuple<float, float, std::string>> positions;
+    std::vector<std::tuple<float, float, std::string, std::string>> positions;
     std::string map_name;
     PlayerState player_state;
 
@@ -52,6 +54,7 @@ private:
     // Internal parsers
     static void ParseIndicators(const std::string& buf, TelemetryUpdate& update, bool& valid);
     void ParseMapInfo(const std::string& buf, TelemetryUpdate& update, bool& valid);
+    static void ParseMapObj(const std::string& buf, TelemetryUpdate& update);
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp);
 
     // Thread management

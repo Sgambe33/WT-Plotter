@@ -8,7 +8,7 @@ extern "C" {
 
 #include <atomic>
 
-namespace tray_support {
+namespace TraySupport {
     namespace {
         SDL_Window *g_window = nullptr;
         std::atomic<bool> g_quitRequested{false};
@@ -81,7 +81,7 @@ namespace tray_support {
         }
     }
 
-    bool init(SDL_Window *window) {
+    bool Init(SDL_Window *window) {
         g_window = window;
         prepare_tray_structs();
 
@@ -99,7 +99,7 @@ namespace tray_support {
         return true;
     }
 
-    void poll() {
+    void Poll() {
         if (!g_initialized) {
             return;
         }
@@ -109,7 +109,7 @@ namespace tray_support {
         }
     }
 
-    void handle_window_close() {
+    void HandleWindowClose() {
         hide_window();
         g_menu[0].text = kShowText;
 
@@ -119,11 +119,11 @@ namespace tray_support {
         }
     }
 
-    bool consume_quit_request() {
+    bool ConsumeQuitRequest() {
         return g_quitRequested.exchange(false);
     }
 
-    void shutdown() {
+    void Shutdown() {
         if (!g_initialized) {
             return;
         }

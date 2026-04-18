@@ -16,9 +16,9 @@ void LoadRpcImage(const std::string &imageKey) {
     }
 
     // Clean up old texture
-    if (g_AppState.rpcImageTexture) {
-        SDL_DestroyTexture(g_AppState.rpcImageTexture);
-        g_AppState.rpcImageTexture = nullptr;
+    if (g_AppState.replay_details_map_preview) {
+        SDL_DestroyTexture(g_AppState.replay_details_map_preview);
+        g_AppState.replay_details_map_preview = nullptr;
     }
 
     // Try to load the image from assets folder
@@ -37,12 +37,12 @@ void LoadRpcImage(const std::string &imageKey) {
         }
     }
 
-    g_AppState.rpcImageTexture = SDL_CreateTextureFromSurface(g_AppState.renderer, surface);
+    g_AppState.replay_details_map_preview = SDL_CreateTextureFromSurface(g_AppState.renderer, surface);
     g_AppState.rpcImageWidth = surface->w;
     g_AppState.rpcImageHeight = surface->h;
     SDL_DestroySurface(surface);
 
-    if (g_AppState.rpcImageTexture) {
+    if (g_AppState.replay_details_map_preview) {
         app_log::info(
             "RPC image loaded: " + imagePath +
             " (" + std::to_string(g_AppState.rpcImageWidth) + "x" + std::to_string(g_AppState.rpcImageHeight) + ")"

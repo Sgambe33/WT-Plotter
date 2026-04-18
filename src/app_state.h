@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 #include <filesystem>
+#include <vector>
+#include <tuple>
 #include <nlohmann/json.hpp>
 #include <SDL3/SDL.h>
 
@@ -19,6 +21,7 @@ struct Preferences {
     std::string language = "en";
     bool autoDownloadServerReplay = false;
     bool enableDiscordRichPresence = true;
+    bool telemetryLiveUpdates = true;
 
     [[nodiscard]] json to_json() const;
     void from_json(const json& j);
@@ -63,6 +66,7 @@ struct AppState {
     std::map<std::string, bool> treeNodeOpen;
     bool showPlaybackWindow = false;
     bool showRichPresence = false;
+    bool showTelemetryMapWindow = true;
 
     // Discord Rich Presence
     std::string activityName = "War Thunder";
@@ -85,9 +89,19 @@ struct AppState {
 
 
 
-    SDL_Texture* rpcImageTexture = nullptr;
+    SDL_Texture* replay_details_map_preview = nullptr;
     int rpcImageWidth = 0;
     int rpcImageHeight = 0;
+
+    SDL_Texture* telemetryMapTexture = nullptr;
+    int telemetryMapWidth = 0;
+    int telemetryMapHeight = 0;
+    std::vector<std::tuple<float, float, std::string, std::string>> telemetryPositions;
+    std::string telemetryMapName;
+    float telemetryMapZoom = 1.0f;
+    float telemetryMapPanX = 0.0f;
+    float telemetryMapPanY = 0.0f;
+    std::string telemetryMapLastName;
 };
 
 extern AppState g_AppState;

@@ -1,6 +1,6 @@
 #include "preferences.h"
 #include <fstream>
-#include <iostream>
+#include "logger.h"
 
 std::string GetPreferencesFilePath() {
     return "preferences.json";
@@ -11,14 +11,11 @@ void SavePreferences(const Preferences& prefs) {
         std::ofstream file(GetPreferencesFilePath());
         if (file.is_open()) {
             json j = prefs.to_json();
-            file << j.dump(4); // Pretty print with 4 spaces
+            file << j.dump(4);
             file.close();
-            std::cout << "✅ Preferences saved successfully\n";
-        } else {
-            std::cerr << "❌ Failed to open preferences file for writing\n";
         }
     } catch (const std::exception& e) {
-        std::cerr << "❌ Error saving preferences: " << e.what() << "\n";
+        app_log::error(std::string("Error saving preferences: ") + e.what());
     }
 }
 
@@ -30,11 +27,8 @@ void LoadPreferences(Preferences& prefs) {
             file >> j;
             prefs.from_json(j);
             file.close();
-            std::cout << "✅ Preferences loaded successfully\n";
-        } else {
-            std::cout << "ℹ️  No preferences file found, using defaults\n";
         }
     } catch (const std::exception& e) {
-        std::cerr << "⚠️  Error loading preferences: " << e.what() << ", using defaults\n";
+        app_log::error(std::string("Error loading preferences: ") + e.what());
     }
 }

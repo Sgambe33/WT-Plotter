@@ -73,6 +73,7 @@ int main(int, char *[]) {
 
     InitAppFolder();
     InitSQLiteDB();
+    LoadPreferences(g_AppState.prefs);
 
     //Setup discord only if the user wants
     if (g_AppState.prefs.enableDiscordRichPresence) {
@@ -133,7 +134,6 @@ int main(int, char *[]) {
     // Store renderer in AppState for texture loading
     g_AppState.renderer = renderer;
 
-    LoadPreferences(g_AppState.prefs);
     LoadReplaysFromDisk();
 
     // Setup Dear ImGui context
@@ -194,7 +194,9 @@ int main(int, char *[]) {
                         has_update = true;
                     }
                     if (has_update) {
-                        UpdateRPC(&telemetry_update);
+                        if (g_AppState.prefs.enableDiscordRichPresence && g_AppState.client) {
+                            UpdateRPC(&telemetry_update);
+                        }
                         Gui_OnTelemetryUpdate(telemetry_update);
                         g_AppState.telemetryPositions.insert(g_AppState.telemetryPositions.end(), telemetry_update.positions.begin(), telemetry_update.positions.end());
                     }

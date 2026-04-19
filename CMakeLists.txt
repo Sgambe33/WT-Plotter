@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(helloworld_full_static)
+project(wtplotter)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -52,7 +52,7 @@ add_subdirectory(libs/WRPL_parser)
 # ==========================================
 # 4. BUILD YOUR APP
 # ==========================================
-add_executable(hello_world_
+add_executable(wtplotter
         main.cpp
         libs/sqlite3/sqlite3.c
         libs/sqlite3/sqlite3.h
@@ -73,26 +73,28 @@ add_executable(hello_world_
         src/gui_windows.cpp
         src/gui_windows.h
         src/constants.h
+        src/image_utils.h
+        src/stb_image.h
 )
 
 if (WIN32)
     if (EXISTS "${tray_lib_SOURCE_DIR}/tray_windows.c")
-        target_sources(hello_world_ PRIVATE "${tray_lib_SOURCE_DIR}/tray_windows.c")
-        target_include_directories(hello_world_ PRIVATE "${tray_lib_SOURCE_DIR}")
-        target_compile_definitions(hello_world_ PRIVATE TRAY_EXPORTS)
+        target_sources(wtplotter PRIVATE "${tray_lib_SOURCE_DIR}/tray_windows.c")
+        target_include_directories(wtplotter PRIVATE "${tray_lib_SOURCE_DIR}")
+        target_compile_definitions(wtplotter PRIVATE TRAY_EXPORTS)
     else ()
         message(FATAL_ERROR "Could not locate tray_windows.c in fetched tray repository")
     endif ()
 endif ()
 
 # Define CURL_STATICLIB so your code knows to link statically
-target_compile_definitions(hello_world_ PRIVATE CURL_STATICLIB)
+target_compile_definitions(wtplotter PRIVATE CURL_STATICLIB)
 
 # Discord include comes from the Discord module
-target_include_directories(hello_world_ PRIVATE ${DISCORD_SDK_INCLUDE_DIR})
+target_include_directories(wtplotter PRIVATE ${DISCORD_SDK_INCLUDE_DIR})
 
 # Link against the static libraries
-target_link_libraries(hello_world_ PRIVATE
+target_link_libraries(wtplotter PRIVATE
         imgui
         libcurl_static
         SDL3::SDL3
@@ -115,17 +117,17 @@ endif ()
 
 # Use the path exported by the Discord module if available
 if (DEFINED DISCORD_LIB_PATH)
-    target_link_libraries(hello_world_ PRIVATE ${DISCORD_LIB_PATH})
+    target_link_libraries(wtplotter PRIVATE ${DISCORD_LIB_PATH})
 endif ()
 
 # Set RPATH for Unix systems
 if (UNIX)
-    set_target_properties(hello_world_ PROPERTIES
+    set_target_properties(wtplotter PROPERTIES
             BUILD_WITH_INSTALL_RPATH TRUE
             INSTALL_RPATH "$ORIGIN"
     )
     if (APPLE)
-        set_target_properties(hello_world_ PROPERTIES
+        set_target_properties(wtplotter PROPERTIES
                 INSTALL_RPATH "@executable_path"
         )
     endif ()
@@ -133,28 +135,28 @@ endif ()
 
 # Copy Discord DLL/SO to output directory (if variable available)
 if (DEFINED DISCORD_SHARED_LIB)
-    add_custom_command(TARGET hello_world_ POST_BUILD
+    add_custom_command(TARGET wtplotter POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${DISCORD_SHARED_LIB}"
-            $<TARGET_FILE_DIR:hello_world_>
+            $<TARGET_FILE_DIR:wtplotter>
     )
 endif ()
 
 # Link Windows Native Libraries required by Static Curl/SDL2
 if (WIN32)
-    target_link_libraries(hello_world_ PRIVATE ws2_32 crypt32 wldap32 normaliz)
+    target_link_libraries(wtplotter PRIVATE ws2_32 crypt32 wldap32 normaliz)
 endif ()
 
 # Link required libraries for Unix systems
 if (UNIX AND NOT APPLE)
-    target_link_libraries(hello_world_ PRIVATE pthread dl m)
+    target_link_libraries(wtplotter PRIVATE pthread dl m)
 endif ()
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 set(DEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
 
 add_custom_command(
-        TARGET hello_world_ POST_BUILD
+        TARGET wtplotter POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${SOURCE_DIR}"
         "${DEST_DIR}"

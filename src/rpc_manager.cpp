@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <optional>
 #include "logger.h"
 
 extern AppState g_AppState;
@@ -78,6 +79,7 @@ void UpdateRPC(const TelemetryUpdate *telemetry_update) {
     if (telemetry_update->player_state == TelemetryUpdate::PlayerState::InHangar) {
         details = "In hangar";
         state = "Ready";
+        g_AppState.rpc_activity.SetParty(std::nullopt);
     } else if (telemetry_update->player_state == TelemetryUpdate::PlayerState::InMatch) {
         const std::string display_vehicle = vehicle_name.empty() ? "unknown vehicle" : vehicle_name;
         details = "In battle: " + display_vehicle;
@@ -91,10 +93,17 @@ void UpdateRPC(const TelemetryUpdate *telemetry_update) {
     g_AppState.rpc_activity.SetDetails(details);
     g_AppState.rpc_activity.SetState(state);
 
-    g_AppState.rpc_assets.SetLargeImage("firing_range_tankmap");
-    g_AppState.rpc_assets.SetLargeText("Firing Range");
-    g_AppState.rpc_assets.SetSmallImage(std::format("https://static.encyclopedia.warthunder.com/images/{}.png", vehicle_name));
-    g_AppState.rpc_assets.SetSmallText(vehicle_name.empty() ? "unknown vehicle" : vehicle_name);
+    if (telemetry_update->player_state == TelemetryUpdate::PlayerState::InHangar) {
+        g_AppState.rpc_assets.SetLargeImage("logowt_stripe_flat");
+        g_AppState.rpc_assets.SetLargeText("War Thunder");
+        g_AppState.rpc_assets.SetSmallImage(std::nullopt);
+        g_AppState.rpc_assets.SetSmallText(std::nullopt);
+    } else {
+        g_AppState.rpc_assets.SetLargeImage(telemetry_update->map_name);
+        g_AppState.rpc_assets.SetLargeText(telemetry_update->map_name);
+        g_AppState.rpc_assets.SetSmallImage(std::format("https://static.encyclopedia.warthunder.com/images/{}.png", vehicle_name));
+        g_AppState.rpc_assets.SetSmallText(vehicle_name.empty() ? "unknown vehicle" : vehicle_name);
+    }
     g_AppState.rpc_activity.SetAssets(g_AppState.rpc_assets);
 
     g_AppState.client->UpdateRichPresence(g_AppState.rpc_activity, [](const discordpp::ClientResult &result) {

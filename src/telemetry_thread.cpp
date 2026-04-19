@@ -1,5 +1,6 @@
 #include "telemetry_thread.h"
 #include "md5.h"
+#include <algorithm>
 #include <thread>
 #include <atomic>
 #include <mutex>
@@ -7,9 +8,12 @@
 #include <deque>
 #include <iostream>
 #include "logger.h"
-
+#include "image_utils.h"
+#include "constants.h"
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include "SDL3/SDL_events.h"
 using json = nlohmann::json;
@@ -51,13 +55,22 @@ void CollectPointsFromNode(const json &node, std::vector<std::tuple<float, float
 
 Uint32 EVENT_TELEMETRY_UPDATED = SDL_RegisterEvents(1);
 
-size_t TelemetryManager::WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    const size_t realSize = size * nmemb;
-    auto* s = static_cast<std::string*>(userp);
-    s->append(static_cast<char*>(contents), realSize);
-    return realSize;
+// Callback specifically for std::string (JSON endpoints)
+size_t StringWriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t realsize = size * nmemb;
+    auto* str = static_cast<std::string*>(userp);
+    str->append(static_cast<char*>(contents), realsize);
+    return realsize;
 }
 
+// Callback specifically for std::vector<uint8_t> (Binary Image endpoints)
+size_t VectorWriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t realsize = size * nmemb;
+    auto* vec = static_cast<std::vector<uint8_t>*>(userp);
+    auto* data = static_cast<uint8_t*>(contents);
+    vec->insert(vec->end(), data, data + realsize);
+    return realsize;
+}
 void TelemetryManager::Start(std::chrono::milliseconds poll_interval, UpdateCallback cb) {
     if (m_Running.load()) return;
 
@@ -128,6 +141,32 @@ void TelemetryManager::ParseMapObj(const std::string &buf, TelemetryUpdate &tele
     }
 }
 
+inline int HexCharToInt(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return 0;
+}
+
+// Calculates Hamming distance between two arbitrarily long hex strings
+int StringHammingDistance(const std::string& hex1, const std::string& hex2) {
+    int bit_diff_total = 0;
+    const size_t shared_length = hex1.length() < hex2.length() ? hex1.length() : hex2.length();
+
+    for (size_t i = 0; i < shared_length; ++i) {
+        const int nibble1 = HexCharToInt(hex1[i]);
+        const int nibble2 = HexCharToInt(hex2[i]);
+
+        // XOR the two nibbles and count the differing bits.
+        bit_diff_total += __builtin_popcount(static_cast<unsigned int>(nibble1 ^ nibble2));
+    }
+
+    // Punish differing lengths (each missing hex char represents 4 missing bits).
+    bit_diff_total += std::abs(static_cast<int>(hex1.length()) - static_cast<int>(hex2.length())) * 4;
+
+    return bit_diff_total;
+}
+
 void TelemetryManager::WorkerLoop() {
     CURL *curl = curl_easy_init();
     if (!curl) {
@@ -139,7 +178,6 @@ void TelemetryManager::WorkerLoop() {
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1500L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 
     const char *urls[] = {
         "http://127.0.0.1:8111/indicators",
@@ -155,7 +193,7 @@ void TelemetryManager::WorkerLoop() {
 
     int fail_count = 0; // Thread-safe fail counter (non-static)
     std::string buffers[3];
-    std::string mapImgBuf;
+    std::vector<uint8_t> mapImgBuf;
 
     while (m_Running.load()) {
         // Pre-allocate string buffers to avoid repeated allocations
@@ -165,9 +203,9 @@ void TelemetryManager::WorkerLoop() {
         mapImgBuf.clear();
 
         bool fetched_any = false;
-        bool got_map_img = false;
 
         // Fetch JSON endpoints
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, StringWriteCallback);
         for (size_t i = 0; i < url_count; ++i) {
             curl_easy_setopt(curl, CURLOPT_URL, urls[i]);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffers[i]);
@@ -182,22 +220,7 @@ void TelemetryManager::WorkerLoop() {
             }
         }
 
-        // Fetch map image (binary) - only if map_valid might be true (optimization)
-        // This reduces unnecessary map.img downloads when not in match
         if (fetched_any) {
-            curl_easy_setopt(curl, CURLOPT_URL, map_img_url);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mapImgBuf);
-            CURLcode r = curl_easy_perform(curl);
-            if (r == CURLE_OK) {
-                long http_code = 0;
-                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-                if (http_code >= 200 && http_code < 300 && !mapImgBuf.empty()) {
-                    got_map_img = true;
-                }
-            }
-        }
-
-        if (fetched_any || got_map_img) {
             TelemetryUpdate telemetry_update;
             telemetry_update.Reset();
 
@@ -208,18 +231,69 @@ void TelemetryManager::WorkerLoop() {
             ParseMapInfo(buffers[IDX_MAPINFO], telemetry_update, map_valid);
             ParseMapObj(buffers[IDX_MAPOBJ], telemetry_update);
 
-            // If we fetched the raw image, compute MD5 and lookup in mapNameCache
-            // Only compute MD5 if map name isn't already set from JSON
-            if (got_map_img && telemetry_update.map_name.empty()) {
-                std::string hash = md5_hex(reinterpret_cast<const uint8_t *>(mapImgBuf.data()), mapImgBuf.size());
-                auto it = m_MapNameCache.find(hash);
-                if (it != m_MapNameCache.end()) {
-                    telemetry_update.map_name = it->second;
+            if (telemetry_update.map_name.empty() && !m_Current_map.empty()) {
+                telemetry_update.map_name = m_Current_map;
+            }
+
+            bool got_map_img = false;
+            const bool should_fetch_map_img = indicators_valid && map_valid &&
+                                              telemetry_update.map_name.empty() && m_Current_map.empty();
+
+            // Fetch map image only while in match and map identity is still unknown.
+            if (should_fetch_map_img) {
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, VectorWriteCallback);
+                curl_easy_setopt(curl, CURLOPT_URL, map_img_url);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mapImgBuf);
+                CURLcode r = curl_easy_perform(curl);
+                if (r == CURLE_OK) {
+                    long http_code = 0;
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+                    if (http_code >= 200 && http_code < 300 && !mapImgBuf.empty()) {
+                        got_map_img = true;
+                    }
+                }
+            }
+
+            if (got_map_img && telemetry_update.map_name.empty() && m_Current_map.empty()) {
+                int width, height, channels;
+                unsigned char* pixels = stbi_load_from_memory(
+                    mapImgBuf.data(),
+                    mapImgBuf.size(),
+                    &width,
+                    &height,
+                    &channels,
+                    0 // Tell stb to keep the original channel count
+                    );
+
+                if (pixels) {
+                    // Calculate the 64-bit dHash (using a 9x8 grid)
+                    std::string hash = ImageUtils::PHashFromRawPixels(pixels, width, height, channels);
+                    std::cout << "dHash: " << hash << std::endl;
+
+                    // Free the pixel memory allocated by stb_image
+                    stbi_image_free(pixels);
+
+                    // --- NEW HAMMING DISTANCE SEARCH ---
+                    int min_distance=64;
+                    std::string best_match = "unknownmap";
+                    for (const auto& [map_hash_str, map_name] : Constants::MAP_DHASHES) {
+                        int distance = StringHammingDistance(hash, map_hash_str);
+                        if (distance < min_distance) {
+                            min_distance = distance;
+                            best_match = map_name;
+                        }
+                    }
+                    std::cout<<"best match: " << best_match << " " << min_distance << std::endl;
+
+                    telemetry_update.map_name = best_match;
+                    m_Current_map = best_match;
+
+
+
+                    // ------------------------------------
+
                 } else {
-                    // not found: insert placeholder (hex) to cache for later manual mapping
-                    std::string unknown_name = "unknown_map_" + hash.substr(0, 8);
-                    m_MapNameCache.emplace(hash, unknown_name);
-                    telemetry_update.map_name = std::move(unknown_name);
+                    std::cerr << "stb_image failed to decode the data. Reason: " << stbi_failure_reason() << std::endl;
                 }
             }
 
@@ -229,8 +303,10 @@ void TelemetryManager::WorkerLoop() {
                 telemetry_update.player_state = TelemetryUpdate::PlayerState::InMatch;
             } else if (indicators_valid && !map_valid) {
                 telemetry_update.player_state = TelemetryUpdate::PlayerState::InHangar;
+                m_Current_map.clear();
             } else {
                 telemetry_update.player_state = TelemetryUpdate::PlayerState::Unknown;
+                m_Current_map.clear();
             }
 
             {

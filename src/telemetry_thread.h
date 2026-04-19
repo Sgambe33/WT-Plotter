@@ -68,9 +68,5 @@ private:
     std::deque<TelemetryUpdate> m_Queue;
     UpdateCallback m_Callback{nullptr};
 
-    // Caches
-    std::map<std::string, std::string> m_MapNameCache = {
-        {"3a6b992635cb471d0d435eec3f28ee815d832f0a6666412ac6dce2e80", "air_afghan_map"},
-        {"93acf3bcb73c8b04eb1426b61ffe3a3c", "avg_training_ground_tankmap"}
-    };
+    std::string m_Current_map;
 };

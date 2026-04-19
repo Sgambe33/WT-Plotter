@@ -216,6 +216,25 @@ void DrawLoadingPanel() {
     }
 }
 
+void TextCentered(const char* text) {
+    // 1. Get the width of the text
+    float text_width = ImGui::CalcTextSize(text).x;
+
+    // 2. Get the available width in the current table cell
+    float cell_width = ImGui::GetContentRegionAvail().x;
+
+    // 3. Calculate the offset to center it
+    float offset = (cell_width - text_width) * 0.5f;
+
+    // 4. Shift the cursor to the right
+    if (offset > 0.0f) {
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+    }
+
+    // 5. Draw the text
+    ImGui::TextUnformatted(text);
+}
+
 void DrawReplayDetails() {
     // Top Info Section
     ImGui::BeginGroup();
@@ -290,17 +309,38 @@ void DrawReplayDetails() {
                 ImGui::TableSetupColumn("▲");
                 ImGui::TableSetupColumn("▴"); // Deaths
 
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+
                 if (g_WtSymbolsFont) {
                     ImGui::PushFont(g_WtSymbolsFont);
-                    ImGui::TableHeadersRow();
-                    ImGui::PopFont();
-                } else {
-                    ImGui::TableHeadersRow();
                 }
+                int column_count = ImGui::TableGetColumnCount();
+                for (int column = 0; column < column_count; column++) {
+                    ImGui::TableSetColumnIndex(column);
+
+                    // Set the standard header background color
+                    ImU32 bg_color = ImGui::GetColorU32(ImGuiCol_TableHeaderBg);
+                    ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, bg_color);
+
+                    // Get the name from TableSetupColumn and draw it centered
+                    const char* column_name = ImGui::TableGetColumnName(column);
+                    ImGui::Dummy(ImVec2(0.0f, 1.0f)); // Top padding
+                    TextCentered(column_name);        // Your custom helper!
+                    ImGui::Dummy(ImVec2(0.0f, 1.0f)); // Bottom padding
+                }
+                if (g_WtSymbolsFont) {
+                    ImGui::PopFont();
+                }
+
+
+
+
+
+
                 for (int i = 0; i < 16; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("PlayerOne");
+                    TextCentered("This!");
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("1500");
                     ImGui::TableSetColumnIndex(2);
@@ -389,13 +429,19 @@ void DrawPlaybackView() {
 void Gui_OnTelemetryUpdate(const TelemetryUpdate &update) {
     g_AppState.telemetryPositions = update.positions;
     g_AppState.telemetryMapName = update.map_name;
+    bool map_changed = false;
     if (g_AppState.telemetryMapName != g_AppState.telemetryMapLastName) {
+        map_changed = true;
         g_AppState.telemetryMapZoom = 1.0f;
         g_AppState.telemetryMapPanX = 0.0f;
         g_AppState.telemetryMapPanY = 0.0f;
         g_AppState.telemetryMapLastName = g_AppState.telemetryMapName;
     }
-    ReloadTelemetryMapTexture();
+
+    const bool needs_map_texture = map_changed || g_AppState.telemetryMapTexture == nullptr;
+    if (needs_map_texture && update.player_state == TelemetryUpdate::PlayerState::InMatch) {
+        ReloadTelemetryMapTexture();
+    }
 }
 
 void Gui_TelemetryMapWindow() {
@@ -413,8 +459,6 @@ void Gui_TelemetryMapWindow() {
         }
         ImGui::SameLine();
         ImGui::TextDisabled("Wheel: zoom, Middle mouse drag: pan");
-        ImGui::Text("Map: %s", g_AppState.telemetryMapName.empty() ? "unknown" : g_AppState.telemetryMapName.c_str());
-        ImGui::Text("Points: %d", static_cast<int>(g_AppState.telemetryPositions.size()));
         ImGui::Separator();
 
         if (g_AppState.telemetryMapTexture == nullptr || g_AppState.telemetryMapWidth <= 0 || g_AppState.telemetryMapHeight <= 0) {
